@@ -1,0 +1,7 @@
+:root { color-scheme: light; font-family: system-ui, sans-serif; color: #191919; background: #fff; }
+body { margin: 0; }
+header { padding: 1rem 1.5rem; border-bottom: 1px solid #e5e5e5; }
+header a { color: inherit; font-weight: 600; text-decoration: none; }
+main { max-width: 60rem; margin: 3rem auto; padding: 0 1.5rem; }
+h1 { line-height: 1.2; }
+p { line-height: 1.6; }

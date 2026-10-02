@@ -1,0 +1,48 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{C84104A9-89CA-4DEB-8F88-D6088E0B7E2A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EbayGroup5.Core", "src\EbayGroup5.Core\EbayGroup5.Core.csproj", "{85959BD9-A979-4464-B874-15512911CD3B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EbayGroup5.Application", "src\EbayGroup5.Application\EbayGroup5.Application.csproj", "{91D1EB94-35F1-4A81-9DD8-3D25CA5A6943}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EbayGroup5.Infrastructure", "src\EbayGroup5.Infrastructure\EbayGroup5.Infrastructure.csproj", "{3E378CCC-016C-4779-90CD-85A7C42F83F9}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EbayGroup5.Web", "src\EbayGroup5.Web\EbayGroup5.Web.csproj", "{5FA6EEA6-59AB-4FD4-A932-983A6ADD5CDC}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{85959BD9-A979-4464-B874-15512911CD3B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{85959BD9-A979-4464-B874-15512911CD3B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{85959BD9-A979-4464-B874-15512911CD3B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{85959BD9-A979-4464-B874-15512911CD3B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{91D1EB94-35F1-4A81-9DD8-3D25CA5A6943}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{91D1EB94-35F1-4A81-9DD8-3D25CA5A6943}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{91D1EB94-35F1-4A81-9DD8-3D25CA5A6943}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{91D1EB94-35F1-4A81-9DD8-3D25CA5A6943}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3E378CCC-016C-4779-90CD-85A7C42F83F9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3E378CCC-016C-4779-90CD-85A7C42F83F9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3E378CCC-016C-4779-90CD-85A7C42F83F9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3E378CCC-016C-4779-90CD-85A7C42F83F9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5FA6EEA6-59AB-4FD4-A932-983A6ADD5CDC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5FA6EEA6-59AB-4FD4-A932-983A6ADD5CDC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5FA6EEA6-59AB-4FD4-A932-983A6ADD5CDC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5FA6EEA6-59AB-4FD4-A932-983A6ADD5CDC}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{85959BD9-A979-4464-B874-15512911CD3B} = {C84104A9-89CA-4DEB-8F88-D6088E0B7E2A}
+		{91D1EB94-35F1-4A81-9DD8-3D25CA5A6943} = {C84104A9-89CA-4DEB-8F88-D6088E0B7E2A}
+		{3E378CCC-016C-4779-90CD-85A7C42F83F9} = {C84104A9-89CA-4DEB-8F88-D6088E0B7E2A}
+		{5FA6EEA6-59AB-4FD4-A932-983A6ADD5CDC} = {C84104A9-89CA-4DEB-8F88-D6088E0B7E2A}
+	EndGlobalSection
+EndGlobal

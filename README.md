@@ -2,7 +2,7 @@
 
 Dự án môn C#/.NET: Chat, đánh giá, uy tín người bán và khiếu nại, kèm luồng mua hàng tối thiểu để demo độc lập.
 
-**Hiện trạng:** Đã khởi tạo Git/tài liệu A00–A01 và hoàn tất khảo sát A02; chưa có ứng dụng chạy được. Không có tài khoản demo, pipeline hoặc Docker stack được triển khai ở mốc này.
+**Hiện trạng:** A00–A03 hoàn tất; scaffold MVC .NET 8 chạy được, restore/build và HTTP smoke đã pass. Chưa có nghiệp vụ, tài khoản demo hoặc Docker stack. Xem [hướng dẫn chạy](docs/runbooks/LOCAL_SETUP.md) và [source map](docs/architecture/SOURCE_MAP.md).
 
 - [Bắt đầu/tiếp tục công việc](docs/START_HERE.md)
 - [Kế hoạch đã chốt](docs/PLAN.md)

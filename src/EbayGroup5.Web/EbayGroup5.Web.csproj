@@ -1,0 +1,6 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+  <ItemGroup>
+    <ProjectReference Include="../EbayGroup5.Application/EbayGroup5.Application.csproj" />
+    <ProjectReference Include="../EbayGroup5.Infrastructure/EbayGroup5.Infrastructure.csproj" />
+  </ItemGroup>
+</Project>

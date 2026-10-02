@@ -1,5 +1,7 @@
 # Tham chiếu giao diện — A02
 
+**Cập nhật sau A02, ngày 02/10/2026:** người dùng cung cấp U1 (panel Message seller) và chốt M1/R1/D1/D2 tìm trên Internet. Xem [gallery và quyết định](UI_CANDIDATES.md) cho C04/D02/D03/E02/E03. P1 Purchase history còn chờ; mobile/trạng thái đầy đủ chưa xác minh. Các ghi chép A02 bên dưới là lịch sử khảo sát, không phủ nhận quyết định mới này.
+
 Ngày: 02/10/2026. eBay.com tiếng Anh, trình duyệt in-app ở trạng thái chưa đăng nhập. Không coi tài liệu Help là ảnh chụp UI hiện hành.
 
 ## Phần đã quan sát trực tiếp

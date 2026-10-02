@@ -31,6 +31,7 @@
 ## Khi thiếu thông tin
 
 - Kiểm tra tài liệu/repo và nguồn eBay chính thức hoặc UI truy cập được trước khi hỏi.
+- Với ảnh UI còn thiếu: tìm Internet, trình ảnh kèm nguồn/năm để người dùng chốt trước khi dùng làm mẫu; ưu tiên nguồn chính thức. Xem UI_CANDIDATES khi task UI cần mẫu đã duyệt, không hỏi lại mẫu đã chốt.
 - Nếu không tự xác minh được nghiệp vụ hoặc UI quan trọng: báo task/màn hình, nguồn đã kiểm tra, câu hỏi cụ thể, dữ liệu người dùng cần cung cấp và phần bị ảnh hưởng.
 - Người dùng có thể gửi link, screenshot, video ngắn hoặc mô tả bước/kết quả; không cần hỏi lại quyền đề nghị bổ sung thông tin.
 - Ghi câu hỏi vào `docs/questions/INDEX.md`; tạo file chi tiết chỉ khi cần. Câu trả lời phải vào contract/ADR và task, không chỉ nằm trong chat.
