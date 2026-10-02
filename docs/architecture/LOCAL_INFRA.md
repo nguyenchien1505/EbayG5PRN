@@ -1,5 +1,7 @@
 # Contract hạ tầng local — A04
 
+Cập nhật A05: [DATABASE](DATABASE.md) bổ sung runtime login riêng. Use-LocalInfrastructure mặc định không export SA; chỉ `-Migration` export MigrationConnection cho runner/test. Database EbayGroup5 đã có baseline; các mô tả “chưa tồn tại” dưới đây là mốc A04.
+
 Ngày 02/10/2026. Dependency A03 xác minh tại commit bf72446: MVC shell, SDK/lock/build/HTTP smoke đã pass. A04 chỉ tạo SQL Server/Redis local; chưa chạy baseline/migration/seed (A05/A06), chưa container hóa Web/Nginx (F01).
 
 - Compose project `ebaygroup5-local`, network và named volumes riêng. Không dùng tên container cố định hay thao tác Docker toàn máy.

@@ -1,0 +1,8 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup><OutputType>Exe</OutputType></PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="dbup-sqlserver" Version="7.2.0" />
+    <EmbeddedResource Include="../../docs/requirements/sources/clone_ebay_sqlserver_schema.sql" LogicalName="Baseline.Source.sql" />
+    <EmbeddedResource Include="Scripts/*.sql" />
+  </ItemGroup>
+</Project>

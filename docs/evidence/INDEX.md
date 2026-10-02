@@ -11,4 +11,6 @@ Minh chứng scaffold A03: [EV-A03-01](A03.md). Restore/build và HTTP smoke pas
 
 Minh chứng infrastructure A04: [EV-A04-01](A04.md). SQL/Redis healthy, auth và volume persistence pass; schema ứng dụng/nghiệp vụ còn Pending.
 
+Minh chứng database A05: [EV-A05-01](A05.md). Baseline/EF/DbUp và 8 test SQL pass; CON-01 xác minh tại A05, CON-02 Done. Chức năng nghiệp vụ/OPS còn Pending.
+
 Mọi chức năng và OPS còn Pending. Khi thêm minh chứng: ghi requirement ID, commit, môi trường, lệnh, pass/fail, artifact và giới hạn. Không đưa log tải lớn hay secret vào repo.

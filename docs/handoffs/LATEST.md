@@ -1,30 +1,33 @@
-# Handoff — A04
+# Handoff — A05
 
-Ngày 02/10/2026. Repo D:/WINDOWS/PRN3/EbayGroup5. Commit nền bf72446; nhánh task/A04-local-infra, fast-forward main sau kiểm tra. Tìm checkpoint: `git log --oneline --grep=A04`.
+Ngày 02/10/2026. Repo D:/WINDOWS/PRN3/EbayGroup5. Commit nền c5c2064; nhánh task/A05-database, fast-forward main sau kiểm tra. Tìm checkpoint: `git log --oneline --grep=A05`.
 
 ## Đã xong
 
-- Compose project ebaygroup5-local với SQL Server 2022 CU27 Developer và Redis 7.4.11, pin tag+digest. Healthcheck, loopback ports, volumes riêng, Redis auth/AOF, hạn mức RAM/log.
-- SQL đang ở 127.0.0.1:14335, Redis 127.0.0.1:16379, cả hai healthy và để chạy cho A05. Stack khác giữ nguyên.
-- .env generated/ignored, setup không overwrite. Không in secrets. Dot-source `scripts/Use-LocalInfrastructure.ps1` để nạp connection strings vào terminal; .NET không tự đọc .env.
-- P1 đã được người dùng chốt ngày 02/10/2026. U1/M1/R1/P1/D1/D2 đều dùng được theo scope, không hỏi lại. Gallery và card B06 đã cập nhật.
+- Database EbayGroup5: 17 bảng gốc nguyên schema và dbo.SchemaVersions của DbUp, 2 journal entries. Source checksum bất biến. Không có seed demo.
+- Core/Entities 17 POCO; Infrastructure/Persistence/EbayDbContext mapping exact nullable/type/identity/FK. Web đăng ký context, không migrate/seed trong startup.
+- Console EbayGroup5.Database: source hash/preamble guard, target allowlist, application lock, transaction+journal; từ chối DB có bảng chưa journal. Không tự adopt/reset.
+- 0002 chỉ thêm role CRUD 17 bảng. Runtime login EbayGroup5App không DDL/journal; .env.database ignored/generated, không overwrite. SA chỉ export qua Use-LocalInfrastructure -Migration; default nạp runtime/Redis và bỏ admin env.
+- Scripts Initialize-Database/Test-Database và [runbook](../runbooks/DATABASE.md), [contract](../architecture/DATABASE.md), [source map](../architecture/SOURCE_MAP.md) đã cập nhật.
 
-## Đọc tiếp tối thiểu
+## Kiểm tra
 
-**A05**, task card + [contract infrastructure](../architecture/LOCAL_INFRA.md) + [runbook](../runbooks/LOCAL_INFRA.md), ADR-001, nguồn/schema/CON liên quan. [SOURCE_MAP](../architecture/SOURCE_MAP.md) chỉ dẫn files thực tế. Không nạp gallery/code cũ cho task DB.
-A05 cần thiết kế DbUp baseline/migration append-only, EF mapping đủ 17 bảng và metadata tests. Database EbayGroup5 chưa tồn tại. SA hiện chỉ bootstrap local; bổ sung account app tối thiểu quyền trước runtime hoàn chỉnh.
-SDK local 8.0.425: dot-source Use-LocalDotnet.ps1 ở mỗi terminal mới. App source vẫn scaffold A03; chưa gọi DB/Redis. Không đánh đồng Compose health với Web readiness.
+PASS 8 xUnit cases SQL thật: metadata nguồn độc lập và EF queries/roundtrip; unique email/NULL/FK/no cascade; runtime CRUD nhưng cấm DDL/journal; populated baseline upgrade + nullable addition; rerun; transaction rollback schema/data/journal; concurrency; nonempty unjournaled DB/tên đích sai bị từ chối.
+PASS Initialize lần đầu 2, lần sau 0; runtime login verified. Locked restore và Release build 0 warning/error, Web home/liveness pass; web đã dừng, SQL/Redis để healthy. Config mặc định không export admin credentials.
+Xem [EV-A05-01](../evidence/A05.md). PASS validator docs/schema: source hash/17 bảng, 39 task/status và link trong 76 Markdown; Git whitespace pass. CON-01 Verified A05 phải test lại mỗi migration; CON-02 Done; nghiệp vụ/OPS/CI còn Pending.
 
-## Kiểm tra và giới hạn
+## Tiếp theo: A06
 
-PASS Compose config quiet/up --wait, SQL SELECT 1, Redis authenticated PING + NOAUTH khi thiếu auth. Force-recreate giữ file marker SQL volume và key Redis AOF; file marker gỡ, key TTL 10 phút. Setup lần hai giữ nguyên .env; Git ignore đúng; TCP loopback và connection strings parse pass.
-Runtime SQL 16.0.4295.3 Developer, Redis 7.4.11. [Minh chứng](../evidence/A04.md) ghi digest/lệnh/giới hạn. PASS validator: checksum SQL/17 bảng, 39 task/status và link trong 72 Markdown; Git whitespace pass.
-Chưa chạy DB migration/metadata/SQL nghiệp vụ; CON-01/CON-02 và OPS còn Pending. Không build lại .NET vì không sửa source .NET.
+Seed dữ liệu demo lặp lại an toàn. Đọc card A06, DATABASE contract/runbook, entity/context khi cần và đúng SUP/requirement liên quan. Không cần đọc lại ProjectCode/gallery.
+Cần quyết định seed identity/business states và password hashes phù hợp task auth trước khi ghi; không bịa tài khoản đăng nhập hoạt động khi auth chưa có. Không sửa schema nguồn, không thêm enum/constraint làm hẹp nullable legacy. Seed không overwrite dữ liệu người dùng hoặc xóa DB.
 
-## Vận hành an toàn
+## Cách chạy và giới hạn
 
-Dừng riêng stack bằng `docker compose stop` khi không dùng. Không down -v/prune/reset hoặc đổi SA password trong .env với volume cũ. Không log Compose config đã interpolate/inspect environment. Ports đổi trong .env nếu cần; endpoint nội bộ container phải dùng service name theo contract.
+Từ repo root: docker compose up -d --wait; pwsh -NoProfile -File scripts/Initialize-Database.ps1. SDK dot-source Use-LocalDotnet.ps1, runtime config dot-source Use-LocalInfrastructure.ps1; tests chạy Test-Database.ps1.
+Test tạo riêng EbayGroup5_Test_<GUID>/login TestApp, giữ lại để chẩn đoán; không tự DROP/prune. Các DB từ lần test lỗi/đã pass vẫn tồn tại. Không chạy test thêm chỉ để lặp kết quả khi không có thay đổi.
+Migration scripts đã áp dụng không sửa; thêm version mới và cập nhật kỳ vọng journal/tests. Baseline original CloneEbayDB chỉ tên trong source; runner dùng EbayGroup5 sau khi bỏ đúng hai batch CREATE DATABASE/USE đã xác minh.
+Chưa có migration checksum ledger, drift guard runtime hoặc adoption DB legacy; bảo toàn hiện được kiểm chứng bằng tests và immutable source. A07 đưa test vào CI. Không coi health live là DB readiness.
 
 ## Còn chờ
 
-GitHub URL (A07), mapping TV1–TV5, deadline. UI mobile/profile/timeline/escalation sẽ tìm tiếp và trình khi đến task tương ứng; không chặn A05. Handoff A03 lưu riêng, không nạp lịch sử mặc định.
+GitHub URL (A07), mapping TV1–TV5, deadline. UI U1/M1/R1/P1/D1/D2 đã chốt; mobile/profile/timeline sẽ tìm và trình khi đến task UI. Không chặn A06. Handoff A04 lưu riêng, không đọc lịch sử mặc định.

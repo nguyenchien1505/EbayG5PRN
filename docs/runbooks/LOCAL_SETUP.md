@@ -2,7 +2,7 @@
 
 Chạy từ repo root bằng PowerShell 7 trên Windows x64. Chưa cần SQL Server/Redis/Docker ở checkpoint này.
 
-Sau A04, infrastructure có [runbook riêng](LOCAL_INFRA.md). Scaffold vẫn chạy độc lập; A05 mới kết nối database và migration.
+Sau A04, infrastructure có [runbook riêng](LOCAL_INFRA.md). Web shell vẫn chạy độc lập; A05 đã bổ sung DbContext/runtime config và [runbook database](DATABASE.md).
 
 ## SDK
 
@@ -33,6 +33,6 @@ pwsh -NoProfile -File scripts/Verify-Planning.ps1
 git diff --check
 ```
 
-Kỳ vọng `200`, `Healthy`, `200`. Liveness chỉ xác nhận process nhận request, không chứng minh DB/Redis sẵn sàng. Chưa có test project vì chưa có nghiệp vụ; thêm xUnit/integration tests ở task cần chúng. Không dùng `dotnet test` không có test để báo nghiệm thu.
+Kỳ vọng `200`, `Healthy`, `200`. Liveness chỉ xác nhận process nhận request, không chứng minh DB/Redis sẵn sàng. A05 đã có SQL integration tests: chạy `pwsh -NoProfile -File scripts/Test-Database.ps1`. Không dùng health smoke thay test database/nghiệp vụ.
 
 Commit `packages.lock.json` cho từng project. Khi chủ động thêm/nâng NuGet package: restore bình thường, review diff lock, rồi restore locked và build lại. Không sửa schema hoặc sinh EF migration trong setup.

@@ -1,0 +1,220 @@
+using EbayGroup5.Core.Entities;
+using Microsoft.EntityFrameworkCore;
+
+namespace EbayGroup5.Infrastructure.Persistence;
+
+public sealed class EbayDbContext(DbContextOptions<EbayDbContext> options) : DbContext(options)
+{
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<User>(entity =>
+        {
+            entity.ToTable("User", "dbo");
+            entity.HasKey(x => x.Id);
+            entity.Property(x => x.Id).HasColumnName("id").HasColumnType("int").UseIdentityColumn();
+            entity.Property(x => x.Username).HasColumnName("username").HasColumnType("nvarchar(100)").HasMaxLength(100);
+            entity.Property(x => x.Email).HasColumnName("email").HasColumnType("nvarchar(100)").HasMaxLength(100);
+            entity.HasIndex(x => x.Email).IsUnique().HasFilter(null);
+            entity.Property(x => x.Password).HasColumnName("password").HasColumnType("nvarchar(255)").HasMaxLength(255);
+            entity.Property(x => x.Role).HasColumnName("role").HasColumnType("nvarchar(20)").HasMaxLength(20);
+            entity.Property(x => x.AvatarURL).HasColumnName("avatarURL").HasColumnType("nvarchar(max)");
+        });
+        modelBuilder.Entity<Address>(entity =>
+        {
+            entity.ToTable("Address", "dbo");
+            entity.HasKey(x => x.Id);
+            entity.Property(x => x.Id).HasColumnName("id").HasColumnType("int").UseIdentityColumn();
+            entity.Property(x => x.UserId).HasColumnName("userId").HasColumnType("int");
+            entity.HasOne<User>().WithMany().HasForeignKey(x => x.UserId).OnDelete(DeleteBehavior.ClientNoAction);
+            entity.Property(x => x.FullName).HasColumnName("fullName").HasColumnType("nvarchar(100)").HasMaxLength(100);
+            entity.Property(x => x.Phone).HasColumnName("phone").HasColumnType("nvarchar(20)").HasMaxLength(20);
+            entity.Property(x => x.Street).HasColumnName("street").HasColumnType("nvarchar(100)").HasMaxLength(100);
+            entity.Property(x => x.City).HasColumnName("city").HasColumnType("nvarchar(50)").HasMaxLength(50);
+            entity.Property(x => x.State).HasColumnName("state").HasColumnType("nvarchar(50)").HasMaxLength(50);
+            entity.Property(x => x.Country).HasColumnName("country").HasColumnType("nvarchar(50)").HasMaxLength(50);
+            entity.Property(x => x.IsDefault).HasColumnName("isDefault").HasColumnType("bit");
+        });
+        modelBuilder.Entity<Category>(entity =>
+        {
+            entity.ToTable("Category", "dbo");
+            entity.HasKey(x => x.Id);
+            entity.Property(x => x.Id).HasColumnName("id").HasColumnType("int").UseIdentityColumn();
+            entity.Property(x => x.Name).HasColumnName("name").HasColumnType("nvarchar(100)").HasMaxLength(100);
+        });
+        modelBuilder.Entity<Product>(entity =>
+        {
+            entity.ToTable("Product", "dbo");
+            entity.HasKey(x => x.Id);
+            entity.Property(x => x.Id).HasColumnName("id").HasColumnType("int").UseIdentityColumn();
+            entity.Property(x => x.Title).HasColumnName("title").HasColumnType("nvarchar(255)").HasMaxLength(255);
+            entity.Property(x => x.Description).HasColumnName("description").HasColumnType("nvarchar(max)");
+            entity.Property(x => x.Price).HasColumnName("price").HasColumnType("decimal(10,2)").HasPrecision(10, 2);
+            entity.Property(x => x.Images).HasColumnName("images").HasColumnType("nvarchar(max)");
+            entity.Property(x => x.CategoryId).HasColumnName("categoryId").HasColumnType("int");
+            entity.HasOne<Category>().WithMany().HasForeignKey(x => x.CategoryId).OnDelete(DeleteBehavior.ClientNoAction);
+            entity.Property(x => x.SellerId).HasColumnName("sellerId").HasColumnType("int");
+            entity.HasOne<User>().WithMany().HasForeignKey(x => x.SellerId).OnDelete(DeleteBehavior.ClientNoAction);
+            entity.Property(x => x.IsAuction).HasColumnName("isAuction").HasColumnType("bit");
+            entity.Property(x => x.AuctionEndTime).HasColumnName("auctionEndTime").HasColumnType("datetime");
+        });
+        modelBuilder.Entity<OrderTable>(entity =>
+        {
+            entity.ToTable("OrderTable", "dbo");
+            entity.HasKey(x => x.Id);
+            entity.Property(x => x.Id).HasColumnName("id").HasColumnType("int").UseIdentityColumn();
+            entity.Property(x => x.BuyerId).HasColumnName("buyerId").HasColumnType("int");
+            entity.HasOne<User>().WithMany().HasForeignKey(x => x.BuyerId).OnDelete(DeleteBehavior.ClientNoAction);
+            entity.Property(x => x.AddressId).HasColumnName("addressId").HasColumnType("int");
+            entity.HasOne<Address>().WithMany().HasForeignKey(x => x.AddressId).OnDelete(DeleteBehavior.ClientNoAction);
+            entity.Property(x => x.OrderDate).HasColumnName("orderDate").HasColumnType("datetime");
+            entity.Property(x => x.TotalPrice).HasColumnName("totalPrice").HasColumnType("decimal(10,2)").HasPrecision(10, 2);
+            entity.Property(x => x.Status).HasColumnName("status").HasColumnType("nvarchar(20)").HasMaxLength(20);
+        });
+        modelBuilder.Entity<OrderItem>(entity =>
+        {
+            entity.ToTable("OrderItem", "dbo");
+            entity.HasKey(x => x.Id);
+            entity.Property(x => x.Id).HasColumnName("id").HasColumnType("int").UseIdentityColumn();
+            entity.Property(x => x.OrderId).HasColumnName("orderId").HasColumnType("int");
+            entity.HasOne<OrderTable>().WithMany().HasForeignKey(x => x.OrderId).OnDelete(DeleteBehavior.ClientNoAction);
+            entity.Property(x => x.ProductId).HasColumnName("productId").HasColumnType("int");
+            entity.HasOne<Product>().WithMany().HasForeignKey(x => x.ProductId).OnDelete(DeleteBehavior.ClientNoAction);
+            entity.Property(x => x.Quantity).HasColumnName("quantity").HasColumnType("int");
+            entity.Property(x => x.UnitPrice).HasColumnName("unitPrice").HasColumnType("decimal(10,2)").HasPrecision(10, 2);
+        });
+        modelBuilder.Entity<Payment>(entity =>
+        {
+            entity.ToTable("Payment", "dbo");
+            entity.HasKey(x => x.Id);
+            entity.Property(x => x.Id).HasColumnName("id").HasColumnType("int").UseIdentityColumn();
+            entity.Property(x => x.OrderId).HasColumnName("orderId").HasColumnType("int");
+            entity.HasOne<OrderTable>().WithMany().HasForeignKey(x => x.OrderId).OnDelete(DeleteBehavior.ClientNoAction);
+            entity.Property(x => x.UserId).HasColumnName("userId").HasColumnType("int");
+            entity.HasOne<User>().WithMany().HasForeignKey(x => x.UserId).OnDelete(DeleteBehavior.ClientNoAction);
+            entity.Property(x => x.Amount).HasColumnName("amount").HasColumnType("decimal(10,2)").HasPrecision(10, 2);
+            entity.Property(x => x.Method).HasColumnName("method").HasColumnType("nvarchar(50)").HasMaxLength(50);
+            entity.Property(x => x.Status).HasColumnName("status").HasColumnType("nvarchar(20)").HasMaxLength(20);
+            entity.Property(x => x.PaidAt).HasColumnName("paidAt").HasColumnType("datetime");
+        });
+        modelBuilder.Entity<ShippingInfo>(entity =>
+        {
+            entity.ToTable("ShippingInfo", "dbo");
+            entity.HasKey(x => x.Id);
+            entity.Property(x => x.Id).HasColumnName("id").HasColumnType("int").UseIdentityColumn();
+            entity.Property(x => x.OrderId).HasColumnName("orderId").HasColumnType("int");
+            entity.HasOne<OrderTable>().WithMany().HasForeignKey(x => x.OrderId).OnDelete(DeleteBehavior.ClientNoAction);
+            entity.Property(x => x.Carrier).HasColumnName("carrier").HasColumnType("nvarchar(100)").HasMaxLength(100);
+            entity.Property(x => x.TrackingNumber).HasColumnName("trackingNumber").HasColumnType("nvarchar(100)").HasMaxLength(100);
+            entity.Property(x => x.Status).HasColumnName("status").HasColumnType("nvarchar(50)").HasMaxLength(50);
+            entity.Property(x => x.EstimatedArrival).HasColumnName("estimatedArrival").HasColumnType("datetime");
+        });
+        modelBuilder.Entity<ReturnRequest>(entity =>
+        {
+            entity.ToTable("ReturnRequest", "dbo");
+            entity.HasKey(x => x.Id);
+            entity.Property(x => x.Id).HasColumnName("id").HasColumnType("int").UseIdentityColumn();
+            entity.Property(x => x.OrderId).HasColumnName("orderId").HasColumnType("int");
+            entity.HasOne<OrderTable>().WithMany().HasForeignKey(x => x.OrderId).OnDelete(DeleteBehavior.ClientNoAction);
+            entity.Property(x => x.UserId).HasColumnName("userId").HasColumnType("int");
+            entity.HasOne<User>().WithMany().HasForeignKey(x => x.UserId).OnDelete(DeleteBehavior.ClientNoAction);
+            entity.Property(x => x.Reason).HasColumnName("reason").HasColumnType("nvarchar(max)");
+            entity.Property(x => x.Status).HasColumnName("status").HasColumnType("nvarchar(20)").HasMaxLength(20);
+            entity.Property(x => x.CreatedAt).HasColumnName("createdAt").HasColumnType("datetime");
+        });
+        modelBuilder.Entity<Bid>(entity =>
+        {
+            entity.ToTable("Bid", "dbo");
+            entity.HasKey(x => x.Id);
+            entity.Property(x => x.Id).HasColumnName("id").HasColumnType("int").UseIdentityColumn();
+            entity.Property(x => x.ProductId).HasColumnName("productId").HasColumnType("int");
+            entity.HasOne<Product>().WithMany().HasForeignKey(x => x.ProductId).OnDelete(DeleteBehavior.ClientNoAction);
+            entity.Property(x => x.BidderId).HasColumnName("bidderId").HasColumnType("int");
+            entity.HasOne<User>().WithMany().HasForeignKey(x => x.BidderId).OnDelete(DeleteBehavior.ClientNoAction);
+            entity.Property(x => x.Amount).HasColumnName("amount").HasColumnType("decimal(10,2)").HasPrecision(10, 2);
+            entity.Property(x => x.BidTime).HasColumnName("bidTime").HasColumnType("datetime");
+        });
+        modelBuilder.Entity<Review>(entity =>
+        {
+            entity.ToTable("Review", "dbo");
+            entity.HasKey(x => x.Id);
+            entity.Property(x => x.Id).HasColumnName("id").HasColumnType("int").UseIdentityColumn();
+            entity.Property(x => x.ProductId).HasColumnName("productId").HasColumnType("int");
+            entity.HasOne<Product>().WithMany().HasForeignKey(x => x.ProductId).OnDelete(DeleteBehavior.ClientNoAction);
+            entity.Property(x => x.ReviewerId).HasColumnName("reviewerId").HasColumnType("int");
+            entity.HasOne<User>().WithMany().HasForeignKey(x => x.ReviewerId).OnDelete(DeleteBehavior.ClientNoAction);
+            entity.Property(x => x.Rating).HasColumnName("rating").HasColumnType("int");
+            entity.Property(x => x.Comment).HasColumnName("comment").HasColumnType("nvarchar(max)");
+            entity.Property(x => x.CreatedAt).HasColumnName("createdAt").HasColumnType("datetime");
+        });
+        modelBuilder.Entity<Message>(entity =>
+        {
+            entity.ToTable("Message", "dbo");
+            entity.HasKey(x => x.Id);
+            entity.Property(x => x.Id).HasColumnName("id").HasColumnType("int").UseIdentityColumn();
+            entity.Property(x => x.SenderId).HasColumnName("senderId").HasColumnType("int");
+            entity.HasOne<User>().WithMany().HasForeignKey(x => x.SenderId).OnDelete(DeleteBehavior.ClientNoAction);
+            entity.Property(x => x.ReceiverId).HasColumnName("receiverId").HasColumnType("int");
+            entity.HasOne<User>().WithMany().HasForeignKey(x => x.ReceiverId).OnDelete(DeleteBehavior.ClientNoAction);
+            entity.Property(x => x.Content).HasColumnName("content").HasColumnType("nvarchar(max)");
+            entity.Property(x => x.Timestamp).HasColumnName("timestamp").HasColumnType("datetime");
+        });
+        modelBuilder.Entity<Coupon>(entity =>
+        {
+            entity.ToTable("Coupon", "dbo");
+            entity.HasKey(x => x.Id);
+            entity.Property(x => x.Id).HasColumnName("id").HasColumnType("int").UseIdentityColumn();
+            entity.Property(x => x.Code).HasColumnName("code").HasColumnType("nvarchar(50)").HasMaxLength(50);
+            entity.Property(x => x.DiscountPercent).HasColumnName("discountPercent").HasColumnType("decimal(5,2)").HasPrecision(5, 2);
+            entity.Property(x => x.StartDate).HasColumnName("startDate").HasColumnType("datetime");
+            entity.Property(x => x.EndDate).HasColumnName("endDate").HasColumnType("datetime");
+            entity.Property(x => x.MaxUsage).HasColumnName("maxUsage").HasColumnType("int");
+            entity.Property(x => x.ProductId).HasColumnName("productId").HasColumnType("int");
+            entity.HasOne<Product>().WithMany().HasForeignKey(x => x.ProductId).OnDelete(DeleteBehavior.ClientNoAction);
+        });
+        modelBuilder.Entity<Inventory>(entity =>
+        {
+            entity.ToTable("Inventory", "dbo");
+            entity.HasKey(x => x.Id);
+            entity.Property(x => x.Id).HasColumnName("id").HasColumnType("int").UseIdentityColumn();
+            entity.Property(x => x.ProductId).HasColumnName("productId").HasColumnType("int");
+            entity.HasOne<Product>().WithMany().HasForeignKey(x => x.ProductId).OnDelete(DeleteBehavior.ClientNoAction);
+            entity.Property(x => x.Quantity).HasColumnName("quantity").HasColumnType("int");
+            entity.Property(x => x.LastUpdated).HasColumnName("lastUpdated").HasColumnType("datetime");
+        });
+        modelBuilder.Entity<Feedback>(entity =>
+        {
+            entity.ToTable("Feedback", "dbo");
+            entity.HasKey(x => x.Id);
+            entity.Property(x => x.Id).HasColumnName("id").HasColumnType("int").UseIdentityColumn();
+            entity.Property(x => x.SellerId).HasColumnName("sellerId").HasColumnType("int");
+            entity.HasOne<User>().WithMany().HasForeignKey(x => x.SellerId).OnDelete(DeleteBehavior.ClientNoAction);
+            entity.Property(x => x.AverageRating).HasColumnName("averageRating").HasColumnType("decimal(3,2)").HasPrecision(3, 2);
+            entity.Property(x => x.TotalReviews).HasColumnName("totalReviews").HasColumnType("int");
+            entity.Property(x => x.PositiveRate).HasColumnName("positiveRate").HasColumnType("decimal(5,2)").HasPrecision(5, 2);
+        });
+        modelBuilder.Entity<Dispute>(entity =>
+        {
+            entity.ToTable("Dispute", "dbo");
+            entity.HasKey(x => x.Id);
+            entity.Property(x => x.Id).HasColumnName("id").HasColumnType("int").UseIdentityColumn();
+            entity.Property(x => x.OrderId).HasColumnName("orderId").HasColumnType("int");
+            entity.HasOne<OrderTable>().WithMany().HasForeignKey(x => x.OrderId).OnDelete(DeleteBehavior.ClientNoAction);
+            entity.Property(x => x.RaisedBy).HasColumnName("raisedBy").HasColumnType("int");
+            entity.HasOne<User>().WithMany().HasForeignKey(x => x.RaisedBy).OnDelete(DeleteBehavior.ClientNoAction);
+            entity.Property(x => x.Description).HasColumnName("description").HasColumnType("nvarchar(max)");
+            entity.Property(x => x.Status).HasColumnName("status").HasColumnType("nvarchar(20)").HasMaxLength(20);
+            entity.Property(x => x.Resolution).HasColumnName("resolution").HasColumnType("nvarchar(max)");
+        });
+        modelBuilder.Entity<Store>(entity =>
+        {
+            entity.ToTable("Store", "dbo");
+            entity.HasKey(x => x.Id);
+            entity.Property(x => x.Id).HasColumnName("id").HasColumnType("int").UseIdentityColumn();
+            entity.Property(x => x.SellerId).HasColumnName("sellerId").HasColumnType("int");
+            entity.HasOne<User>().WithMany().HasForeignKey(x => x.SellerId).OnDelete(DeleteBehavior.ClientNoAction);
+            entity.Property(x => x.StoreName).HasColumnName("storeName").HasColumnType("nvarchar(100)").HasMaxLength(100);
+            entity.Property(x => x.Description).HasColumnName("description").HasColumnType("nvarchar(max)");
+            entity.Property(x => x.BannerImageURL).HasColumnName("bannerImageURL").HasColumnType("nvarchar(max)");
+        });
+    }
+}
