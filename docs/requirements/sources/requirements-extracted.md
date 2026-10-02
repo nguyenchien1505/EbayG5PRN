@@ -96,5 +96,3 @@ Kiểmthửvềtải, an ninhmạng: Jmetter
 
 LƯU Ý
 Đâychỉlànhữngyêucầugợi ýtốithiếucầnđạtđược (làmđủđược 80% điểm).Từngnhómcầntrảinghiệmhệthốngthựcsựvàlàmđúngtheohệthốngđãcó.
-
-

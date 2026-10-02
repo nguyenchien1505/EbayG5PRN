@@ -379,4 +379,3 @@ Bước đầu là **A00–A01**:
 5. Sau đó mới scaffold, triển khai nghiệp vụ và đồng bộ backlog báo cáo lên Jira.
 
 Việc tạo file kế hoạch này không đồng nghĩa A00/A01 đã hoàn thành, không đồng nghĩa đã khởi tạo Git, tạo issue Jira hoặc triển khai ứng dụng.
-
