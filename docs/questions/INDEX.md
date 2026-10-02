@@ -5,8 +5,11 @@
 | Q-ENV-001 | URL GitHub private repo đích | Chặn kết nối remote/CI online ở A07, không chặn Git local | Open |
 | Q-TEAM-001 | Tên/email Jira ánh xạ TV1–TV5 | Chỉ chặn gán assignee; KAN và vai trò đã chốt | Open |
 | Q-TEAM-002 | Ngày nộp/mốc giảng viên | Chưa lập lịch ngày cụ thể; không chặn task kỹ thuật | Open |
+| Q-UI-001 | Inbox và conversation eBay | Chốt UI C04 | Open |
+| Q-UI-002 | Purchase history và form review/feedback | Chốt UI B06, D02–D04 | Open |
+| Q-UI-003 | Form khiếu nại và case buyer/seller | Chốt UI E02–E03 | Open |
 
-Chưa có câu hỏi UI cần người dùng cung cấp ở A00–A01. A02 kiểm tra khả năng truy cập trước khi tạo câu hỏi cụ thể; không yêu cầu screenshot hàng loạt.
+A02 đã quan sát home/menu và đọc Help. Messages bị chặn bot; form sau mua và mobile chưa quan sát. Chi tiết ba yêu cầu: [UI-REFERENCES](UI-REFERENCES.md). Không chặn A03; không coi UI private đã chốt.
 
 Mẫu câu hỏi: ID, task/màn hình, nguồn đã kiểm tra, chưa rõ điều gì, cần link/ảnh/video/mô tả nào, phần bị chặn, phần làm tiếp được, giả định đề xuất và câu trả lời/ngày/nguồn.
 

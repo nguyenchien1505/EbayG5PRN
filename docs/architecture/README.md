@@ -8,3 +8,5 @@ Các quyết định gốc ở [ADR-001](../decisions/ADR-001-foundation.md). Ch
 - F06–F08 ghi cluster local, probes, migration Job và rollout/rollback.
 
 Tài liệu kiến trúc phải phản ánh code đã tồn tại; phần dự kiến đánh dấu rõ. Không tạo cây thư mục/symbol giả rồi dẫn agent tìm theo.
+
+A02 đã có [REFERENCE_MAP](REFERENCE_MAP.md) và [UI_REFERENCE](UI_REFERENCE.md). Đây là tài liệu khảo sát, chưa phải source tree hoặc UI đã triển khai.
