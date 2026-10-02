@@ -77,3 +77,5 @@ Không full auction, coupon, cart, seller product CRUD, quản trị toàn sàn,
 ## Đối chiếu nguồn
 
 G5/G5-N/OPS xuất phát từ [nguồn giảng viên](sources/requirements-extracted.md); SUP/CON/PERF là lựa chọn người dùng và quy tắc trong [kế hoạch](../PLAN.md). UI-01 thực hiện lưu ý trải nghiệm hệ thống thực tế của đề. Không coi mọi quy tắc giản lược trong kế hoạch là chính sách eBay thật.
+
+Ghi nhận A02: [EBAY_JOURNEYS](EBAY_JOURNEYS.md) và [UI_REFERENCE](../architecture/UI_REFERENCE.md) là bằng chứng khảo sát một phần. UI-01 vẫn Pending, Q-UI-001–003 chưa có câu trả lời.

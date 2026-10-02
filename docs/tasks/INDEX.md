@@ -6,7 +6,7 @@ Trạng thái ở đây là đầu mối theo dõi. Planned = cần kiểm tra d
 |---|---|---|---|
 | [A00](A00.md) | Tạo repo mới và quy định làm việc | — | Done |
 | [A01](A01.md) | Chuẩn hóa requirement và ma trận nghiệm thu | A00 | Done |
-| [A02](A02.md) | Bản đồ code tham khảo và ghi nhận eBay | A01 | Ready |
+| [A02](A02.md) | Bản đồ code tham khảo và ghi nhận eBay | A01 | Done |
 | [A03](A03.md) | Scaffold solution .NET 8 và khóa phiên bản | A00 | Ready |
 | [A04](A04.md) | Compose SQL Server/Redis và cấu hình local | A03 | Planned |
 | [A05](A05.md) | Baseline, migration runner, ánh xạ 17 bảng | A04 | Planned |
