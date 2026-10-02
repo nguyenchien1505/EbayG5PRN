@@ -1,6 +1,6 @@
 # Thông tin UI cần người dùng bổ sung
 
-**Cập nhật 02/10/2026:** người dùng yêu cầu tự tìm ảnh Internet và trình để chốt. Đã nhận U1 và chốt M1/R1/D1/D2; xem [gallery](../architecture/UI_CANDIDATES.md) và trạng thái mới ở [INDEX](INDEX.md). P1 chờ duyệt. Không hỏi lại các mẫu đã chốt. Các mục Open bên dưới ghi tình trạng tại A02; phần còn thiếu hiện tại là mobile, profile và timeline/escalation, tìm tiếp ở task tương ứng.
+**Cập nhật 02/10/2026:** người dùng yêu cầu tự tìm ảnh Internet và trình để chốt. Đã nhận U1 và chốt M1/R1/D1/D2; xem [gallery](../architecture/UI_CANDIDATES.md) và trạng thái mới ở [INDEX](INDEX.md). P1 cũng đã được chốt ngày 02/10/2026 qua lời nhắn trực tiếp. Không hỏi lại các mẫu đã chốt. Các mục Open bên dưới ghi tình trạng tại A02; phần còn thiếu hiện tại là mobile, profile và timeline/escalation, tìm tiếp ở task tương ứng.
 
 Mở ngày 02/10/2026 tại A02. Đã đọc eBay Help, quan sát home/menu; Messages bị chặn “Pardon Our Interruption”. Chưa quan sát form sau mua bằng tài khoản có giao dịch. Không cần cung cấp password, cookie hay tạo giao dịch/khiếu nại thật để phục vụ khảo sát.
 

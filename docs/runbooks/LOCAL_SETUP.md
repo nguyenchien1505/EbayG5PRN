@@ -2,6 +2,8 @@
 
 Chạy từ repo root bằng PowerShell 7 trên Windows x64. Chưa cần SQL Server/Redis/Docker ở checkpoint này.
 
+Sau A04, infrastructure có [runbook riêng](LOCAL_INFRA.md). Scaffold vẫn chạy độc lập; A05 mới kết nối database và migration.
+
 ## SDK
 
 Pin SDK **8.0.425**, kèm .NET/ASP.NET Core runtime **8.0.31**. Phiên bản và SHA512 được đối chiếu [metadata Microsoft .NET 8](https://builds.dotnet.microsoft.com/dotnet/release-metadata/8.0/releases.json) ngày 02/10/2026 (release 08/09/2026). `global.json` cho phép latestPatch cùng feature band; không tự nhảy SDK 10. Khi nâng patch phải cập nhật installer và kiểm tra lại lock/build.
