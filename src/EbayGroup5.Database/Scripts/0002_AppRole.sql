@@ -1,0 +1,18 @@
+CREATE ROLE [ebay_app];
+GRANT SELECT, INSERT, UPDATE, DELETE ON OBJECT::[dbo].[User] TO [ebay_app];
+GRANT SELECT, INSERT, UPDATE, DELETE ON OBJECT::[dbo].[Address] TO [ebay_app];
+GRANT SELECT, INSERT, UPDATE, DELETE ON OBJECT::[dbo].[Category] TO [ebay_app];
+GRANT SELECT, INSERT, UPDATE, DELETE ON OBJECT::[dbo].[Product] TO [ebay_app];
+GRANT SELECT, INSERT, UPDATE, DELETE ON OBJECT::[dbo].[OrderTable] TO [ebay_app];
+GRANT SELECT, INSERT, UPDATE, DELETE ON OBJECT::[dbo].[OrderItem] TO [ebay_app];
+GRANT SELECT, INSERT, UPDATE, DELETE ON OBJECT::[dbo].[Payment] TO [ebay_app];
+GRANT SELECT, INSERT, UPDATE, DELETE ON OBJECT::[dbo].[ShippingInfo] TO [ebay_app];
+GRANT SELECT, INSERT, UPDATE, DELETE ON OBJECT::[dbo].[ReturnRequest] TO [ebay_app];
+GRANT SELECT, INSERT, UPDATE, DELETE ON OBJECT::[dbo].[Bid] TO [ebay_app];
+GRANT SELECT, INSERT, UPDATE, DELETE ON OBJECT::[dbo].[Review] TO [ebay_app];
+GRANT SELECT, INSERT, UPDATE, DELETE ON OBJECT::[dbo].[Message] TO [ebay_app];
+GRANT SELECT, INSERT, UPDATE, DELETE ON OBJECT::[dbo].[Coupon] TO [ebay_app];
+GRANT SELECT, INSERT, UPDATE, DELETE ON OBJECT::[dbo].[Inventory] TO [ebay_app];
+GRANT SELECT, INSERT, UPDATE, DELETE ON OBJECT::[dbo].[Feedback] TO [ebay_app];
+GRANT SELECT, INSERT, UPDATE, DELETE ON OBJECT::[dbo].[Dispute] TO [ebay_app];
+GRANT SELECT, INSERT, UPDATE, DELETE ON OBJECT::[dbo].[Store] TO [ebay_app];

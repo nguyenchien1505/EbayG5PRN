@@ -9,7 +9,7 @@ Trạng thái ở đây là đầu mối theo dõi. Planned = cần kiểm tra d
 | [A02](A02.md) | Bản đồ code tham khảo và ghi nhận eBay | A01 | Done |
 | [A03](A03.md) | Scaffold solution .NET 8 và khóa phiên bản | A00 | Done |
 | [A04](A04.md) | Compose SQL Server/Redis và cấu hình local | A03 | Done |
-| [A05](A05.md) | Baseline, migration runner, ánh xạ 17 bảng | A04 | Planned |
+| [A05](A05.md) | Baseline, migration runner, ánh xạ 17 bảng | A04 | Done |
 | [A06](A06.md) | Seed dữ liệu demo lặp lại an toàn | A05 | Planned |
 | [A07](A07.md) | CI build/test và kiểm tra migration | A03–A06 | Planned |
 | [B01](B01.md) | Đăng ký/đăng nhập/đăng xuất | A06 | Planned |

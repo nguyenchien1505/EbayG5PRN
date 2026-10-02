@@ -25,7 +25,7 @@ Hai cổng mặc định chỉ bind loopback: SQL `127.0.0.1,14335`, Redis `127.
 dotnet run --project src/EbayGroup5.Web -c Release --no-build --no-launch-profile -- --urls http://127.0.0.1:5085
 ```
 
-Script chỉ đặt `ConnectionStrings__DefaultConnection` và `ConnectionStrings__Redis` trong terminal hiện tại, không ghi appsettings hay in password. Database `EbayGroup5` và EF mapping chưa tồn tại trước A05; Web A03 chưa dùng connection strings. SQL connection local dùng Encrypt=True/TrustServerCertificate=True, không mang cấu hình trust này sang production. SA phục vụ bootstrap; tài khoản ứng dụng giới hạn quyền sẽ bổ sung ở A05. SSMS kết nối master bằng sa/password trong .env khi cần kiểm tra trước A05; không commit/chụp password.
+Sau A05: chạy [Initialize-Database theo runbook](DATABASE.md) một lần trước khi nạp config runtime. Script mặc định đặt DefaultConnection với login EbayGroup5App và Redis, xóa MigrationConnection khỏi environment. Chỉ `-Migration` export SA cho runner/test. Không ghi appsettings hoặc in password. SQL local dùng Encrypt=True/TrustServerCertificate=True, không mang trust này sang production. Database EbayGroup5 và EF mapping đã có; Web không tự migrate. Không commit/chụp credentials.
 
 Trong network Compose, endpoint lần lượt là `sqlserver:1433`, `redis:6379`; không dùng loopback host cho container Web tương lai. Liveness Web chưa phải readiness SQL/Redis.
 
