@@ -9,4 +9,6 @@ Minh chứng khảo sát A02: [EV-A02-01](A02.md). Chỉ hoàn tất bản đồ
 
 Minh chứng scaffold A03: [EV-A03-01](A03.md). Restore/build và HTTP smoke pass; Docker/DB/nghiệp vụ còn Pending.
 
+Minh chứng infrastructure A04: [EV-A04-01](A04.md). SQL/Redis healthy, auth và volume persistence pass; schema ứng dụng/nghiệp vụ còn Pending.
+
 Mọi chức năng và OPS còn Pending. Khi thêm minh chứng: ghi requirement ID, commit, môi trường, lệnh, pass/fail, artifact và giới hạn. Không đưa log tải lớn hay secret vào repo.
