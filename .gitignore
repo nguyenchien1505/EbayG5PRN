@@ -1,0 +1,28 @@
+# .NET / IDE
+**/bin/
+**/obj/
+.vs/
+.idea/
+*.user
+*.suo
+# Secrets and local overrides
+.env
+.env.*
+!.env.example
+appsettings.Local.json
+appsettings.*.Local.json
+*.pfx
+*.p12
+*.key
+secrets/
+# Build, tests, logs and generated evidence
+artifacts/
+TestResults/
+**/TestResults/
+*.log
+logs/
+coverage/
+node_modules/
+# OS
+Thumbs.db
+.DS_Store

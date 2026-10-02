@@ -1,0 +1,17 @@
+# Phân công và Jira
+
+Project đã xác minh lúc lập kế hoạch: PRN_GROUP_5, key KAN, https://dattv.atlassian.net. Chưa tạo/sửa issue trong checkpoint A00–A01.
+
+| Vai trò | Epic dự kiến | Task liên quan | Trách nhiệm nghiệm thu |
+|---|---|---|---|
+| TV1 | Foundation and Commerce | A01, A05–A06, B01–B06 | Database, tài khoản, mua/nhận hàng |
+| TV2 | Chat and Messaging | C01–C05 | Realtime, phục hồi, nhiều instance |
+| TV3 | Reviews and Reputation | D01–D05 | Điều kiện review, công thức, kiểm duyệt |
+| TV4 | Disputes and Resolution | E01–E05 | Draft, quyền, escalation, admin |
+| TV5 | DevOps and Quality | A00, A02–A04, A07, F01–G02 | Hạ tầng, kiểm thử, tổng hợp báo cáo |
+
+Mỗi Epic có task phân tích/contract, triển khai, kiểm thử và bàn giao. Các task Jira ánh xạ nhiều task coding nhỏ; không tự gán account theo tên gần giống.
+
+Khi đồng bộ Jira: đọc skill backlog phù hợp, kiểm tra issue có sẵn, loại issue/trạng thái/field thực tế, sau đó tạo hoặc cập nhật theo phạm vi người dùng đã duyệt. Lưu key thật và liên kết ở file mapping. Assignee Unassigned tới khi có Q-TEAM-001.
+
+Done cần bằng chứng; không bịa giờ làm, ngày, review hay tên tác giả. Codex hỗ trợ coding; thành viên phụ trách kiểm tra, hiểu module và trình bày. Mỗi người chuẩn bị kịch bản và giải thích phần mình.

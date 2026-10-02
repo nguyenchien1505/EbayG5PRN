@@ -1,0 +1,10 @@
+* text=auto eol=lf
+*.md text eol=lf
+*.ps1 text eol=lf
+*.cs text eol=lf
+*.csproj text eol=lf
+*.json text eol=lf
+*.yml text eol=lf
+*.yaml text eol=lf
+# Preserve the supplied SQL bytes, including line endings, for checksum verification.
+docs/requirements/sources/clone_ebay_sqlserver_schema.sql -text
