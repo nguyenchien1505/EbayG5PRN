@@ -1,0 +1,5 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <ItemGroup>
+    <ProjectReference Include="../EbayGroup5.Core/EbayGroup5.Core.csproj" />
+  </ItemGroup>
+</Project>

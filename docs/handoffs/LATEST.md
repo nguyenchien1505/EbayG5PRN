@@ -1,34 +1,28 @@
-# Handoff — A02
+# Handoff — A03
 
-Ngày 02/10/2026. Repo: D:/WINDOWS/PRN3/EbayGroup5.
-Commit nền: afe134c. Nhánh làm việc: task/A02-reference-audit; checkpoint fast-forward vào main sau kiểm tra. Tìm commit bằng `git log --oneline --grep=A02`.
+Ngày 02/10/2026. Repo D:/WINDOWS/PRN3/EbayGroup5. Commit nền 33be053; nhánh task/A03-scaffold, fast-forward main sau kiểm tra. Tìm checkpoint bằng `git log --oneline --grep=A03`.
 
 ## Đã xong
 
-- REFERENCE_MAP: đường dẫn/symbol code nhóm 5 và nguồn bổ sung; điểm nên học và lỗi không kế thừa.
-- EBAY_JOURNEYS: chat trước/sau mua, review/feedback, chưa nhận hàng/return/escalation; phân biệt DOC, UI-PARTIAL, UNVERIFIED và CLONE.
-- UI_REFERENCE: quan sát home/menu, không xác nhận private UI hoặc mobile.
-- Q-UI-001–003 ghi yêu cầu inbox, form feedback và case buyer/seller. Không có câu trả lời/ảnh từ người dùng ở checkpoint này.
-- Task/index A02 Done; UI-01 và chức năng runtime vẫn Pending. Không đổi stack/scope/contract nghiệp vụ đã chốt.
-
-## Giới hạn khảo sát
-
-Messages bị eBay chặn bot. Không vượt chặn, không tạo giao dịch/tin nhắn/khiếu nại thật. Screenshot chỉ xem trong công cụ, không lưu file artifact. Không coi Help là bằng chứng pixel UI.
-Code cũ chỉ đọc tĩnh; không chạy appsettings hoặc nhập secret vào tài liệu.
+- Scaffold bốn project .NET 8, MVC shell, static CSS, `/health/live`; project references đúng chiều.
+- SDK 8.0.425 cài riêng user, runtime 8.0.31; SDK 10 hệ thống giữ nguyên. global.json và NuGet lock files được commit.
+- [LOCAL_SETUP](../runbooks/LOCAL_SETUP.md) có lệnh setup/restore/build/run/smoke; [SOURCE_MAP](../architecture/SOURCE_MAP.md) là bản đồ source thực tế.
+- Người dùng đã chốt U1 Message seller + M1 inbox, R1 feedback, D1/D2 returns. [Gallery](../architecture/UI_CANDIDATES.md) có nguồn và ảnh; P1 Purchase history mới tìm còn chờ duyệt. Không tự mở rộng scope theo icon/action trong ảnh.
+- Quy định mới: ảnh còn thiếu tự tìm Internet, trình cho người dùng chốt. Không hỏi lại mẫu đã duyệt, không commit raw screenshot có dữ liệu tài khoản.
 
 ## Kiểm tra
 
-PASS: validator xác minh SQL checksum/17 bảng, 39 task/index, requirement IDs và link trong 63 file Markdown. Git whitespace check không báo lỗi. Kiểm tra 19 đường dẫn tham khảo: đều tồn tại.
-Không có dotnet test/build hoặc SQL runtime test vì chưa scaffold.
+PASS SDK 8.0.425, restore locked, Release build (0 warning/error), HTTP home/liveness/CSS. Đã dừng web sau smoke, không còn listener port 5085. Chi tiết [EV-A03-01](../evidence/A03.md).
+PASS validator: checksum SQL/17 bảng, 39 task đồng nhất, requirement IDs và link trong 68 Markdown; Git whitespace pass. Không có test nghiệp vụ/DB vì chưa triển khai; yêu cầu runtime vẫn Pending.
 
 ## Tiếp theo
 
-**A03**, đọc task card A03 và các đầu vào tối thiểu của card. Không cần nạp lại toàn bộ tài liệu A02 để scaffold.
-Bổ sung .NET 8 song song SDK hiện có, pin phiên bản đã xác minh, solution/layers và smoke web theo card. Không làm A04/A05 trong cùng phiên nếu chỉ được yêu cầu một task.
+**A04** — Compose SQL Server/Redis và local config. Card còn Planned: đọc card/ADR/CON liên quan, cụ thể hóa contract trong task rồi triển khai. Không cần nạp tài liệu UI hoặc code cũ.
+Đọc LOCAL_SETUP khi chạy dotnet; dot-source `scripts/Use-LocalDotnet.ps1` trong mỗi terminal mới vì PATH hệ thống vẫn là SDK 10.
+Chưa có auth/EF/DbUp/connection string/Redis hoặc HTTPS. AllowedHosts chỉ localhost/127.0.0.1; khi thêm container phải cấu hình rõ theo môi trường. Không lấy liveness làm readiness.
 
-## Thông tin còn chờ
+## Còn chờ
 
-GitHub remote, tài khoản TV1–TV5, deadline và Q-UI-001–003. Không chặn A03.
-Khi làm C04/D02/E02 cần đọc câu hỏi UI tương ứng và câu trả lời nếu có; không coi im lặng là duyệt layout tự nghĩ ra.
+GitHub private URL (A07), mapping TV1–TV5, deadline. P1 chờ lựa chọn; mobile/profile/timeline chưa đủ bằng chứng và cần tìm tiếp khi làm task UI tương ứng. Các mẫu đã chốt không phải ảnh eBay 2026 được xác minh tuyệt đối.
 
-Handoff A00–A01 đã lưu riêng, không cần đọc mặc định.
+Handoff A02 lưu riêng; không nạp lịch sử mặc định.

@@ -1,0 +1,22 @@
+{
+  "version": 1,
+  "dependencies": {
+    "net8.0": {
+      "ebaygroup5.application": {
+        "type": "Project",
+        "dependencies": {
+          "EbayGroup5.Core": "[1.0.0, )"
+        }
+      },
+      "ebaygroup5.core": {
+        "type": "Project"
+      },
+      "ebaygroup5.infrastructure": {
+        "type": "Project",
+        "dependencies": {
+          "EbayGroup5.Application": "[1.0.0, )"
+        }
+      }
+    }
+  }
+}
