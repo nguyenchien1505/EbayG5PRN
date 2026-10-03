@@ -16,3 +16,5 @@ Mẫu câu hỏi: ID, task/màn hình, nguồn đã kiểm tra, chưa rõ điề
 Khi có trả lời, cập nhật contract/ADR và task liên quan, đánh dấu Answered hoặc Deferred. Không để câu trả lời chỉ tồn tại trong chat. Hết thời gian chờ không phải xác nhận.
 
 Q-UI-004 (B01, Answered 03/10/2026): S1 register đã chốt; L1 dùng ảnh eBay Welcome back user gửi sau, thay ảnh Agent Router gửi nhầm. Scope email/password giữ nguyên; không social/reset/Stay signed in. Không lưu ảnh/email cá nhân vào repo.
+
+Q-UI-005 (B04, Open 03/10/2026): đề xuất PD1 từ https://www.ebay.com.hk/import/newtoebay (không ghi năm), ảnh https://ir.ebaystatic.com/pictures/hk/new-to-ebay/P3-6.png đã trình trong chat. Chờ chốt bản giản lược ảnh trái/thông tin phải, Contact seller theo U1. Tiếp tục query/API/test độc lập; chưa áp dụng UI đề xuất.

@@ -11,6 +11,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllersWithViews(options => options.Filters.Add(new AutoValidateAntiforgeryTokenAttribute()));
 builder.Services.AddScoped<AccountService>();
+builder.Services.AddScoped<EbayGroup5.Application.Catalog.ICatalogService, EbayGroup5.Infrastructure.Catalog.CatalogService>();
 builder.Services.AddScoped<AccessCookieEvents>();
 builder.Services.AddSingleton<AdminNetwork>();
 builder.Services.AddSingleton<IAuthorizationHandler, AccountOwnerHandler>();
@@ -68,6 +69,7 @@ app.UseAuthorization();
 
 // Process liveness only. Database/Redis readiness is added with infrastructure.
 app.MapGet("/health/live", () => Results.Text("Healthy", "text/plain"));
+app.MapControllers();
 app.MapControllerRoute("default", "{controller=Home}/{action=Index}/{id?}");
 
 app.Run();
