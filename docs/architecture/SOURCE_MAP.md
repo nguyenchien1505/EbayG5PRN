@@ -1,6 +1,6 @@
 # Bản đồ source hiện tại
 
-Checkpoint A05. Chỉ mở phần tương ứng task; baseline và mapping có, chưa có seed/nghiệp vụ/auth.
+Checkpoint A06. Baseline/mapping và demo seed có; chưa có nghiệp vụ/auth.
 
 | Đường dẫn từ repo root | Trách nhiệm |
 |---|---|
@@ -25,3 +25,5 @@ Web tham chiếu Application + Infrastructure, đăng ký DbContext nhưng khôn
 Lệnh chạy: [LOCAL_SETUP](../runbooks/LOCAL_SETUP.md). Thêm đường dẫn test thực tế vào đây khi tạo test project.
 
 SQL/Redis: [runbook](../runbooks/LOCAL_INFRA.md). Database: [contract](DATABASE.md), [lệnh migrate/test](../runbooks/DATABASE.md). A06 đọc đúng phần seed/DB này; không đọc lại cả dự án.
+
+Seed: `src/EbayGroup5.Database/DemoSeedRunner.cs`, `Seed/v1.sql`, `scripts/Seed-Demo.ps1`; tests `DemoSeedTests.cs`. Contract [DEMO_SEED](DEMO_SEED.md).

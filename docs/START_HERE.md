@@ -1,16 +1,16 @@
 # Bắt đầu ở đây
 
-**Checkpoint:** A00–A05 hoàn tất; SQL baseline 17 bảng, EF mapping, DbUp và 8 test SQL pass. App runtime dùng login riêng; chưa seed demo/nghiệp vụ.
+**Checkpoint:** A00–A06 hoàn tất; SQL baseline 17 bảng, EF mapping, DbUp và 12 test SQL pass. Demo seed đã có, password NULL; chưa auth/nghiệp vụ.
 
 1. Đọc [quy định agent](../AGENTS.md) và [handoff mới nhất](handoffs/LATEST.md).
 2. Xem [task index](tasks/INDEX.md), chọn đúng task được yêu cầu.
-3. Task tiếp theo: **[A06](tasks/A06.md)** — seed dữ liệu demo lặp lại an toàn. Đọc [contract DB](architecture/DATABASE.md) và [runbook DB](runbooks/DATABASE.md) trước khi sửa.
+3. Task tiếp theo: **[A07](tasks/A07.md)** — CI build/test và kiểm tra migration. Seed có [contract](architecture/DEMO_SEED.md) và [runbook DB](runbooks/DATABASE.md).
 
 Các quyết định cố định: .NET 8 MVC/Razor; SQL Server; schema chỉ mở rộng; viết mới; UI tiếng Anh; repo riêng; GitHub private; Jira KAN; demo local Docker/K8s. Xem [ADR-001](decisions/ADR-001-foundation.md) khi cần lý do.
 
 - [Ma trận yêu cầu](requirements/MATRIX.md): chỉ đọc những ID liên quan task.
 - [Nguồn và checksum](requirements/SOURCES.md): dùng khi đối chiếu yêu cầu/schema.
-- [Câu hỏi đang mở](questions/INDEX.md): GitHub remote, thành viên, deadline; UI đã chốt U1/M1/R1/P1/D1/D2. Không chặn A06.
+- [Câu hỏi đang mở](questions/INDEX.md): GitHub remote, thành viên, deadline; UI đã chốt U1/M1/R1/P1/D1/D2. Không chặn công việc local; remote/CI cần GitHub URL.
 - [Phân công](team/OWNERSHIP.md): Jira chưa tạo issue.
 
 Kiểm tra tài liệu: `pwsh -NoProfile -File scripts/Verify-Planning.ps1` từ repo root. Build/run: [LOCAL_SETUP](runbooks/LOCAL_SETUP.md); SQL/Redis: [LOCAL_INFRA](runbooks/LOCAL_INFRA.md). Tra source: [SOURCE_MAP](architecture/SOURCE_MAP.md).

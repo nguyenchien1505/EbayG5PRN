@@ -14,3 +14,5 @@ Minh chứng infrastructure A04: [EV-A04-01](A04.md). SQL/Redis healthy, auth v�
 Minh chứng database A05: [EV-A05-01](A05.md). Baseline/EF/DbUp và 8 test SQL pass; CON-01 xác minh tại A05, CON-02 Done. Chức năng nghiệp vụ/OPS còn Pending.
 
 Mọi chức năng và OPS còn Pending. Khi thêm minh chứng: ghi requirement ID, commit, môi trường, lệnh, pass/fail, artifact và giới hạn. Không đưa log tải lớn hay secret vào repo.
+
+Minh chứng seed A06: [EV-A06-01](A06.md). 12 SQL cases pass, seed local created/rerun skipped; auth và SUP vẫn Pending.

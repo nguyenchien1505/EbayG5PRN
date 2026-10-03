@@ -50,7 +50,7 @@ Status `Pending` nghĩa là chưa triển khai/chưa nghiệm thu. Task tài li�
 
 | ID | Quy tắc | Task | Nghiệm thu | Status |
 |---|---|---|---|---|
-| CON-01 | Chỉ mở rộng schema gốc, giữ 17 bảng và constraint | A05, A07, mọi task DB | Checksum nguồn + metadata baseline sau migration DB rỗng/có dữ liệu; EV-A05-01 | Verified A05 |
+| CON-01 | Chỉ mở rộng schema gốc, giữ 17 bảng và constraint | A05, A07, mọi task DB | Checksum nguồn + metadata baseline sau migration DB rỗng/có dữ liệu; EV-A05-01, EV-A06-01 | Verified A06 |
 | CON-02 | .NET 8 MVC/Razor, SQL Server, viết mới | A03–A05 | Build đúng framework; SQL/EF/DbUp chạy thật; EV-A05-01 | Done |
 | CON-03 | Git riêng, commit theo checkpoint | A00 và xuyên suốt | Git local, ignore, commit thật; không secret/giả tác giả | Established |
 | CON-04 | Task nhỏ, đọc theo nhu cầu, bàn giao | A00–A01 và xuyên suốt | AGENTS, START_HERE, task cards, handoff, kiểm tra docs | Established |
@@ -59,7 +59,7 @@ Status `Pending` nghĩa là chưa triển khai/chưa nghiệm thu. Task tài li�
 | PERF-01 | Ngưỡng tải/latency nội bộ | F05, F08 | Theo mục tiêu bên dưới, ghi cấu hình máy và dữ liệu đo | Pending |
 | DOC-01 | Báo cáo, demo và bàn giao | G01–G02 | Mỗi yêu cầu có bằng chứng; setup từ clone sạch; mỗi thành viên giải thích module | Pending |
 
-`Established` chỉ áp dụng quy tắc làm việc đã được thiết lập, không khẳng định đã tuân thủ trong các task tương lai. CON-01 Verified A05: [metadata/upgrade tests](../evidence/A05.md) đã pass cho baseline hiện tại; bắt buộc chạy lại với mỗi migration và bổ sung CI ở A07, không suy ra tương lai đã pass.
+`Established` chỉ áp dụng quy tắc làm việc đã được thiết lập, không khẳng định đã tuân thủ trong các task tương lai. CON-01 Verified A06: [metadata/upgrade và seed tests](../evidence/A06.md) đã pass cho baseline hiện tại; bắt buộc chạy lại với mỗi migration và bổ sung CI ở A07, không suy ra tương lai đã pass.
 
 ## Mục tiêu PERF-01 và giới hạn
 

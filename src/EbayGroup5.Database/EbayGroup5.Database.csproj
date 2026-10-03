@@ -4,5 +4,6 @@
     <PackageReference Include="dbup-sqlserver" Version="7.2.0" />
     <EmbeddedResource Include="../../docs/requirements/sources/clone_ebay_sqlserver_schema.sql" LogicalName="Baseline.Source.sql" />
     <EmbeddedResource Include="Scripts/*.sql" />
+    <EmbeddedResource Include="Seed/v1.sql" LogicalName="DemoSeed.v1.sql" />
   </ItemGroup>
 </Project>
