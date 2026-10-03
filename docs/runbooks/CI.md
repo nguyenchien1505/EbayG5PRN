@@ -21,6 +21,6 @@ Không sửa SQL nguồn hoặc script đã phát hành. Thêm version mới và
 
 ## Kết nối GitHub
 
-03/10/2026: người dùng yêu cầu tự tạo private repo bằng plugin GitHub. Plugin xác nhận tài khoản Twiash nhưng không có capability tạo repository. `gh auth status` báo chưa đăng nhập; trình duyệt cũng ở trang login. Cần người dùng hoàn tất `gh auth login --hostname github.com --git-protocol https --web` (không gửi token vào chat). Sau đó tạo private EbayGroup5, xác minh owner/visibility, thêm remote theo URL trả về, push checkpoint và kiểm tra Actions run thật.
+03/10/2026: đã tạo private repo [Twiash/EbayGroup5](https://github.com/Twiash/EbayGroup5) theo yêu cầu người dùng, xác minh owner/visibility và nối origin. Plugin không có create-repository nên dùng gh sau khi người dùng đăng nhập. Main đã push; xem [evidence A07](../evidence/A07.md) cho kết quả run.
 
 Chỉ khi run GitHub thành công mới đánh dấu acceptance A07 pipeline đầu tiên. Local pass không chứng minh runner Ubuntu hoặc artifact upload đã chạy. OPS-03 còn cần CD ở F07.

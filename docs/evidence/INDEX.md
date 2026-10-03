@@ -17,4 +17,4 @@ Mọi chức năng và OPS còn Pending. Khi thêm minh chứng: ghi requirement
 
 Minh chứng seed A06: [EV-A06-01](A06.md). 12 SQL cases pass, seed local created/rerun skipped; auth và SUP vẫn Pending.
 
-Minh chứng CI A07: [EV-A07-01](A07.md). Local entry point/12 SQL tests và actionlint pass; GitHub run đang chờ login.
+Minh chứng CI A07: [EV-A07-01](A07.md). Local entry point/12 SQL tests/actionlint và GitHub Actions Ubuntu run pass, TRX đã upload; CD vẫn Pending.

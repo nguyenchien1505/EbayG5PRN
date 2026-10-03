@@ -1,6 +1,6 @@
 # CI contract — A07
 
-03/10/2026; nền a5e4129. A03–A06 xác minh qua commits, global.json/lock files, scripts và 12 SQL tests. Git remote chưa có: người dùng đã giao tự tạo private repo bằng GitHub; plugin login Twiash không có tool tạo repo, chờ CLI login (Q-ENV-001). Không chặn triển khai local.
+03/10/2026; nền a5e4129. A03–A06 xác minh qua commits, global.json/lock files, scripts và 12 SQL tests. Git remote: [Twiash/EbayGroup5](https://github.com/Twiash/EbayGroup5), private, tạo theo yêu cầu người dùng 03/10/2026 bằng gh sau khi người dùng đăng nhập. Q-ENV-001 đã giải quyết.
 
 - GitHub Actions push main/task branches, pull_request main và manual dispatch; Ubuntu 24.04 hosted runner, không self-hosted/pull_request_target/deploy. Token chỉ contents:read; checkout không giữ credential, actions pin commit SHA.
 - SDK lấy global.json; locked restore, Release build, documentation/source integrity và SQL tests bằng cùng scripts/Test-CI.ps1. Không phụ thuộc script SDK Windows hoặc .env local ở CI.

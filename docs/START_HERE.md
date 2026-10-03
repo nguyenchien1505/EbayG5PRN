@@ -1,16 +1,16 @@
 # Bắt đầu ở đây
 
-**Checkpoint:** A00–A06 hoàn tất; SQL baseline 17 bảng, EF mapping, DbUp và 12 test SQL pass. Demo seed đã có, password NULL; chưa auth/nghiệp vụ.
+**Checkpoint:** A00–A07 hoàn tất; SQL baseline 17 bảng, EF mapping, DbUp và 12 test SQL pass. CI GitHub đã pass. Demo seed đã có, password NULL; chưa auth/nghiệp vụ.
 
 1. Đọc [quy định agent](../AGENTS.md) và [handoff mới nhất](handoffs/LATEST.md).
 2. Xem [task index](tasks/INDEX.md), chọn đúng task được yêu cầu.
-3. Đang làm **[A07](tasks/A07.md)** — workflow/local CI đã pass; chờ GitHub CLI login để tự tạo private repo và nghiệm thu online. Đọc [CI runbook](runbooks/CI.md).
+3. Task tiếp theo: **[B01](tasks/B01.md)** — đăng ký/đăng nhập/đăng xuất. Đọc [DEMO_SEED](architecture/DEMO_SEED.md) về password NULL và card B01 trước khi triển khai.
 
 Các quyết định cố định: .NET 8 MVC/Razor; SQL Server; schema chỉ mở rộng; viết mới; UI tiếng Anh; repo riêng; GitHub private; Jira KAN; demo local Docker/K8s. Xem [ADR-001](decisions/ADR-001-foundation.md) khi cần lý do.
 
 - [Ma trận yêu cầu](requirements/MATRIX.md): chỉ đọc những ID liên quan task.
 - [Nguồn và checksum](requirements/SOURCES.md): dùng khi đối chiếu yêu cầu/schema.
-- [Câu hỏi đang mở](questions/INDEX.md): GitHub remote, thành viên, deadline; UI đã chốt U1/M1/R1/P1/D1/D2. Người dùng đã giao tự tạo private repo; chờ CLI login, không hỏi lại URL.
+- [Câu hỏi đang mở](questions/INDEX.md): thành viên, deadline; UI đã chốt U1/M1/R1/P1/D1/D2. GitHub private repo [Twiash/EbayGroup5](https://github.com/Twiash/EbayGroup5) đã nối origin.
 - [Phân công](team/OWNERSHIP.md): Jira chưa tạo issue.
 
 Kiểm tra tài liệu: `pwsh -NoProfile -File scripts/Verify-Planning.ps1` từ repo root. Build/run: [LOCAL_SETUP](runbooks/LOCAL_SETUP.md); SQL/Redis: [LOCAL_INFRA](runbooks/LOCAL_INFRA.md). Tra source: [SOURCE_MAP](architecture/SOURCE_MAP.md).
