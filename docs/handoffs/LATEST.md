@@ -24,3 +24,5 @@ Cookie chưa revoke bản copy sau logout, shared Data Protection keys/HTTPS pro
 
 GitHub private Twiash/EbayGroup5 origin. SDK . scripts/Use-LocalDotnet.ps1; config . scripts/Use-LocalInfrastructure.ps1; Development cho HTTP loopback. Initialize/seed/Enable-DemoAuth riêng, không startup migration/seed. Giữ .env.auth riêng tư.
 SQL/Redis local healthy; immutable SQL checksum 4 assets. UI U1/M1/R1/P1/D1/D2/S1/L1 đã chốt. TV1–TV5/deadline còn chờ. Handoff A07 lưu riêng.
+
+CI B01 [run 37089342922](https://github.com/Twiash/EbayGroup5/actions/runs/37089342922) tại 2bd5df2 pass trên Ubuntu, 18 tests và artifact upload success; checkpoint tài liệu sau run không đổi runtime.
