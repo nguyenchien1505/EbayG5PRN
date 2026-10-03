@@ -1,27 +1,26 @@
-# Handoff — A07 hoàn tất
+# Handoff — B01
 
-Ngày 03/10/2026. Repo D:/WINDOWS/PRN3/EbayGroup5. Commit nền e4371a5; nhánh task/A07-ci, fast-forward main sau kiểm tra. Tìm checkpoint `git log --oneline --grep=A07`.
+03/10/2026. Repo D:/WINDOWS/PRN3/EbayGroup5. Nền 553f266, task/B01-auth; merge fast-forward main sau kiểm tra. Checkpoint: git log --oneline --grep=B01.
 
-## Đã xong
+## Hoàn tất
 
-- Private repo [Twiash/EbayGroup5](https://github.com/Twiash/EbayGroup5) đã tạo theo yêu cầu người dùng bằng gh (plugin không có create-repository), owner/visibility đã xác minh. Origin đã nối; main được push. Q-ENV-001 Answered.
-- Workflow `.github/workflows/ci.yml`: main/task push, PR main, manual; Ubuntu 24.04, SDK global.json, pin action SHA, contents:read, TRX 7 ngày. Không deploy.
-- Test-CI.ps1: docs/hash, locked restore/build, SQL container riêng GUID/random port/password, 12 tests; finally stop và khôi phục env. Không đọc .env hoặc dùng DB demo.
-- Verify-Migrations + manifest khóa 4 SQL assets; không phải DB checksum ledger. Verify-Planning bỏ qua artifacts ignored, kiểm tra tracked và untracked docs của repo.
+- [AUTH](../architecture/AUTH.md), [runbook](../runbooks/AUTH.md), [evidence](../evidence/B01.md).
+- AccountService: normalized email, Buyer-only register, PasswordHasher V3 210k iterations; NULL/malformed/unknown role từ chối; generic login failure, compare-and-update rehash. Không schema/source/seed change.
+- Cookie HttpOnly/Lax/Secure production, 30 phút/nonpersistent; antiforgery POST toàn MVC; local redirect, claim ID/name/role từ SQL. Forms DTO riêng.
+- Register S1 và Login L1, success notice/error/password clearing, Me view và Sign out POST; navigation hoạt động. Q-UI-004 Answered: ảnh eBay Welcome back user gửi thay ảnh Agent Router nhầm. Không commit ảnh/email cá nhân; không social/reset/persistent login.
+- DemoCredentials + Enable-DemoAuth.ps1: sinh .env.auth ignored, password riêng cho ba role, chỉ NULL/đúng identity/A06 journal, transaction/no-overwrite. Local enabled 3 rồi rerun 0; không đưa secrets vào chat.
 
 ## Kiểm chứng
 
-PASS [GitHub run 37086665404](https://github.com/Twiash/EbayGroup5/actions/runs/37086665404) tại e4371a5: job 2m8s, Ubuntu build 0 warning/error, 12/12 SQL tests (13s), docs/hash pass. Artifact sql-test-results ID 11261170975 upload success, retention 7 ngày.
-PASS local CI 12 tests; actionlint 1.7.12; negative checksum/new-version fixture checks; docs validator và git diff --check.
-Run có annotation upload-artifact v4 Node 20 được runner ép Node 24; upload success, theo dõi nâng action trong bảo trì. Không đổi code sau run, checkpoint tiếp theo cập nhật tài liệu nghiệm thu.
-[EV-A07-01](../evidence/A07.md), [CI contract](../architecture/CI.md), [runbook](../runbooks/CI.md). A07 Done, CON-01 Verified A07; OPS-03 Pending vì CD F07 chưa triển khai.
+18 SQL/HTTP cases pass, locked restore/build; docs/hash/whitespace pass. Browser register→login Buyer→logout pass; mobile login 390px ổn. Một user Browser Test hư cấu giữ trong demo DB; preview đã dừng. Ảnh local artifacts/b01/login-mobile.png ignored.
+SQL tests tiếp tục giữ DB riêng, không DROP/prune/reset. NuGet Mvc.Testing 8.0.31 cùng test project A07 để CI chạy đủ 18.
 
-## Tiếp theo: B01
+## Tiếp theo B02
 
-Chỉ triển khai khi được yêu cầu: đọc card B01 và đúng dependency/contract, đặc biệt [DEMO_SEED](../architecture/DEMO_SEED.md). Demo password NULL, chưa đăng nhập được; phải từ chối NULL và thiết kế cấp credential riêng. Chưa auth/UI nghiệp vụ.
-Không tự làm toàn backlog. UI U1/M1/R1/P1/D1/D2 đã chốt; chỉ nạp mẫu liên quan khi cần UI. Mapping TV1–TV5 và deadline còn chờ.
+Đọc card B02 và AUTH, đúng requirement/source cần thiết; không nạp toàn repo/PLAN. B02 bổ sung authorization policies/object checks và security/chống abuse. SUP-01 vẫn Pending tới B02; UI-01 vẫn Pending toàn dự án.
+Cookie chưa revoke bản copy sau logout, shared Data Protection keys/HTTPS proxy ở F01/F02; không social/reset/email verification. Không tự làm toàn backlog.
 
 ## Vận hành
 
-SDK Windows: dot-source scripts/Use-LocalDotnet.ps1. Local CI: pwsh -NoProfile -File scripts/Test-CI.ps1; cần Docker Linux. Test container/DB local giữ lại để chẩn đoán, không DROP/prune/reset volume. SQL/Redis demo vẫn healthy.
-Database EbayGroup5 đã seed A06-v1, giữ 17 bảng/constraints. Seed-Demo chạy riêng, transaction/lock/journal, không overwrite. App config: Use-LocalInfrastructure; initialize/seed theo runbook DATABASE. Handoff A06 lưu riêng; diễn biến CI local có trong evidence A07.
+GitHub private Twiash/EbayGroup5 origin. SDK . scripts/Use-LocalDotnet.ps1; config . scripts/Use-LocalInfrastructure.ps1; Development cho HTTP loopback. Initialize/seed/Enable-DemoAuth riêng, không startup migration/seed. Giữ .env.auth riêng tư.
+SQL/Redis local healthy; immutable SQL checksum 4 assets. UI U1/M1/R1/P1/D1/D2/S1/L1 đã chốt. TV1–TV5/deadline còn chờ. Handoff A07 lưu riêng.

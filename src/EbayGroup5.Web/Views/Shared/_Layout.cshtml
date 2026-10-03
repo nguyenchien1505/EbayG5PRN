@@ -7,7 +7,19 @@
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
 </head>
 <body>
-    <header><a asp-controller="Home" asp-action="Index">eBay Clone · Group 5</a></header>
+    <header><a asp-controller="Home" asp-action="Index">eBay Clone · Group 5</a>
+        <nav aria-label="Account">
+            @if (User.Identity?.IsAuthenticated == true)
+            {
+                <a asp-controller="Account" asp-action="Me">Your account</a>
+            }
+            else
+            {
+                <a asp-controller="Account" asp-action="Login">Sign in</a>
+                <a asp-controller="Account" asp-action="Register">Register</a>
+            }
+        </nav>
+    </header>
     <main id="main-content">@RenderBody()</main>
 </body>
 </html>

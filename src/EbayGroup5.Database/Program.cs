@@ -2,10 +2,18 @@ using EbayGroup5.Database;
 
 try
 {
-    if (args.Length > 1 || (args.Length == 1 && args[0] != "--seed-demo"))
-        throw new ArgumentException("Supported option: --seed-demo.");
+    if (args.Length > 1 || (args.Length == 1 && args[0] is not ("--seed-demo" or "--enable-demo-auth")))
+        throw new ArgumentException("Supported options: --seed-demo, --enable-demo-auth.");
     var connection = Environment.GetEnvironmentVariable("ConnectionStrings__MigrationConnection")
         ?? throw new InvalidOperationException("MigrationConnection is required.");
+    if (args.Length == 1 && args[0] == "--enable-demo-auth")
+    {
+        var passwords = new[] { "Buyer", "Seller", "Admin" }.ToDictionary(role => role,
+            role => Environment.GetEnvironmentVariable("Database__DemoPassword" + role) ?? "");
+        var enabled = DemoCredentials.Enable(connection, passwords);
+        Console.WriteLine($"Enabled {enabled} demo credential(s); existing passwords preserved.");
+        return 0;
+    }
     if (args.Length == 1)
     {
         Console.WriteLine(DemoSeedRunner.Run(connection)

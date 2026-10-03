@@ -1,0 +1,20 @@
+@model EbayGroup5.Web.Models.LoginForm
+@{ ViewData["Title"] = "Sign in"; }
+<section class="account-card login-card" aria-labelledby="login-title">
+    <h1 id="login-title">Welcome back!</h1>
+    <p>Sign in to your account.</p>
+    @if (TempData["AccountNotice"] is string notice)
+    {
+        <p class="account-notice" role="status">@notice</p>
+    }
+    <form asp-action="Login" method="post">
+        <div asp-validation-summary="All" class="validation-summary" role="alert"></div>
+        <input asp-for="ReturnUrl" type="hidden" />
+        <label asp-for="Email"></label>
+        <input asp-for="Email" type="email" autocomplete="username" maxlength="100" required />
+        <label asp-for="Password"></label>
+        <input asp-for="Password" autocomplete="current-password" maxlength="128" required />
+        <button class="account-submit" type="submit">Sign in</button>
+    </form>
+    <p class="account-alternative">New here? <a asp-action="Register">Create an account</a></p>
+</section>

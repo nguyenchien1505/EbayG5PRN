@@ -29,3 +29,5 @@ SQL/Redis: [runbook](../runbooks/LOCAL_INFRA.md). Database: [contract](DATABASE.
 Seed: `src/EbayGroup5.Database/DemoSeedRunner.cs`, `Seed/v1.sql`, `scripts/Seed-Demo.ps1`; tests `DemoSeedTests.cs`. Contract [DEMO_SEED](DEMO_SEED.md).
 
 CI A07: `.github/workflows/ci.yml`, `scripts/Test-CI.ps1`, `scripts/Verify-Migrations.ps1`, `scripts/migration-checksums.json`. [Contract CI](CI.md).
+
+B01: Infrastructure/Authentication/AccountService; Web/Controllers/AccountController, Models/AccountForms, Views/Account (Register/Login/Me); Database/DemoCredentials; scripts/Enable-DemoAuth.ps1; AccountServiceTests/AccountHttpTests. [AUTH](AUTH.md).

@@ -42,3 +42,5 @@ Ngày: 02/10/2026. eBay.com tiếng Anh, trình duyệt in-app ở trạng thái
 Task UI phải cập nhật file này bằng nguồn/ảnh thật hoặc ghi rõ thiết kế giản lược đã được người dùng chấp nhận. Không tự đánh dấu UI-01 Done khi chỉ có skeleton đẹp.
 
 Xem [hành trình](../requirements/EBAY_JOURNEYS.md), [bản đồ code cũ](REFERENCE_MAP.md) và [câu hỏi cần bổ sung](../questions/UI-REFERENCES.md).
+
+B01 03/10/2026: Q-UI-004 user chốt S1 từ [Shopify 28/05/2026](https://www.shopify.com/blog/sell-on-ebay), bản giản lược display name/email/password và Buyer only. L1 đã chốt ảnh eBay Welcome back user gửi 03/10/2026 thay ảnh Agent Router gửi nhầm. Form hẹp, nền trắng; clone dùng email/password, không social/reset/persistent session. Không đưa ảnh/email cá nhân vào Git.
