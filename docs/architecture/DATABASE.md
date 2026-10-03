@@ -10,6 +10,6 @@
 - Migration SQL tương lai phải append-only theo ý nghĩa nghiệp vụ, không sửa script đã áp dụng. Không tự adopt database kỳ trước; cần task đối chiếu metadata riêng trước khi nhập dữ liệu.
 - Test SQL thật trên database mới tên EbayGroup5_Test_<random>; tạo reference bằng DDL gốc độc lập, so sánh metadata normalized (bỏ tên constraint SQL tự sinh), model EF và query đủ bảng. Kiểm tra rerun với dữ liệu, unique/FK, rollback migration lỗi và quyền runtime. Giữ DB test để kiểm tra, không tự DROP/reset volume.
 
-Các bảng chỉ dành cho migration/reference/test chưa phải seed demo. A06 mới tạo dữ liệu demo an toàn. Test bảo toàn baseline cần chạy lại sau mỗi migration mở rộng; so sánh baseline là subset để cho phép cột/bảng/index thêm mới.
+A06 thêm migration 0003 tạo dbo.DemoSeedHistory, không cấp quyền app; seed chạy riêng theo [DEMO_SEED](DEMO_SEED.md). Test bảo toàn baseline cần chạy lại sau mỗi migration mở rộng; so sánh baseline là subset để cho phép cột/bảng/index thêm mới.
 
 Nguồn API: [DbUp usage](https://dbup.readthedocs.io/en/latest/usage/), [transactions](https://dbup.readthedocs.io/en/latest/more-info/transactions/), [EF property mapping](https://learn.microsoft.com/en-us/ef/core/modeling/entity-properties), [delete behavior](https://learn.microsoft.com/en-us/ef/core/saving/cascade-delete).
