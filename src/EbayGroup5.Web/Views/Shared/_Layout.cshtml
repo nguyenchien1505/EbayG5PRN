@@ -7,19 +7,45 @@
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
 </head>
 <body>
-    <header><a asp-controller="Home" asp-action="Index">eBay Clone · Group 5</a>
-        <nav aria-label="Account">
+    <a class="skip-link" href="#main-content">Skip to main content</a>
+    <header class="site-header">
+        <div class="utility-row shell-width">
+        <div class="greeting">
             @if (User.Identity?.IsAuthenticated == true)
             {
-                <a asp-controller="Account" asp-action="Me">Your account</a>
+                <span>Hi, <a asp-controller="Account" asp-action="Me">@User.Identity.Name</a>!</span>
             }
             else
             {
-                <a asp-controller="Account" asp-action="Login">Sign in</a>
-                <a asp-controller="Account" asp-action="Register">Register</a>
+                <span>Hi! <a asp-controller="Account" asp-action="Login">Sign in</a> or <a asp-controller="Account" asp-action="Register">register</a></span>
             }
+        </div>
+        <nav aria-label="Account">
+            <details class="account-menu">
+                <summary>My eBay</summary>
+                <div class="menu-panel">
+                    <a asp-controller="Account" asp-action="Me">Your account</a>
+                    @if (User.Identity?.IsAuthenticated != true)
+                    {
+                        <a asp-controller="Account" asp-action="Register">Create an account</a>
+                    }
+                </div>
+            </details>
         </nav>
+        </div>
+        <div class="brand-row shell-width">
+            <a class="wordmark" asp-controller="Home" asp-action="Index" aria-label="eBay Clone home"><span>e</span><span>b</span><span>a</span><span>y</span></a>
+            @if (!string.Equals(ViewContext.RouteData.Values["controller"]?.ToString(), "Account", StringComparison.OrdinalIgnoreCase))
+            {
+                <form class="site-search" asp-controller="Home" asp-action="Search" method="get" role="search">
+                    <label class="sr-only" for="site-query">Search for anything</label>
+                    <input id="site-query" type="search" name="q" maxlength="100" value="@ViewData["SearchQuery"]" placeholder="Search for anything" />
+                    <button class="button primary" type="submit">Search</button>
+                </form>
+            }
+        </div>
     </header>
-    <main id="main-content">@RenderBody()</main>
+    <main id="main-content" class="shell-width" tabindex="-1">@RenderBody()</main>
+    <footer class="site-footer"><div class="shell-width">eBay Clone · Group 5 <span>Educational demo. Not affiliated with eBay.</span></div></footer>
 </body>
 </html>

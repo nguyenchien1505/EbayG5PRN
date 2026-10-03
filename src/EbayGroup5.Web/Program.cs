@@ -50,6 +50,8 @@ app.UseExceptionHandler(handler => handler.Run(context =>
             title: "An unexpected error occurred.").ExecuteAsync(context)));
 
 app.UseStaticFiles();
+app.UseWhen(context => HttpMethods.IsGet(context.Request.Method), branch =>
+    branch.UseStatusCodePagesWithReExecute("/Home/Status", "?code={0}"));
 app.UseRouting();
 app.UseRateLimiter();
 app.UseAuthentication();

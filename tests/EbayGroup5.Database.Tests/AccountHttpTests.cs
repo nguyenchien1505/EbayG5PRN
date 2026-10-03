@@ -142,6 +142,24 @@ public sealed class AccountHttpTests
     }
 
     [Fact]
+    public async Task Shell_search_encodes_query_validates_length_and_preserves_http_errors()
+    {
+        using var factory = new Factory(SqlFixture.NewTarget());
+        using var client = factory.CreateClient(new() { AllowAutoRedirect = false });
+        var query = "<script>alert(1)</script>";
+        var search = await client.GetStringAsync("/Home/Search?q=" + Uri.EscapeDataString(query));
+        Assert.Contains("Search is coming soon", search);
+        Assert.Contains("&lt;script&gt;", search);
+        Assert.DoesNotContain(query, search);
+        Assert.Equal(HttpStatusCode.BadRequest, (await client.GetAsync("/Home/Search?q=" + new string('a', 101))).StatusCode);
+        var missing = await client.GetAsync("/Home/ThisPageDoesNotExist");
+        Assert.Equal(HttpStatusCode.NotFound, missing.StatusCode);
+        Assert.Contains("We looked everywhere.", await missing.Content.ReadAsStringAsync());
+        Assert.Equal(HttpStatusCode.Redirect, (await client.GetAsync("/Account/Me")).StatusCode);
+        Assert.Equal(HttpStatusCode.BadRequest, (await client.PostAsync("/Account/Login", new FormUrlEncodedContent(new Dictionary<string,string>()))).StatusCode);
+    }
+
+    [Fact]
     public async Task Cookie_login_local_redirect_csrf_and_logout_work_over_http()
     {
         var target = SqlFixture.NewTarget();

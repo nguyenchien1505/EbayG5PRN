@@ -44,3 +44,5 @@ Task UI phải cập nhật file này bằng nguồn/ảnh thật hoặc ghi rõ
 Xem [hành trình](../requirements/EBAY_JOURNEYS.md), [bản đồ code cũ](REFERENCE_MAP.md) và [câu hỏi cần bổ sung](../questions/UI-REFERENCES.md).
 
 B01 03/10/2026: Q-UI-004 user chốt S1 từ [Shopify 28/05/2026](https://www.shopify.com/blog/sell-on-ebay), bản giản lược display name/email/password và Buyer only. L1 đã chốt ảnh eBay Welcome back user gửi 03/10/2026 thay ảnh Agent Router gửi nhầm. Form hẹp, nền trắng; clone dùng email/password, không social/reset/persistent session. Không đưa ảnh/email cá nhân vào Git.
+
+B03 03/10/2026: shell triển khai theo bố cục public A02, bản giản lược responsive. Desktop/home và mobile login/404 390px đã xem; home không tràn ngang ở 390/320px. My eBay keyboard và search navigation pass. [Evidence B03](../evidence/B03.md); UI-01 vẫn Pending toàn dự án.

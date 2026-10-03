@@ -14,7 +14,7 @@ Trạng thái ở đây là đầu mối theo dõi. Planned = cần kiểm tra d
 | [A07](A07.md) | CI build/test và kiểm tra migration | A03–A06 | Done |
 | [B01](B01.md) | Đăng ký/đăng nhập/đăng xuất | A06 | Done |
 | [B02](B02.md) | Authorization, CSRF và xử lý lỗi | B01 | Done |
-| [B03](B03.md) | Khung giao diện eBay và điều hướng | A03 | Planned |
+| [B03](B03.md) | Khung giao diện eBay và điều hướng | A03 | Done |
 | [B04](B04.md) | Catalog và product detail | A06, B03 | Planned |
 | [B05](B05.md) | Buy Now, địa chỉ và COD mô phỏng | B02, B04 | Planned |
 | [B06](B06.md) | Lịch sử mua/bán và giao/nhận | B05 | Planned |
