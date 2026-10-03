@@ -16,3 +16,5 @@ Minh chứng database A05: [EV-A05-01](A05.md). Baseline/EF/DbUp và 8 test SQL 
 Mọi chức năng và OPS còn Pending. Khi thêm minh chứng: ghi requirement ID, commit, môi trường, lệnh, pass/fail, artifact và giới hạn. Không đưa log tải lớn hay secret vào repo.
 
 Minh chứng seed A06: [EV-A06-01](A06.md). 12 SQL cases pass, seed local created/rerun skipped; auth và SUP vẫn Pending.
+
+Minh chứng CI A07: [EV-A07-01](A07.md). Local entry point/12 SQL tests và actionlint pass; GitHub run đang chờ login.

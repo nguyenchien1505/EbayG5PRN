@@ -27,3 +27,5 @@ Lệnh chạy: [LOCAL_SETUP](../runbooks/LOCAL_SETUP.md). Thêm đường dẫn 
 SQL/Redis: [runbook](../runbooks/LOCAL_INFRA.md). Database: [contract](DATABASE.md), [lệnh migrate/test](../runbooks/DATABASE.md). A06 đọc đúng phần seed/DB này; không đọc lại cả dự án.
 
 Seed: `src/EbayGroup5.Database/DemoSeedRunner.cs`, `Seed/v1.sql`, `scripts/Seed-Demo.ps1`; tests `DemoSeedTests.cs`. Contract [DEMO_SEED](DEMO_SEED.md).
+
+CI A07: `.github/workflows/ci.yml`, `scripts/Test-CI.ps1`, `scripts/Verify-Migrations.ps1`, `scripts/migration-checksums.json`. [Contract CI](CI.md).

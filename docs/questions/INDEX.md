@@ -2,7 +2,7 @@
 
 | ID | Cần biết | Ảnh hưởng | Trạng thái |
 |---|---|---|---|
-| Q-ENV-001 | URL GitHub private repo đích | Chặn kết nối remote/CI online ở A07, không chặn Git local | Open |
+| Q-ENV-001 | Tạo private repo EbayGroup5 theo yêu cầu 03/10/2026; plugin login Twiash không có create-repository, chờ gh auth login | Chặn tạo remote/CI online A07; pipeline local đã pass | Partial: user đã giao tự tạo repo, chờ xác thực CLI |
 | Q-TEAM-001 | Tên/email Jira ánh xạ TV1–TV5 | Chỉ chặn gán assignee; KAN và vai trò đã chốt | Open |
 | Q-TEAM-002 | Ngày nộp/mốc giảng viên | Chưa lập lịch ngày cụ thể; không chặn task kỹ thuật | Open |
 | Q-UI-001 | Inbox và conversation eBay | Chốt UI C04 | Answered: U1 + M1 desktop; mobile/trạng thái bổ sung khi làm C04 |
