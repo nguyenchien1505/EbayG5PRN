@@ -41,7 +41,10 @@ foreach ($family in @(@('G5-',8), @('G5-N',5), @('OPS-',6), @('SUP-',5))) {
     }
 }
 
-$markdownFiles = @(Get-ChildItem -LiteralPath $root -Recurse -File -Filter '*.md' | Where-Object { $_.FullName -notmatch '[\\/]\.git[\\/]' })
+# Validate repository documents, excluding ignored tool downloads/build artifacts.
+$markdownPaths = @(git -C $root ls-files --cached --others --exclude-standard -- '*.md')
+if ($LASTEXITCODE -ne 0) { throw 'Cannot enumerate repository documentation.' }
+$markdownFiles = @($markdownPaths | ForEach-Object { Get-Item -LiteralPath (Join-Path $root $_) })
 foreach ($file in $markdownFiles) {
     $content = Get-Content -LiteralPath $file.FullName -Raw -Encoding utf8
     Assert-Planning (-not $content.Contains([char]0xFFFD)) "Invalid Unicode replacement in $($file.Name)"
