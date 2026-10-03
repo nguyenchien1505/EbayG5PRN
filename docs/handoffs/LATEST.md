@@ -20,3 +20,5 @@ No subagents. One task per continuation. No fake links into future orders/messag
 ## Vận hành
 
 Private origin Twiash/EbayGroup5; gh authenticated. SDK . scripts/Use-LocalDotnet.ps1; . scripts/Use-LocalInfrastructure.ps1 loads config without exposing values. Local SQL/Redis and isolated test DBs retained. .env.auth contains local demo credentials, ignored. No secret output. Preview stop after verification. F01/F02 proxy trust/HTTPS/shared keys/distributed limiting remain Pending; TV1–TV5/deadline questions open.
+
+PASS GitHub CI Ubuntu [run 37114724015](https://github.com/Twiash/EbayGroup5/actions/runs/37114724015) tại 7dbfa5f: build/tests/TRX upload thành công, job 1m45s. Verify-Planning, Verify-Migrations và git diff --check pass; preview đã dừng.
