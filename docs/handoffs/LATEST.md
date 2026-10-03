@@ -1,28 +1,21 @@
-# Handoff — B01
+# Handoff — B02
 
-03/10/2026. Repo D:/WINDOWS/PRN3/EbayGroup5. Nền 553f266, task/B01-auth; merge fast-forward main sau kiểm tra. Checkpoint: git log --oneline --grep=B01.
+03/10/2026. Repo D:/WINDOWS/PRN3/EbayGroup5. Baseline 6e920e8; task/B02-security, fast-forward main after checks. Checkpoint: git log --oneline --grep=B02.
 
 ## Hoàn tất
 
-- [AUTH](../architecture/AUTH.md), [runbook](../runbooks/AUTH.md), [evidence](../evidence/B01.md).
-- AccountService: normalized email, Buyer-only register, PasswordHasher V3 210k iterations; NULL/malformed/unknown role từ chối; generic login failure, compare-and-update rehash. Không schema/source/seed change.
-- Cookie HttpOnly/Lax/Secure production, 30 phút/nonpersistent; antiforgery POST toàn MVC; local redirect, claim ID/name/role từ SQL. Forms DTO riêng.
-- Register S1 và Login L1, success notice/error/password clearing, Me view và Sign out POST; navigation hoạt động. Q-UI-004 Answered: ảnh eBay Welcome back user gửi thay ảnh Agent Router nhầm. Không commit ảnh/email cá nhân; không social/reset/persistent login.
-- DemoCredentials + Enable-DemoAuth.ps1: sinh .env.auth ignored, password riêng cho ba role, chỉ NULL/đúng identity/A06 journal, transaction/no-overwrite. Local enabled 3 rồi rerun 0; không đưa secrets vào chat.
+- [SECURITY contract](../architecture/SECURITY.md), [evidence](../evidence/B02.md). B01 handoff archived in B01.md.
+- Account Details loads SQL resource; own only, foreign/missing 404. Buyer/Seller/AdminDemo policies; Admin direct-IP gate on authenticated requests defaults loopback IPv4/IPv6; missing IP denied, no trusted forwarded headers.
+- Cookie DB validation each request: role changes/deleted user/NULL credential invalidate session. Forbidden 403; generic exception response in all environments.
+- Login/register POST combined rate 10/minute/direct-IP/process; no queue, 429; global antiforgery retained.
+- 28 SQL/HTTP tests pass; build zero warnings/errors. No schema or seed changes. SUP-01 Done; SUP-02–05/UI-01 Pending.
 
-## Kiểm chứng
+## Giới hạn
 
-18 SQL/HTTP cases pass, locked restore/build; docs/hash/whitespace pass. Browser register→login Buyer→logout pass; mobile login 390px ổn. Một user Browser Test hư cấu giữ trong demo DB; preview đã dừng. Ảnh local artifacts/b01/login-mobile.png ignored.
-SQL tests tiếp tục giữ DB riêng, không DROP/prune/reset. NuGet Mvc.Testing 8.0.31 cùng test project A07 để CI chạy đủ 18.
+Admin policy probes are test-only; no business admin screen added. Order/chat/dispute ownership checks belong to later tasks. Proxy trust, HTTPS, shared keys, distributed limiting F01/F02. Copied cookie after logout/password change is not globally revoked.
 
-## Tiếp theo B02
+## Tiếp theo
 
-Đọc card B02 và AUTH, đúng requirement/source cần thiết; không nạp toàn repo/PLAN. B02 bổ sung authorization policies/object checks và security/chống abuse. SUP-01 vẫn Pending tới B02; UI-01 vẫn Pending toàn dự án.
-Cookie chưa revoke bản copy sau logout, shared Data Protection keys/HTTPS proxy ở F01/F02; không social/reset/email verification. Không tự làm toàn backlog.
+B03 shell/navigation; read its card and A03 UI contracts. Correct L1 is eBay Welcome back supplied by user, not mistaken Agent Router image; S1 approved. No need ask again. No subagents; one task per continuation.
 
-## Vận hành
-
-GitHub private Twiash/EbayGroup5 origin. SDK . scripts/Use-LocalDotnet.ps1; config . scripts/Use-LocalInfrastructure.ps1; Development cho HTTP loopback. Initialize/seed/Enable-DemoAuth riêng, không startup migration/seed. Giữ .env.auth riêng tư.
-SQL/Redis local healthy; immutable SQL checksum 4 assets. UI U1/M1/R1/P1/D1/D2/S1/L1 đã chốt. TV1–TV5/deadline còn chờ. Handoff A07 lưu riêng.
-
-CI B01 [run 37089342922](https://github.com/Twiash/EbayGroup5/actions/runs/37089342922) tại 2bd5df2 pass trên Ubuntu, 18 tests và artifact upload success; checkpoint tài liệu sau run không đổi runtime.
+GitHub private Twiash/EbayGroup5 origin; gh authenticated. SDK . scripts/Use-LocalDotnet.ps1; local config . scripts/Use-LocalInfrastructure.ps1. SQL/Redis local retained; .env.auth contains separate local demo credentials, ignored. Never print secrets. Test databases retained. TV1–TV5/deadline questions remain open.

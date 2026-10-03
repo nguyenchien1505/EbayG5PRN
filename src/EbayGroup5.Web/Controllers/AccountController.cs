@@ -5,6 +5,10 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using EbayGroup5.Infrastructure.Persistence;
+using EbayGroup5.Core.Entities;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.RateLimiting;
 
 namespace EbayGroup5.Web.Controllers;
 
@@ -14,7 +18,7 @@ public sealed class AccountController(AccountService accounts) : Controller
     [HttpGet]
     public IActionResult Login(string? returnUrl) => View(new LoginForm { ReturnUrl = Url.IsLocalUrl(returnUrl) ? returnUrl : null });
 
-    [HttpPost]
+    [HttpPost, EnableRateLimiting("Auth")]
     public async Task<IActionResult> Login(LoginForm form)
     {
         var account = ModelState.IsValid ? await accounts.LoginAsync(form.Email, form.Password) : null;
@@ -38,7 +42,7 @@ public sealed class AccountController(AccountService accounts) : Controller
     [HttpGet]
     public IActionResult Register() => View(new RegisterForm());
 
-    [HttpPost]
+    [HttpPost, EnableRateLimiting("Auth")]
     public async Task<IActionResult> Register(RegisterForm form)
     {
         if (ModelState.IsValid && await accounts.RegisterAsync(form.Name, form.Email, form.Password))
@@ -54,6 +58,15 @@ public sealed class AccountController(AccountService accounts) : Controller
 
     [Authorize, HttpGet]
     public IActionResult Me() => View();
+
+    [Authorize, HttpGet]
+    public async Task<IActionResult> Details(int id, [FromServices] EbayDbContext db, [FromServices] IAuthorizationService authorization)
+    {
+        var account = await db.Set<User>().AsNoTracking().SingleOrDefaultAsync(x => x.Id == id, HttpContext.RequestAborted);
+        if (account == null || !(await authorization.AuthorizeAsync(User, account, "AccountOwner")).Succeeded)
+            return NotFound();
+        return View("Me");
+    }
 
     [Authorize, HttpPost]
     public async Task<IActionResult> Logout()
