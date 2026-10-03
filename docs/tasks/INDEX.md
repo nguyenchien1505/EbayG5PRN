@@ -12,7 +12,7 @@ Trạng thái ở đây là đầu mối theo dõi. Planned = cần kiểm tra d
 | [A05](A05.md) | Baseline, migration runner, ánh xạ 17 bảng | A04 | Done |
 | [A06](A06.md) | Seed dữ liệu demo lặp lại an toàn | A05 | Done |
 | [A07](A07.md) | CI build/test và kiểm tra migration | A03–A06 | Done |
-| [B01](B01.md) | Đăng ký/đăng nhập/đăng xuất | A06 | Planned |
+| [B01](B01.md) | Đăng ký/đăng nhập/đăng xuất | A06 | Done |
 | [B02](B02.md) | Authorization, CSRF và xử lý lỗi | B01 | Planned |
 | [B03](B03.md) | Khung giao diện eBay và điều hướng | A03 | Planned |
 | [B04](B04.md) | Catalog và product detail | A06, B03 | Planned |

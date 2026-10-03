@@ -14,3 +14,5 @@ A02 đã quan sát home/menu và đọc Help. Ngày 02/10/2026 người dùng g�
 Mẫu câu hỏi: ID, task/màn hình, nguồn đã kiểm tra, chưa rõ điều gì, cần link/ảnh/video/mô tả nào, phần bị chặn, phần làm tiếp được, giả định đề xuất và câu trả lời/ngày/nguồn.
 
 Khi có trả lời, cập nhật contract/ADR và task liên quan, đánh dấu Answered hoặc Deferred. Không để câu trả lời chỉ tồn tại trong chat. Hết thời gian chờ không phải xác nhận.
+
+Q-UI-004 (B01, Answered 03/10/2026): S1 register đã chốt; L1 dùng ảnh eBay Welcome back user gửi sau, thay ảnh Agent Router gửi nhầm. Scope email/password giữ nguyên; không social/reset/Stay signed in. Không lưu ảnh/email cá nhân vào repo.

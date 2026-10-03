@@ -1,10 +1,10 @@
 # Bắt đầu ở đây
 
-**Checkpoint:** A00–A07 hoàn tất; SQL baseline 17 bảng, EF mapping, DbUp và 12 test SQL pass. CI GitHub đã pass. Demo seed đã có, password NULL; chưa auth/nghiệp vụ.
+**Checkpoint:** A00–A07 hoàn tất; SQL baseline 17 bảng, EF mapping, DbUp và 12 test SQL pass. CI GitHub đã pass. B01 auth hoàn tất, 18 SQL/HTTP tests pass; demo credential local đã enable riêng.
 
 1. Đọc [quy định agent](../AGENTS.md) và [handoff mới nhất](handoffs/LATEST.md).
 2. Xem [task index](tasks/INDEX.md), chọn đúng task được yêu cầu.
-3. Task tiếp theo: **[B01](tasks/B01.md)** — đăng ký/đăng nhập/đăng xuất. Đọc [DEMO_SEED](architecture/DEMO_SEED.md) về password NULL và card B01 trước khi triển khai.
+3. Task tiếp theo **[B02](tasks/B02.md)** — authorization, CSRF và xử lý lỗi. Đọc [AUTH contract](architecture/AUTH.md) và handoff để biết phần B01 đã làm.
 
 Các quyết định cố định: .NET 8 MVC/Razor; SQL Server; schema chỉ mở rộng; viết mới; UI tiếng Anh; repo riêng; GitHub private; Jira KAN; demo local Docker/K8s. Xem [ADR-001](decisions/ADR-001-foundation.md) khi cần lý do.
 

@@ -2,6 +2,24 @@
 body { margin: 0; }
 header { padding: 1rem 1.5rem; border-bottom: 1px solid #e5e5e5; }
 header a { color: inherit; font-weight: 600; text-decoration: none; }
+header { display: flex; flex-wrap: wrap; gap: 1rem; justify-content: space-between; }
+header nav { display: flex; gap: 1rem; }
 main { max-width: 60rem; margin: 3rem auto; padding: 0 1.5rem; }
 h1 { line-height: 1.2; }
 p { line-height: 1.6; }
+.account-card { max-width: 26rem; margin: 4rem auto; }
+.account-card h1 { font-size: 2rem; margin-bottom: .75rem; }
+.account-card label { display: block; font-weight: 600; margin: 1.25rem 0 .5rem; }
+.account-card input { box-sizing: border-box; width: 100%; border: 1px solid #767676; border-radius: .5rem; background: #f7f7f7; padding: .9rem; font: inherit; }
+.account-card input:focus { outline: 3px solid #3665f3; outline-offset: 2px; }
+.field-help { color: #555; font-size: .875rem; }
+.account-submit { width: 100%; border: 0; border-radius: 1.75rem; padding: 1rem; margin-top: 1rem; background: #3665f3; color: white; font: inherit; font-weight: 600; cursor: pointer; }
+.account-submit:hover { background: #2448bf; }
+.validation-summary { color: #a11b0a; }
+.validation-summary-valid { display: none; }
+.login-card { max-width: 22rem; }
+.login-card h1 { font-size: 1.75rem; }
+.account-alternative { text-align: center; font-size: .9rem; margin-top: 1.5rem; }
+.account-card a { color: #2448bf; }
+.account-notice { padding: .75rem; background: #edf6ed; border-radius: .5rem; }
+@media (max-width: 480px) { main { margin-top: 1.5rem; padding: 0 1rem; } .account-card { margin: 2rem auto; } }

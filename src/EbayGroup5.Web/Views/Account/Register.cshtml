@@ -1,0 +1,18 @@
+@model EbayGroup5.Web.Models.RegisterForm
+@{ ViewData["Title"] = "Create an account"; }
+<section class="account-card" aria-labelledby="account-title">
+    <h1 id="account-title">Create an account</h1>
+    <p>Join the marketplace with a personal account.</p>
+    <form asp-action="Register" method="post">
+        <div asp-validation-summary="All" class="validation-summary" role="alert"></div>
+        <label asp-for="Name"></label>
+        <input asp-for="Name" autocomplete="nickname" maxlength="100" required />
+        <label asp-for="Email"></label>
+        <input asp-for="Email" autocomplete="email" type="email" maxlength="100" required />
+        <label asp-for="Password"></label>
+        <input asp-for="Password" autocomplete="new-password" minlength="12" maxlength="128" aria-describedby="password-help" required />
+        <p id="password-help" class="field-help">Use 12–128 characters. Choose a password you don't use elsewhere.</p>
+        <button type="submit" class="account-submit">Create personal account</button>
+    </form>
+    <p class="account-alternative">Already have an account? <a asp-action="Login">Sign in</a></p>
+</section>

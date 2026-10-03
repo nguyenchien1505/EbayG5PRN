@@ -1,0 +1,9 @@
+@using System.Security.Claims
+@{ ViewData["Title"] = "Your account"; }
+<section class="account-card" aria-labelledby="account-title">
+    <h1 id="account-title">Welcome, @User.Identity?.Name</h1>
+    <p>You are signed in as @User.FindFirstValue(ClaimTypes.Role).</p>
+    <form asp-action="Logout" method="post">
+        <button type="submit" class="account-submit">Sign out</button>
+    </form>
+</section>
