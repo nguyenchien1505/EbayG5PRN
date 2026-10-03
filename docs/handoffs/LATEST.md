@@ -19,3 +19,5 @@ Admin policy probes are test-only; no business admin screen added. Order/chat/di
 B03 shell/navigation; read its card and A03 UI contracts. Correct L1 is eBay Welcome back supplied by user, not mistaken Agent Router image; S1 approved. No need ask again. No subagents; one task per continuation.
 
 GitHub private Twiash/EbayGroup5 origin; gh authenticated. SDK . scripts/Use-LocalDotnet.ps1; local config . scripts/Use-LocalInfrastructure.ps1. SQL/Redis local retained; .env.auth contains separate local demo credentials, ignored. Never print secrets. Test databases retained. TV1–TV5/deadline questions remain open.
+
+PASS GitHub Actions Ubuntu [run 37114282385](https://github.com/Twiash/EbayGroup5/actions/runs/37114282385) tại 1dd0922: build/test và TRX upload thành công, job 1m58s. Verify-Planning, Verify-Migrations và git diff --check pass.
