@@ -31,3 +31,5 @@ Seed: `src/EbayGroup5.Database/DemoSeedRunner.cs`, `Seed/v1.sql`, `scripts/Seed-
 CI A07: `.github/workflows/ci.yml`, `scripts/Test-CI.ps1`, `scripts/Verify-Migrations.ps1`, `scripts/migration-checksums.json`. [Contract CI](CI.md).
 
 B01: Infrastructure/Authentication/AccountService; Web/Controllers/AccountController, Models/AccountForms, Views/Account (Register/Login/Me); Database/DemoCredentials; scripts/Enable-DemoAuth.ps1; AccountServiceTests/AccountHttpTests. [AUTH](AUTH.md).
+
+B04 backend checkpoint: Application/Catalog DTO + ICatalogService; Infrastructure/Catalog EF queries; Web/Controllers/CatalogApiController; CatalogTests. UI pending Q-UI-005. [So sánh project cũ/mới](PROJECT_COMPARISON.md).

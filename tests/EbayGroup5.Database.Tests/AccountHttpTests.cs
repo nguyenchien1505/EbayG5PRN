@@ -142,6 +142,27 @@ public sealed class AccountHttpTests
     }
 
     [Fact]
+    public async Task Catalog_api_is_public_validates_filters_and_returns_safe_dtos()
+    {
+        var target = SqlFixture.NewTarget();
+        MigrationRunner.Run(target);
+        DemoSeedRunner.Run(target);
+        using var factory = new Factory(target);
+        using var client = factory.CreateClient(new() { AllowAutoRedirect = false });
+        var response = await client.GetAsync("/api/v1/catalog?q=Headphones");
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var body = await response.Content.ReadAsStringAsync();
+        Assert.Contains("Wireless Headphones", body);
+        Assert.DoesNotContain("password", body, StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("email", body, StringComparison.OrdinalIgnoreCase);
+        Assert.Equal(HttpStatusCode.BadRequest, (await client.GetAsync("/api/v1/catalog?page=0")).StatusCode);
+        Assert.Equal(HttpStatusCode.BadRequest, (await client.GetAsync("/api/v1/catalog?categoryId=invalid")).StatusCode);
+        var missing = await client.GetAsync("/api/v1/catalog/2147483647");
+        Assert.Equal(HttpStatusCode.NotFound, missing.StatusCode);
+        Assert.Equal("application/problem+json", missing.Content.Headers.ContentType!.MediaType);
+    }
+
+    [Fact]
     public async Task Shell_search_encodes_query_validates_length_and_preserves_http_errors()
     {
         using var factory = new Factory(SqlFixture.NewTarget());
