@@ -13,3 +13,5 @@
 Nguồn: [Microsoft cookie auth](https://learn.microsoft.com/en-us/aspnet/core/security/authentication/cookie?view=aspnetcore-8.0), [PasswordHasher](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.identity.passwordhasher-1), [eBay sign in](https://www.ebay.com/help/account/account-getting-started/signing-ebay?id=4189), [eBay register](https://www.ebay.com/help/account/account-getting-started/setup-verify?id=4191).
 
 Luồng hoàn chỉnh: Register thành công redirect Login với TempData notice; Login lỗi 401 + view chung, password xóa; Login thành công redirect local hoặc Me view; logout POST qua nút Sign out. Navigation tới Sign in/Register hoặc Your account. UI English; không hiển thị chức năng social/reset chưa triển khai.
+
+B02 đã triển khai policy/resource checks, cookie revalidation, IP gate và rate limit; xem [SECURITY](SECURITY.md). Giới hạn triển khai vẫn theo F01/F02.
