@@ -1,0 +1,21 @@
+@{
+    ViewData["Title"] = "Search";
+}
+<section class="marketplace-state">
+    <span class="eyebrow">Search</span>
+    @if (ViewData["SearchError"] is string error)
+    {
+        <h1>Let's try a shorter search</h1>
+        <p role="alert">@error</p>
+    }
+    else
+    {
+        <h1>Search is coming soon</h1>
+        <p>The marketplace isn't open yet. Please check back soon.</p>
+        @if (ViewData["SearchQuery"] is string query && query.Length > 0)
+        {
+            <p class="query-context">Your search: <strong>@query</strong></p>
+        }
+    }
+    <a class="button outline" asp-controller="Home" asp-action="Index">Back to home</a>
+</section>

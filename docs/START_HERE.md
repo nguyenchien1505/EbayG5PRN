@@ -1,10 +1,10 @@
 # Bắt đầu ở đây
 
-**Checkpoint:** A00–A07 hoàn tất; SQL baseline 17 bảng, EF mapping, DbUp và 12 test SQL pass. CI GitHub đã pass. B01–B02 auth/security hoàn tất, 28 SQL/HTTP tests pass; demo credential local đã enable riêng.
+**Checkpoint:** A00–A07 hoàn tất; SQL baseline 17 bảng, EF mapping, DbUp và 12 test SQL pass. CI GitHub đã pass. B01–B03 auth/security/shell hoàn tất, 29 SQL/HTTP tests pass; demo credential local đã enable riêng.
 
 1. Đọc [quy định agent](../AGENTS.md) và [handoff mới nhất](handoffs/LATEST.md).
 2. Xem [task index](tasks/INDEX.md), chọn đúng task được yêu cầu.
-3. Task tiếp theo **[B03](tasks/B03.md)** — khung giao diện eBay và điều hướng. Đọc [SECURITY contract](architecture/SECURITY.md) và handoff để biết phần B01 đã làm.
+3. Task tiếp theo **[B04](tasks/B04.md)** — catalog và product detail. Đọc [SHELL contract](architecture/SHELL.md) và handoff để nối search với dữ liệu thật.
 
 Các quyết định cố định: .NET 8 MVC/Razor; SQL Server; schema chỉ mở rộng; viết mới; UI tiếng Anh; repo riêng; GitHub private; Jira KAN; demo local Docker/K8s. Xem [ADR-001](decisions/ADR-001-foundation.md) khi cần lý do.
 

@@ -1,23 +1,22 @@
-# Handoff — B02
+# Handoff — B03
 
-03/10/2026. Repo D:/WINDOWS/PRN3/EbayGroup5. Baseline 6e920e8; task/B02-security, fast-forward main after checks. Checkpoint: git log --oneline --grep=B02.
+03/10/2026. Repo D:/WINDOWS/PRN3/EbayGroup5. Baseline 4b1d31d; task/B03-shell, fast-forward main after verification. Checkpoint: git log --oneline --grep=B03.
 
 ## Hoàn tất
 
-- [SECURITY contract](../architecture/SECURITY.md), [evidence](../evidence/B02.md). B01 handoff archived in B01.md.
-- Account Details loads SQL resource; own only, foreign/missing 404. Buyer/Seller/AdminDemo policies; Admin direct-IP gate on authenticated requests defaults loopback IPv4/IPv6; missing IP denied, no trusted forwarded headers.
-- Cookie DB validation each request: role changes/deleted user/NULL credential invalidate session. Forbidden 403; generic exception response in all environments.
-- Login/register POST combined rate 10/minute/direct-IP/process; no queue, 429; global antiforgery retained.
-- 28 SQL/HTTP tests pass; build zero warnings/errors. No schema or seed changes. SUP-01 Done; SUP-02–05/UI-01 Pending.
+- [SHELL](../architecture/SHELL.md), [evidence](../evidence/B03.md). B02 handoff archived in B02.md.
+- White header, brand wordmark, search pill, native My eBay details menu, account-aware greeting, footer and skip link. Only active account routes shown. Auth pages keep simplified S1/L1 form, omit search.
+- Home welcoming/empty state; Home/Search encodes/trims/limits query, explicitly says search not available yet. B04 supplies catalog search. No false zero-result query or invented products.
+- GET status re-execution renders 404 recovery view while preserving HTTP code. Non-404 bodyless statuses stay bodyless; POST and exception JSON unchanged.
+- Build 0 warnings/errors; 29 SQL/HTTP tests pass. Browser desktop/mobile 390 and width check320; menu keyboard, anonymous account redirect, search query and 404 verified. Screenshots local ignored artifacts/b03.
+- No schema/seed/dependency change. SUP-01 stays Done; UI-01/SUP-02–05 Pending.
 
-## Giới hạn
+## Tiếp theo B04
 
-Admin policy probes are test-only; no business admin screen added. Order/chat/dispute ownership checks belong to later tasks. Proxy trust, HTTPS, shared keys, distributed limiting F01/F02. Copied cookie after logout/password change is not globally revoked.
+Read B04, A06 seed/catalog entities and SHELL. Public product-detail reference still needs source check per UI_REFERENCE; do not infer it from approved S1/L1. Header does not yet have category filtering. Replace Home/Search unavailable state with catalog query/filters/pagination in B04.
 
-## Tiếp theo
+No subagents. One task per continuation. No fake links into future orders/messages/admin modules. Correct L1 user screenshot is eBay Welcome back; Agent Router screenshot was mistaken. Other approved U1/M1/R1/P1/D1/D2/S1 references remain in docs.
 
-B03 shell/navigation; read its card and A03 UI contracts. Correct L1 is eBay Welcome back supplied by user, not mistaken Agent Router image; S1 approved. No need ask again. No subagents; one task per continuation.
+## Vận hành
 
-GitHub private Twiash/EbayGroup5 origin; gh authenticated. SDK . scripts/Use-LocalDotnet.ps1; local config . scripts/Use-LocalInfrastructure.ps1. SQL/Redis local retained; .env.auth contains separate local demo credentials, ignored. Never print secrets. Test databases retained. TV1–TV5/deadline questions remain open.
-
-PASS GitHub Actions Ubuntu [run 37114282385](https://github.com/Twiash/EbayGroup5/actions/runs/37114282385) tại 1dd0922: build/test và TRX upload thành công, job 1m58s. Verify-Planning, Verify-Migrations và git diff --check pass.
+Private origin Twiash/EbayGroup5; gh authenticated. SDK . scripts/Use-LocalDotnet.ps1; . scripts/Use-LocalInfrastructure.ps1 loads config without exposing values. Local SQL/Redis and isolated test DBs retained. .env.auth contains local demo credentials, ignored. No secret output. Preview stop after verification. F01/F02 proxy trust/HTTPS/shared keys/distributed limiting remain Pending; TV1–TV5/deadline questions open.

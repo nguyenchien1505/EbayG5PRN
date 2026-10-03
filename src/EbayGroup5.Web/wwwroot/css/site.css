@@ -1,12 +1,52 @@
-:root { color-scheme: light; font-family: system-ui, sans-serif; color: #191919; background: #fff; }
-body { margin: 0; }
-header { padding: 1rem 1.5rem; border-bottom: 1px solid #e5e5e5; }
-header a { color: inherit; font-weight: 600; text-decoration: none; }
-header { display: flex; flex-wrap: wrap; gap: 1rem; justify-content: space-between; }
-header nav { display: flex; gap: 1rem; }
-main { max-width: 60rem; margin: 3rem auto; padding: 0 1.5rem; }
-h1 { line-height: 1.2; }
+:root { color-scheme: light; font-family: Arial, Helvetica, sans-serif; color: #191919; background: #fff; }
+* { box-sizing: border-box; }
+body { margin: 0; min-height: 100vh; display: flex; flex-direction: column; }
+a { color: #2454d6; text-underline-offset: 3px; }
+button, input { font: inherit; }
+a, button, summary, input { -webkit-tap-highlight-color: transparent; }
+:focus-visible { outline: 3px solid #3665f3; outline-offset: 4px; }
+h1, h2 { line-height: 1.15; letter-spacing: -.025em; }
 p { line-height: 1.6; }
+.shell-width { width: min(100% - 64px, 1280px); margin-inline: auto; }
+.site-header { border-bottom: 1px solid #e5e5e5; }
+.utility-row { display: flex; align-items: center; justify-content: space-between; gap: 20px; min-height: 40px; font-size: 13px; }
+.greeting { min-width: 0; overflow-wrap: anywhere; }
+.account-menu { position: relative; flex-shrink: 0; }
+.account-menu summary { padding: 12px 0 12px 12px; cursor: pointer; white-space: nowrap; }
+.menu-panel { position: absolute; top: 100%; right: 0; z-index: 2; width: 200px; padding: 8px; background: white; border: 1px solid #ddd; border-radius: 8px; box-shadow: 0 5px 16px #0002; }
+.menu-panel a { display: block; padding: 12px; color: #191919; }
+.menu-panel a:hover { background: #f5f5f5; }
+.brand-row { display: flex; align-items: center; gap: 44px; padding-block: 22px; }
+.wordmark { display: inline-flex; font-size: 54px; letter-spacing: -4px; line-height: 1; text-decoration: none; font-weight: 500; padding-right: 4px; }
+.wordmark span:nth-child(1) { color: #e53238; }
+.wordmark span:nth-child(2) { color: #0064d2; }
+.wordmark span:nth-child(3) { color: #b88700; }
+.wordmark span:nth-child(4) { color: #679c08; }
+.site-search { display: flex; flex: 1; gap: 16px; min-width: 0; }
+.site-search input { min-width: 0; flex: 1; width: 100%; border: 2px solid #191919; border-radius: 28px; padding: 13px 24px; background: #f7f7f7; }
+.button { display: inline-flex; align-items: center; justify-content: center; gap: 20px; border-radius: 28px; padding: 14px 28px; min-height: 48px; border: 1px solid transparent; font-weight: 700; text-decoration: none; cursor: pointer; }
+.primary { background: #3665f3; color: white; }
+.primary:hover { background: #2448bf; }
+.site-search .button { min-width: 150px; }
+.dark { background: #191919; color: white; }
+.dark:hover { background: #333; }
+.outline { border-color: #191919; color: #191919; }
+.outline:hover { background: #f5f5f5; }
+main.shell-width { flex: 1; padding-block: 32px 64px; }
+.welcome-banner { background: #f7e9c8; padding: 48px 56px; border-radius: 16px; }
+.eyebrow { font-size: 13px; font-weight: 700; letter-spacing: .04em; }
+.welcome-banner h1 { font-size: clamp(32px, 4vw, 54px); margin: 20px 0; }
+.welcome-banner p:not(.eyebrow) { margin: 0 0 24px; font-size: 18px; }
+.marketplace-state { margin: 72px auto 32px; max-width: 650px; text-align: center; overflow-wrap: anywhere; }
+.marketplace-state h1 { font-size: clamp(28px, 4vw, 40px); }
+.marketplace-state h2 { font-size: 26px; margin-bottom: 12px; }
+.marketplace-state p { color: #555; }
+.state-symbol { display: inline-flex; width: 52px; height: 52px; align-items: center; justify-content: center; background: #f4f4f4; border-radius: 50%; font-size: 32px; }
+.query-context { padding: 12px; background: #f7f7f7; border-radius: 8px; }
+.site-footer { border-top: 1px solid #e5e5e5; padding-block: 24px; font-size: 12px; color: #555; }
+.site-footer .shell-width { display: flex; gap: 16px; justify-content: space-between; flex-wrap: wrap; }
+.sr-only, .skip-link:not(:focus) { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+.skip-link:focus { position: absolute; z-index: 5; background: white; padding: 16px; }
 .account-card { max-width: 26rem; margin: 4rem auto; }
 .account-card h1 { font-size: 2rem; margin-bottom: .75rem; }
 .account-card label { display: block; font-weight: 600; margin: 1.25rem 0 .5rem; }
@@ -23,3 +63,16 @@ p { line-height: 1.6; }
 .account-card a { color: #2448bf; }
 .account-notice { padding: .75rem; background: #edf6ed; border-radius: .5rem; }
 @media (max-width: 480px) { main { margin-top: 1.5rem; padding: 0 1rem; } .account-card { margin: 2rem auto; } }
+@media (max-width: 700px) {
+    .shell-width { width: calc(100% - 32px); }
+    .brand-row { gap: 18px; flex-wrap: wrap; padding-block: 16px 20px; }
+    .wordmark { font-size: 44px; }
+    .site-search { flex-basis: 100%; gap: 8px; }
+    .site-search input { padding: 12px 16px; }
+    .site-search .button { min-width: 0; padding-inline: 18px; }
+    main.shell-width { margin-top: 0; padding: 20px 0 40px; }
+    .welcome-banner { padding: 28px 24px; }
+    .welcome-banner p:not(.eyebrow) { font-size: 16px; }
+    .marketplace-state { margin-block: 44px 16px; }
+    .marketplace-state h2 { font-size: 23px; }
+}
