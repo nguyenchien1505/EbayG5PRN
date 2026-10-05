@@ -72,4 +72,3 @@
 - Hải Lê: [TV5 work](https://dattv.atlassian.net/issues/?jql=project%20%3D%20KAN%20AND%20labels%20%3D%20ebaygroup5%20AND%20labels%20%3D%20tv5%20ORDER%20BY%20status%2C%20key)
 
 3 child tickets Done,17 child tickets To Do; Epics2 In Progress/3 To Do. Done comes from existing code/test evidence, new workflow transitions recorded now. Owner is responsible for review/handover. No deadline/worklog supplied. Workflow available: To Do → In Progress → In Review → Done. No retrospective hours/dates/review history created.
-
