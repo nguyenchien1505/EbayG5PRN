@@ -1,0 +1,52 @@
+@model EbayGroup5.Application.Catalog.CatalogPage
+@using System.Globalization
+@{ ViewData["Title"] = "Shop"; }
+<div class="catalog-heading">
+    <div><p class="eyebrow">Explore the marketplace</p><h1>@(Model.Query.Length > 0 ? $"Results for “{Model.Query}”" : "Find your next favorite")</h1><p>@Model.Total item@(Model.Total == 1 ? "" : "s")</p></div>
+</div>
+<form class="catalog-filters" method="get" asp-action="Index">
+    <input type="hidden" name="q" value="@Model.Query" />
+    <label for="category">Category</label>
+    <select id="category" name="categoryId">
+        <option value="">All categories</option>
+        @if (Model.CategoryId.HasValue && !Model.Categories.Any(x => x.Id == Model.CategoryId))
+        { <option value="@Model.CategoryId" selected>Category unavailable</option> }
+        @foreach (var category in Model.Categories)
+        { <option value="@category.Id" selected="@(category.Id == Model.CategoryId)">@category.Name</option> }
+    </select>
+    <button class="button outline" type="submit">Apply</button>
+    <a asp-action="Index">Clear filters</a>
+</form>
+@if (Model.Items.Count == 0)
+{
+    <section class="marketplace-state">
+    @if (Model.Total == 0)
+    { <h2>No matching items</h2><p>Try another search or category.</p><a class="button primary" asp-action="Index">Browse all items</a> }
+    else
+    { <h2>No items on this page</h2><p>Return to the first page to see your results.</p><a class="button primary" asp-action="Index" asp-route-q="@Model.Query" asp-route-categoryId="@Model.CategoryId">First page</a> }
+    </section>
+}
+else
+{
+    <div class="product-grid">
+    @foreach (var item in Model.Items)
+    {
+        <article class="product-card">
+            <a asp-action="Details" asp-route-id="@item.Id">
+                <div class="product-placeholder"><svg viewBox="0 0 64 64" aria-hidden="true"><path d="M12 20 32 10 52 20 32 30Z M12 20v24l20 10 20-10V20 M32 30v24" /></svg><span>Image unavailable</span></div>
+                <h2>@item.Title</h2>
+            </a>
+            <p class="product-price">US $@item.Price.ToString("N2", CultureInfo.InvariantCulture)</p>
+            <p class="seller-caption">Sold by @item.Seller</p>
+        </article>
+    }
+    </div>
+}
+@if (Model.TotalPages > 1 || Model.Page > 1)
+{
+    <nav class="pagination" aria-label="Catalog pages">
+        @if (Model.Page > 1) { <a class="button outline" asp-action="Index" asp-route-q="@Model.Query" asp-route-categoryId="@Model.CategoryId" asp-route-page="@(Model.Page - 1)">Previous</a> }
+        <span>@(Model.Page <= Model.TotalPages ? $"Page {Model.Page} of {Model.TotalPages}" : $"Page {Model.Page} · {Model.TotalPages} pages available")</span>
+        @if (Model.Page < Model.TotalPages) { <a class="button outline" asp-action="Index" asp-route-q="@Model.Query" asp-route-categoryId="@Model.CategoryId" asp-route-page="@(Model.Page + 1)">Next</a> }
+    </nav>
+}

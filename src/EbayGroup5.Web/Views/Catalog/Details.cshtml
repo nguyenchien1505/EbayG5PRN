@@ -1,0 +1,20 @@
+@model EbayGroup5.Application.Catalog.CatalogDetail
+@using System.Globalization
+@{ ViewData["Title"] = Model.Item.Title; }
+<a class="back-to-catalog" asp-action="Index">← Browse all items</a>
+<div class="product-detail">
+    <div class="detail-media product-placeholder"><svg viewBox="0 0 64 64" aria-hidden="true"><path d="M12 20 32 10 52 20 32 30Z M12 20v24l20 10 20-10V20 M32 30v24" /></svg><span>Image unavailable</span></div>
+    <section class="detail-info" aria-labelledby="product-title">
+        <h1 id="product-title">@Model.Item.Title</h1>
+        <div class="seller-section"><span class="seller-avatar" aria-hidden="true">S</span><div><strong>@Model.Item.Seller</strong><p>Seller</p></div></div>
+        <p class="detail-price">US $@Model.Item.Price.ToString("N2", CultureInfo.InvariantCulture)</p>
+        <p class="availability">@(Model.Quantity > 0 ? $"{Model.Quantity} available" : "Out of stock")</p>
+        <button class="button primary purchase-button" disabled aria-describedby="checkout-note">Buy It Now</button>
+        <p id="checkout-note" class="field-help">Checkout is not available yet.</p>
+        <details class="contact-seller">
+            <summary>Contact seller</summary>
+            <div class="contact-content"><h2>Message @Model.Item.Seller</h2><p>About: @Model.Item.Title</p><p>Messaging is not available yet. Please check back soon.</p></div>
+        </details>
+    </section>
+</div>
+<section class="item-description"><h2>About this item</h2><p class="field-help">Item number: @Model.Item.Id</p><p>@(string.IsNullOrWhiteSpace(Model.Item.Description) ? "No description provided." : Model.Item.Description)</p></section>

@@ -37,7 +37,7 @@
             <a class="wordmark" asp-controller="Home" asp-action="Index" aria-label="eBay Clone home"><span>e</span><span>b</span><span>a</span><span>y</span></a>
             @if (!string.Equals(ViewContext.RouteData.Values["controller"]?.ToString(), "Account", StringComparison.OrdinalIgnoreCase))
             {
-                <form class="site-search" asp-controller="Home" asp-action="Search" method="get" role="search">
+                <form class="site-search" asp-controller="Catalog" asp-action="Index" method="get" role="search">
                     <label class="sr-only" for="site-query">Search for anything</label>
                     <input id="site-query" type="search" name="q" maxlength="100" value="@ViewData["SearchQuery"]" placeholder="Search for anything" />
                     <button class="button primary" type="submit">Search</button>

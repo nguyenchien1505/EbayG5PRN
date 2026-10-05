@@ -4,21 +4,10 @@ namespace EbayGroup5.Web.Controllers;
 
 public sealed class HomeController : Controller
 {
-    public IActionResult Index() => View();
+    public IActionResult Index() => RedirectToAction("Index", "Catalog");
 
     [HttpGet]
-    public IActionResult Search(string? q)
-    {
-        var query = (q ?? "").Trim();
-        if (query.Length > 100)
-        {
-            Response.StatusCode = StatusCodes.Status400BadRequest;
-            ViewData["SearchError"] = "Use 100 characters or fewer to search.";
-            query = query[..100];
-        }
-        ViewData["SearchQuery"] = query;
-        return View();
-    }
+    public IActionResult Search(string? q) => RedirectToAction("Index", "Catalog", new { q });
 
     [HttpGet, ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
     public IActionResult Status(int code)
