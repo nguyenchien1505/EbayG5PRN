@@ -3,7 +3,7 @@
 | ID | Cần biết | Ảnh hưởng | Trạng thái |
 |---|---|---|---|
 | Q-ENV-001 | Private repo [Twiash/EbayGroup5](https://github.com/Twiash/EbayGroup5), tự tạo theo yêu cầu người dùng 03/10/2026 | Origin đã nối, main đã push | Answered: gh xác minh owner Twiash và isPrivate=true |
-| Q-TEAM-001 | Tên/email Jira ánh xạ TV1–TV5 | Chỉ chặn gán assignee; KAN và vai trò đã chốt | Open |
+| Q-TEAM-001 | Tài khoản Jira ánh xạ TV1–TV5 | Đã gán đúng account assignable | Answered 06/10/2026: Dat/Huy/Cuong/Nguyên/Hải theo phân công đã duyệt |
 | Q-TEAM-002 | Ngày nộp/mốc giảng viên | Chưa lập lịch ngày cụ thể; không chặn task kỹ thuật | Open |
 | Q-UI-001 | Inbox và conversation eBay | Chốt UI C04 | Answered: U1 + M1 desktop; mobile/trạng thái bổ sung khi làm C04 |
 | Q-UI-002 | Purchase history và form review/feedback | Chốt UI B06, D02–D04 | Partial: R1 và P1 đã chốt; profile chưa có mẫu |
@@ -22,3 +22,5 @@ Q-UI-005 (B04, Open 03/10/2026): đề xuất PD1 từ https://www.ebay.com.hk/i
 Q-UI-005 cập nhật 03/10/2026: người dùng trả lời 'Tôi sẽ gửi ảnh khác'. PD1 không được duyệt; chờ ảnh thay thế. Backend/API đã làm độc lập, UI detail chưa triển khai.
 
 Q-UI-005 Answered: người dùng đã gửi ảnh chi tiết sản phẩm thay thế và yêu cầu tiếp tục; bố cục ảnh trái/title-seller-price-stock phải. Đã áp dụng/kiểm chứng B04 ngày 06/10/2026. PD1 Internet là đề xuất lịch sử, không dùng. Không commit ảnh/tài khoản trong ảnh nguồn.
+
+Q-TEAM-001: user xác nhận 'Tạo và gán theo đề xuất'; đã tạo 5 Epic +20 ticket KAN-4–28. [Jira mapping](../team/JIRA_MAPPING.md).

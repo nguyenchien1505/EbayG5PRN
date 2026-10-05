@@ -15,3 +15,5 @@ Mỗi Epic có task phân tích/contract, triển khai, kiểm thử và bàn gi
 Khi đồng bộ Jira: đọc skill backlog phù hợp, kiểm tra issue có sẵn, loại issue/trạng thái/field thực tế, sau đó tạo hoặc cập nhật theo phạm vi người dùng đã duyệt. Lưu key thật và liên kết ở file mapping. Assignee Unassigned tới khi có Q-TEAM-001.
 
 Done cần bằng chứng; không bịa giờ làm, ngày, review hay tên tác giả. Codex hỗ trợ coding; thành viên phụ trách kiểm tra, hiểu module và trình bày. Mỗi người chuẩn bị kịch bản và giải thích phần mình.
+
+Cập nhật 06/10/2026: user chốt tài khoản thật TV1 Tran Van Dat, TV2 Đoàn Công Huy, TV3 Pham Van Cuong, TV4 Nguyên Nguyễn, TV5 Hải Lê. Đã tạo/gán 5 Epic +20 ticket KAN-4–28 và26 Blocks links; [mapping](JIRA_MAPPING.md), [phạm vi](JIRA_BACKLOG_PLAN.md). Các đoạn Unassigned/chưa tạo ở trên là ghi nhận checkpoint trước.
