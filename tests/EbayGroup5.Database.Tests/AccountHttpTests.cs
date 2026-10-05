@@ -165,19 +165,67 @@ public sealed class AccountHttpTests
     [Fact]
     public async Task Shell_search_encodes_query_validates_length_and_preserves_http_errors()
     {
-        using var factory = new Factory(SqlFixture.NewTarget());
+        var target = SqlFixture.NewTarget();
+        MigrationRunner.Run(target);
+        DemoSeedRunner.Run(target);
+        using var factory = new Factory(target);
         using var client = factory.CreateClient(new() { AllowAutoRedirect = false });
         var query = "<script>alert(1)</script>";
-        var search = await client.GetStringAsync("/Home/Search?q=" + Uri.EscapeDataString(query));
-        Assert.Contains("Search is coming soon", search);
+        var search = await client.GetStringAsync("/Catalog?q=" + Uri.EscapeDataString(query));
+        Assert.Contains("No matching items", search);
         Assert.Contains("&lt;script&gt;", search);
         Assert.DoesNotContain(query, search);
-        Assert.Equal(HttpStatusCode.BadRequest, (await client.GetAsync("/Home/Search?q=" + new string('a', 101))).StatusCode);
+        Assert.Equal(HttpStatusCode.BadRequest, (await client.GetAsync("/Catalog?q=" + new string('a', 101))).StatusCode);
+        Assert.Equal(HttpStatusCode.BadRequest, (await client.GetAsync("/Catalog?page=invalid")).StatusCode);
+        Assert.Equal(HttpStatusCode.Redirect, (await client.GetAsync("/Home/Search?q=lamp")).StatusCode);
+        var catalog = await client.GetStringAsync("/Catalog");
+        Assert.Contains("Wireless Headphones", catalog);
+        var id = SqlFixture.Scalar(target, "SELECT MIN(id) FROM dbo.Product");
+        var detail = await client.GetStringAsync("/Catalog/Details/" + id);
+        Assert.Contains("Contact seller", detail);
+        Assert.Contains("20 available", detail);
+        Assert.Contains("Checkout is not available yet", detail);
+        Assert.DoesNotContain("buyer.a06@example.invalid", detail);
+        Assert.Equal(HttpStatusCode.NotFound, (await client.GetAsync("/Catalog/Details/2147483647")).StatusCode);
         var missing = await client.GetAsync("/Home/ThisPageDoesNotExist");
         Assert.Equal(HttpStatusCode.NotFound, missing.StatusCode);
         Assert.Contains("We looked everywhere.", await missing.Content.ReadAsStringAsync());
         Assert.Equal(HttpStatusCode.Redirect, (await client.GetAsync("/Account/Me")).StatusCode);
         Assert.Equal(HttpStatusCode.BadRequest, (await client.PostAsync("/Account/Login", new FormUrlEncodedContent(new Dictionary<string,string>()))).StatusCode);
+    }
+
+    [Fact]
+    public async Task Catalog_pages_preserve_filters_and_escape_listing_content()
+    {
+        var target = SqlFixture.NewTarget();
+        MigrationRunner.Run(target);
+        DemoSeedRunner.Run(target);
+        await using var db = new EbayDbContext(new DbContextOptionsBuilder<EbayDbContext>().UseSqlServer(target).Options);
+        var seller = await db.Set<User>().SingleAsync(x => x.Role == "Seller");
+        var category = await db.Set<Category>().OrderBy(x => x.Id).FirstAsync();
+        for (var i = 0; i < 13; i++)
+            db.Add(new Product { Title = "Filter & item " + i, Description = "<script>sentinel()</script>", Price = 12,
+                IsAuction = false, SellerId = seller.Id, CategoryId = category.Id });
+        await db.SaveChangesAsync();
+        using var factory = new Factory(target);
+        using var client = factory.CreateClient(new() { AllowAutoRedirect = false });
+        var query = "q=" + Uri.EscapeDataString("Filter & item") + "&categoryId=" + category.Id;
+        var first = await client.GetStringAsync("/Catalog?" + query);
+        Assert.Contains("Page 1 of 2", first);
+        var next = Regex.Match(first, "href=\"([^\"]+)\">Next</a>");
+        Assert.True(next.Success);
+        var location = WebUtility.HtmlDecode(next.Groups[1].Value);
+        Assert.Contains("categoryId=" + category.Id, location);
+        Assert.Contains("page=2", location);
+        var second = await client.GetStringAsync(location);
+        Assert.Contains("Page 2 of 2", second);
+        Assert.Contains("Filter &amp; item 12", second);
+        Assert.DoesNotContain("Filter &amp; item 0", second);
+        var item = await db.Set<Product>().SingleAsync(x => x.Title == "Filter & item 12");
+        var detail = await client.GetStringAsync("/Catalog/Details/" + item.Id);
+        Assert.Contains("&lt;script&gt;sentinel()&lt;/script&gt;", detail);
+        Assert.DoesNotContain("<script>sentinel()", detail);
+        Assert.Contains("Out of stock", detail);
     }
 
     [Fact]

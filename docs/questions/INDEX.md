@@ -20,3 +20,5 @@ Q-UI-004 (B01, Answered 03/10/2026): S1 register đã chốt; L1 dùng ảnh eBa
 Q-UI-005 (B04, Open 03/10/2026): đề xuất PD1 từ https://www.ebay.com.hk/import/newtoebay (không ghi năm), ảnh https://ir.ebaystatic.com/pictures/hk/new-to-ebay/P3-6.png đã trình trong chat. Chờ chốt bản giản lược ảnh trái/thông tin phải, Contact seller theo U1. Tiếp tục query/API/test độc lập; chưa áp dụng UI đề xuất.
 
 Q-UI-005 cập nhật 03/10/2026: người dùng trả lời 'Tôi sẽ gửi ảnh khác'. PD1 không được duyệt; chờ ảnh thay thế. Backend/API đã làm độc lập, UI detail chưa triển khai.
+
+Q-UI-005 Answered: người dùng đã gửi ảnh chi tiết sản phẩm thay thế và yêu cầu tiếp tục; bố cục ảnh trái/title-seller-price-stock phải. Đã áp dụng/kiểm chứng B04 ngày 06/10/2026. PD1 Internet là đề xuất lịch sử, không dùng. Không commit ảnh/tài khoản trong ảnh nguồn.

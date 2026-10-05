@@ -1,5 +1,7 @@
 # B03 — shell và điều hướng
 
+B04 supersedes home/search-unavailable behavior below: Home redirects Catalog/Index, header search submits to live catalog; old Home/Search preserves q in redirect. See [CATALOG](CATALOG.md). Remaining B03 decisions still apply.
+
 Nguồn: bố cục public đã quan sát tại A02 trong [UI_REFERENCE](UI_REFERENCE.md); A03 scaffold, S1/L1 giữ nguyên form. Responsive là bản giản lược của clone, không khẳng định pixel parity với eBay mobile.
 
 - Header trắng, wordmark màu, utility account row, search pill + nút xanh; My eBay dùng native details/summary hỗ trợ bàn phím, chỉ link tới Account/Me đã hoạt động. Không link giả tới cart/messages/orders/admin chưa triển khai.
