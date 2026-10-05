@@ -18,3 +18,5 @@
 ## Vận hành
 
 Private origin Twiash/EbayGroup5; gh authenticated. SDK scripts/Use-LocalDotnet.ps1; config Use-LocalInfrastructure.ps1; tests Test-Database.ps1. Local SQL/Redis và test DBs retained, secrets ignored. No subagents, một task mỗi continuation. F01/F02 HTTPS/proxy/shared key/distributed limiting còn Pending. PROJECT_COMPARISON đã trả lời lý do cấu trúc khác code cũ; không sửa ProjectCode. TV1–TV5/deadline questions remain open.
+
+PASS GitHub CI Ubuntu [run 37386896065](https://github.com/Twiash/EbayGroup5/actions/runs/37386896065) tại f939676, job 1m52s: build 0 warnings/errors, 32 tests và TRX upload thành công. Verify-Planning, Verify-Migrations, git diff --check pass; preview đã dừng.
