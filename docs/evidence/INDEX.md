@@ -22,3 +22,5 @@ Minh chứng CI A07: [EV-A07-01](A07.md). Local entry point/12 SQL tests/actionl
 Auth B01: [EV-B01-01](B01.md), 18 SQL/HTTP tests và browser journey pass, S1/L1 UI hoàn tất; SUP/UI toàn dự án Pending.
 
 Review D01: [EV-D01-01](D01.md), 157 .NET +14 Node pass, review gắn OrderItem service/endpoint/SQL constraints/migration; G5-03 Pending tới UI D02.
+
+Review UI D02: [EV-D02-01](D02.md), 161 .NET +14 Node, browser desktop/320px; G5-03 Done, G5-04 Pending D05.

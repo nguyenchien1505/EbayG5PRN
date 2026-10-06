@@ -11,29 +11,70 @@ public sealed class ReviewService(EbayDbContext db) : IReviewService
 {
     private const string Delivered = "Delivered";
 
+    // Single visibility rule for public reads: order-linked reviews only (Q-BIZ-002). D05 adds moderation here.
+    private IQueryable<Review> Visible(int productId) =>
+        db.Set<Review>().AsNoTracking().Where(x => x.ProductId == productId && x.OrderItemId != null && x.Rating >= ReviewLimits.MinRating && x.Rating <= ReviewLimits.MaxRating);
+
     public async Task<IReadOnlyList<ReviewLineEligibility>?> ListForOrderAsync(int buyerId, int orderId, CancellationToken cancellationToken = default)
     {
         if (!await db.Set<User>().AnyAsync(x => x.Id == buyerId && x.Role == "Buyer", cancellationToken)) return null;
         var order = await db.Set<OrderTable>().AsNoTracking().Where(x => x.Id == orderId && x.BuyerId == buyerId)
             .Select(x => new { x.Status }).SingleOrDefaultAsync(cancellationToken);
         if (order == null) return null;
-        var delivered = order.Status == Delivered;
-        var lines = await (from item in db.Set<OrderItem>().AsNoTracking()
-                           where item.OrderId == orderId
+        return await Lines(db.Set<OrderItem>().AsNoTracking().Where(x => x.OrderId == orderId), order.Status == Delivered, cancellationToken);
+    }
+
+    public async Task<ReviewItemContext?> FindItemAsync(int buyerId, int orderItemId, CancellationToken cancellationToken = default)
+    {
+        if (!await db.Set<User>().AnyAsync(x => x.Id == buyerId && x.Role == "Buyer", cancellationToken)) return null;
+        var order = await (from item in db.Set<OrderItem>().AsNoTracking()
+                           join o in db.Set<OrderTable>().AsNoTracking() on item.OrderId equals o.Id
+                           where item.Id == orderItemId && o.BuyerId == buyerId
+                           select new { o.Id, o.Status }).SingleOrDefaultAsync(cancellationToken);
+        if (order == null) return null;
+        var lines = await Lines(db.Set<OrderItem>().AsNoTracking().Where(x => x.Id == orderItemId), order.Status == Delivered, cancellationToken);
+        return new(order.Id, lines.Single());
+    }
+
+    private async Task<IReadOnlyList<ReviewLineEligibility>> Lines(IQueryable<OrderItem> items, bool delivered, CancellationToken ct)
+    {
+        var lines = await (from item in items
                            orderby item.Id
                            select new
                            {
                                item.Id, item.ProductId,
                                Title = db.Set<Product>().Where(p => p.Id == item.ProductId).Select(p => p.Title).FirstOrDefault(),
-                               ReviewId = db.Set<Review>().Where(r => r.OrderItemId == item.Id).Select(r => (int?)r.Id).FirstOrDefault()
-                           }).Take(ReviewLimits.MaxLines).ToListAsync(cancellationToken);
+                               Review = db.Set<Review>().Where(r => r.OrderItemId == item.Id).Select(r => new { r.Id, r.Rating }).FirstOrDefault()
+                           }).Take(ReviewLimits.MaxLines).ToListAsync(ct);
         return lines.Select(x =>
         {
-            var reviewed = x.ReviewId != null;
+            var reviewed = x.Review != null;
             var reason = reviewed ? "You already reviewed this item." : x.ProductId == null ? "This item is no longer available to review." :
                 !delivered ? "You can review this item after the order is delivered." : null;
-            return new ReviewLineEligibility(x.Id, x.ProductId, x.Title ?? "Item unavailable", reason == null, reviewed, x.ReviewId, reason);
+            return new ReviewLineEligibility(x.Id, x.ProductId, x.Title ?? "Item unavailable", reason == null, reviewed, x.Review?.Id, reason, x.Review?.Rating);
         }).ToList();
+    }
+
+    public async Task<ProductReviewPage> ProductReviewsAsync(int productId, int page = 1, ReviewSort sort = ReviewSort.Recent, CancellationToken cancellationToken = default)
+    {
+        if (page < 1 || page > int.MaxValue / ProductReviewPage.PageSize || !Enum.IsDefined(sort)) throw new ArgumentException("Invalid review filters.");
+        var groups = await Visible(productId).GroupBy(x => x.Rating!.Value)
+            .Select(g => new { Rating = g.Key, Count = g.Count(), Reviews = g.Count(x => x.Comment != null) }).ToListAsync(cancellationToken);
+        var ratings = groups.Sum(x => x.Count);
+        var summary = ratings == 0 ? RatingSummary.Empty : new RatingSummary(ratings, groups.Sum(x => x.Reviews),
+            Math.Round(groups.Sum(x => (decimal)x.Rating * x.Count) / ratings, 1, MidpointRounding.AwayFromZero),
+            Enumerable.Range(1, 5).Reverse().Select(star => groups.Where(x => x.Rating == star).Sum(x => x.Count)).ToList());
+        var withComment = Visible(productId).Where(x => x.Comment != null);
+        var ordered = sort switch
+        {
+            ReviewSort.Highest => withComment.OrderByDescending(x => x.Rating).ThenByDescending(x => x.Id),
+            ReviewSort.Lowest => withComment.OrderBy(x => x.Rating).ThenByDescending(x => x.Id),
+            _ => withComment.OrderByDescending(x => x.Id)
+        };
+        var reviews = await ordered.Skip((page - 1) * ProductReviewPage.PageSize).Take(ProductReviewPage.PageSize)
+            .Select(x => new ProductReview(x.Id, db.Set<User>().Where(u => u.Id == x.ReviewerId).Select(u => u.Username).FirstOrDefault() ?? "eBay user",
+                x.Rating!.Value, x.Comment!, x.CreatedAt!.Value)).ToListAsync(cancellationToken);
+        return new(summary, reviews, page, sort);
     }
 
     public async Task<ReviewResult> SubmitAsync(int buyerId, int orderItemId, int rating, string? comment, CancellationToken cancellationToken = default)

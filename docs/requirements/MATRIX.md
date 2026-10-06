@@ -8,7 +8,7 @@ Status `Pending` nghĩa là chưa triển khai/chưa nghiệm thu. Task tài li�
 |---|---|---|---|---|
 | G5-01 | Giao diện chat buyer–seller qua WebSocket | C01–C04 | Hai tài khoản trao đổi realtime; user thứ ba không truy cập | Done |
 | G5-02 | Lưu lịch sử chat theo thời gian/người gửi | C01–C02, C05 | Restart/reconnect đọc lại đúng thứ tự, có phân trang | Done |
-| G5-03 | Rating và comment sau mỗi đơn đã nhận | D01–D02 | Chỉ owner đơn Delivered, một review mỗi OrderItem; mua lại được review | Pending |
+| G5-03 | Rating và comment sau mỗi đơn đã nhận | D01–D02 | Chỉ owner đơn Delivered, một review mỗi OrderItem; mua lại được review | Done |
 | G5-04 | Trung bình đánh giá trên sản phẩm | D02, D05 | Trung bình/số lượt đúng, đổi theo kiểm duyệt, không chia cho zero | Pending |
 | G5-05 | Điểm uy tín seller từ feedback tích cực | D03–D04 | Sentiment riêng, công thức đã chốt, seller reply đúng quyền | Pending |
 | G5-06 | Gửi khiếu nại có nội dung và lý do | E01–E02 | Đúng dòng hàng/owner; không tạo trùng khi gửi lại | Pending |
@@ -99,3 +99,5 @@ C04: [UI evidence](../evidence/C04.md),137 .NET +8 Node tests, actual two-accoun
 C05: [recovery evidence](../evidence/C05.md),140 .NET +14 Node, fresh Kestrel host restart/rejoin/paged SQL history/read cursors/idempotent pending/metadata trace, actual browser restart1050-message catch-up/no Refresh/lost event/lost ack one row. **G5-02 Done**. G5-N01/N02/N04/N05 Pending F01–F05 cho deployed TLS/keys/scale/latency/dataset/log collection; UI-01 project-wide Pending. Không durable browser draft/outbox claim.
 
 D01: [review-order link evidence](../evidence/D01.md), 157 .NET +14 Node tests (17 new), Buyer-owner/Delivered-only/one-per-OrderItem/repurchase/concurrency/rollback/SQL constraints/legacy-preserving migration/HTTP CSRF-role-overposting verified; mutation check caught. **G5-03 vẫn Pending**: chưa có UI gửi/hiển thị review (D02). G5-04 Pending D02/D05; SUP-05 Pending D05/E05. Không claim browser acceptance.
+
+D02: [review UI evidence](../evidence/D02.md), 161 .NET +14 Node, form R1/Orders eligibility/public summary-distribution-list/paging/sort/encode/legacy exclusion và browser desktop+320px. **G5-03 Done** (D01 rule + D02 UI). G5-04 vẫn Pending: trung bình/số lượt/không chia 0 đã kiểm chứng, phần "đổi theo kiểm duyệt" chờ D05. G5-05 Pending D03–D04; SUP-05 Pending D05/E05; UI-01 project-wide Pending.

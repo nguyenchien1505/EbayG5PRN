@@ -1,0 +1,23 @@
+@model EbayGroup5.Application.Reviews.RatingSummary
+@using System.Globalization
+<div class="rating-summary">
+    @if (Model.Average is decimal average)
+    {
+        <div class="rating-score">
+            <p class="rating-average"><strong>@average.ToString("0.0", CultureInfo.InvariantCulture)</strong><span class="sr-only"> out of 5</span></p>
+            <partial name="_Stars" model="average" />
+            <p class="field-help">@Model.Ratings product rating@(Model.Ratings == 1 ? "" : "s") · @Model.Reviews review@(Model.Reviews == 1 ? "" : "s")</p>
+        </div>
+        <ul class="rating-bars" aria-label="Rating distribution">
+            @for (var i = 0; i < 5; i++)
+            {
+                var stars = 5 - i; var count = Model.Distribution[i]; var percent = Model.Ratings == 0 ? 0 : count * 100m / Model.Ratings;
+                <li><span>@stars star@(stars == 1 ? "" : "s")</span><span class="rating-bar" aria-hidden="true"><span style="width:@percent.ToString("0.##", CultureInfo.InvariantCulture)%"></span></span><span>@count</span></li>
+            }
+        </ul>
+    }
+    else
+    {
+        <p class="rating-empty">No ratings yet. Ratings come from verified purchases after delivery.</p>
+    }
+</div>

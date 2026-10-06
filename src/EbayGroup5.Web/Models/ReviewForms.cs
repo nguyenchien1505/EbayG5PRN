@@ -1,4 +1,6 @@
 using System.ComponentModel.DataAnnotations;
+using EbayGroup5.Application.Catalog;
+using EbayGroup5.Application.Reviews;
 
 namespace EbayGroup5.Web.Models;
 
@@ -9,3 +11,6 @@ public sealed class ReviewForm
     [Range(1, 5)] public int Rating { get; set; }
     public string? Comment { get; set; }
 }
+
+public sealed record ReviewPage(ReviewItemContext Context, ReviewForm Form);
+public sealed record ProductReviewsView(CatalogItem Item, ProductReviewPage Reviews);

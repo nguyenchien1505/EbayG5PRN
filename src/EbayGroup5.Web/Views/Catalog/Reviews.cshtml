@@ -1,0 +1,36 @@
+@model EbayGroup5.Web.Models.ProductReviewsView
+@using EbayGroup5.Application.Reviews
+@{
+    ViewData["Title"] = "Reviews: " + Model.Item.Title;
+    var reviews = Model.Reviews;
+    var sort = reviews.Sort switch { ReviewSort.Highest => "highest", ReviewSort.Lowest => "lowest", _ => "recent" };
+}
+<a class="back-to-catalog" asp-action="Details" asp-route-id="@Model.Item.Id">← Back to item</a>
+<h1 class="reviews-heading">Ratings and reviews</h1>
+<p class="reviews-product">@Model.Item.Title</p>
+<partial name="_RatingSummary" model="reviews.Summary" />
+<form class="order-filters" method="get" asp-action="Reviews" asp-route-id="@Model.Item.Id">
+    <label for="review-sort">Sort by</label>
+    <select id="review-sort" name="sort">
+        <option value="recent" selected="@(sort == "recent")">Most recent</option>
+        <option value="highest" selected="@(sort == "highest")">Highest rating</option>
+        <option value="lowest" selected="@(sort == "lowest")">Lowest rating</option>
+    </select>
+    <button class="button outline" type="submit">Apply</button>
+</form>
+@if (reviews.Reviews.Count == 0)
+{
+    <section class="marketplace-state">
+        @if (reviews.Summary.Reviews == 0) { <h2>No written reviews yet</h2><p>Buyers can review an item after their order is delivered.</p> }
+        else { <h2>No reviews on this page</h2><p>Return to the first page to see reviews.</p><a class="button primary" asp-action="Reviews" asp-route-id="@Model.Item.Id" asp-route-sort="@sort">First page</a> }
+    </section>
+}
+else { <partial name="_ReviewList" model="reviews.Reviews" /> }
+@if (reviews.TotalPages > 1 || reviews.Page > 1)
+{
+    <nav class="pagination" aria-label="Review pages">
+        @if (reviews.Page > 1) { <a class="button outline" asp-action="Reviews" asp-route-id="@Model.Item.Id" asp-route-sort="@sort" asp-route-page="@(reviews.Page - 1)">Previous</a> }
+        <span>@(reviews.Page <= reviews.TotalPages ? $"Page {reviews.Page} of {reviews.TotalPages}" : $"Page {reviews.Page} · {reviews.TotalPages} pages available")</span>
+        @if (reviews.Page < reviews.TotalPages) { <a class="button outline" asp-action="Reviews" asp-route-id="@Model.Item.Id" asp-route-sort="@sort" asp-route-page="@(reviews.Page + 1)">Next</a> }
+    </nav>
+}

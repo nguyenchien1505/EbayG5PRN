@@ -1,0 +1,51 @@
+@model EbayGroup5.Web.Models.ReviewPage
+@using EbayGroup5.Application.Reviews
+@{ ViewData["Title"] = "Leave a review"; var line = Model.Context.Line; }
+<a class="back-to-catalog" asp-controller="Orders" asp-action="Details" asp-route-id="@Model.Context.OrderId">← Back to order #@Model.Context.OrderId</a>
+<h1>Leave a review</h1>
+@if (ViewData["ReviewError"] is string error) { <div class="validation-errors" role="alert">@error</div> }
+<section class="review-card" aria-labelledby="review-item">
+    <div class="review-item-row">
+        <div class="order-item-icon product-placeholder"><svg viewBox="0 0 64 64" aria-hidden="true"><path d="M12 20 32 10 52 20 32 30Z M12 20v24l20 10 20-10V20 M32 30v24" /></svg></div>
+        <div><h2 id="review-item">@line.Title</h2><p class="field-help">Order #@Model.Context.OrderId</p></div>
+    </div>
+    @if (line.CanReview)
+    {
+        <form asp-action="Create" method="post" class="review-form">
+            <input type="hidden" name="OrderItemId" value="@line.OrderItemId" />
+            <fieldset class="review-row">
+                <legend>How would you rate this item?</legend>
+                <div class="star-input">
+                    @for (var star = ReviewLimits.MaxRating; star >= ReviewLimits.MinRating; star--)
+                    {
+                        <input type="radio" id="rating-@star" name="Rating" value="@star" required checked="@(Model.Form.Rating == star)" />
+                        <label for="rating-@star" title="@star star@(star == 1 ? "" : "s")"><span class="sr-only">@star star@(star == 1 ? "" : "s")</span></label>
+                    }
+                </div>
+            </fieldset>
+            <div class="review-row">
+                <label for="review-comment">Tell us more about this item <span class="field-help">(optional)</span></label>
+                <div>
+                    <textarea id="review-comment" name="Comment" maxlength="@ReviewLimits.MaxCommentLength" rows="6" placeholder="Share your experience with this item." aria-describedby="review-count">@Model.Form.Comment</textarea>
+                    <p class="field-help review-count" id="review-count"><span data-review-count>@(Model.Form.Comment?.Length ?? 0)</span> / @ReviewLimits.MaxCommentLength</p>
+                </div>
+            </div>
+            <p class="field-help">Reviews are public with your username and a Verified purchase label. Reviews can't be edited after posting.</p>
+            <button type="submit" class="button primary">Submit review</button>
+        </form>
+    }
+    else if (line.Reviewed && line.Rating is int rating)
+    {
+        <p>You rated this item @rating out of 5.</p><partial name="_Stars" model="(decimal)rating" />
+        @if (line.ProductId is int productId) { <p><a asp-controller="Catalog" asp-action="Reviews" asp-route-id="@productId">See all reviews for this item</a></p> }
+    }
+    else { <p class="order-notice">@line.Reason</p> }
+</section>
+@section Scripts {
+    <script>
+        (() => {
+            const box = document.getElementById('review-comment'); const count = document.querySelector('[data-review-count]');
+            if (box && count) box.addEventListener('input', () => { count.textContent = box.value.length; });
+        })();
+    </script>
+}
