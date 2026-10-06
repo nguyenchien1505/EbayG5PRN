@@ -1,4 +1,5 @@
 using System.Security.Claims;
+using EbayGroup5.Application.Feedback;
 using EbayGroup5.Application.Orders;
 using EbayGroup5.Application.Reviews;
 using Microsoft.AspNetCore.Authorization;
@@ -8,7 +9,7 @@ namespace EbayGroup5.Web.Controllers;
 
 [Authorize(Roles = "Buyer,Seller")]
 [ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
-public sealed class OrdersController(IOrderService orders, IReviewService reviews) : Controller
+public sealed class OrdersController(IOrderService orders, IReviewService reviews, IFeedbackService feedback) : Controller
 {
     private int ActorId => int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
     private OrderAudience Audience => User.IsInRole("Seller") ? OrderAudience.Seller : OrderAudience.Buyer;
@@ -33,7 +34,11 @@ public sealed class OrdersController(IOrderService orders, IReviewService review
 
     private async Task<IActionResult> DetailsView(OrderDetail order, CancellationToken ct)
     {
-        if (order.Audience == OrderAudience.Buyer) ViewData["ReviewLines"] = await reviews.ListForOrderAsync(ActorId, order.Id, ct);
+        if (order.Audience == OrderAudience.Buyer)
+        {
+            ViewData["ReviewLines"] = await reviews.ListForOrderAsync(ActorId, order.Id, ct);
+            ViewData["FeedbackLines"] = await feedback.ListForOrderAsync(ActorId, order.Id, ct);
+        }
         return View("Details", order);
     }
 

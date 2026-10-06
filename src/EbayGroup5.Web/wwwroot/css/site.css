@@ -186,3 +186,13 @@ main.shell-width { flex: 1; padding-block: 32px 64px; }
 .star-input input:focus-visible + label { outline:3px solid #3665f3; outline-offset:2px; border-radius:4px; }
 .review-form .button { margin-top:20px; }
 @media(max-width:700px) { .review-row { grid-template-columns:minmax(0,1fr); } .review-row legend + * { grid-column:1; } .review-card { padding:18px; } .review-item-row .order-item-icon { width:64px; } .rating-summary { gap:16px; } .rating-score { min-width:0; } .rating-bars { flex-basis:100%; min-width:0; max-width:none; } }
+.seller-reputation { display:inline-flex; flex-wrap:wrap; gap:4px 8px; }
+.review-row-title { margin:0; font-size:17px; display:grid; gap:4px; }
+.review-row-title .field-help { font-weight:400; }
+.sentiment-input { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:8px; border:0; margin:0 0 8px; padding:0; min-width:0; }
+.sentiment-input input { position:absolute; opacity:0; width:1px; height:1px; }
+.sentiment-input label { display:block; text-align:center; padding:8px 6px; border:1px solid #191919; border-radius:20px; cursor:pointer; font-size:14px; overflow-wrap:anywhere; }
+.sentiment-input input:checked + label { background:#191919; color:#fff; }
+.sentiment-input input:disabled + label { border-color:#e5e5e5; background:#e5e5e5; color:#767676; cursor:not-allowed; }
+.sentiment-input input:focus-visible + label { outline:3px solid #3665f3; outline-offset:2px; }
+.sentiment-note { margin:0 0 12px; }

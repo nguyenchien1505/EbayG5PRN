@@ -1,13 +1,14 @@
 @model EbayGroup5.Application.Catalog.CatalogDetail
 @using System.Globalization
-@{ ViewData["Title"] = Model.Item.Title; var reviews = ViewData["Reviews"] as EbayGroup5.Application.Reviews.ProductReviewPage; var summary = reviews?.Summary ?? EbayGroup5.Application.Reviews.RatingSummary.Empty; }
+@{ ViewData["Title"] = Model.Item.Title; var reviews = ViewData["Reviews"] as EbayGroup5.Application.Reviews.ProductReviewPage; var summary = reviews?.Summary ?? EbayGroup5.Application.Reviews.RatingSummary.Empty;
+    var reputation = ViewData["SellerReputation"] as EbayGroup5.Application.Feedback.SellerReputation ?? EbayGroup5.Application.Feedback.SellerReputation.Empty; }
 <a class="back-to-catalog" asp-action="Index">← Browse all items</a>
 <div class="product-detail">
     <div class="detail-media product-placeholder"><svg viewBox="0 0 64 64" aria-hidden="true"><path d="M12 20 32 10 52 20 32 30Z M12 20v24l20 10 20-10V20 M32 30v24" /></svg><span>Image unavailable</span></div>
     <section class="detail-info" aria-labelledby="product-title">
         <h1 id="product-title">@Model.Item.Title</h1>
         @if (summary.Average is decimal average) { <a class="rating-inline" href="#reviews"><partial name="_Stars" model="average" /><span>@average.ToString("0.0", CultureInfo.InvariantCulture) · @summary.Ratings product rating@(summary.Ratings == 1 ? "" : "s")</span></a> }
-        <div class="seller-section"><span class="seller-avatar" aria-hidden="true">S</span><div><strong>@Model.Item.Seller</strong><p>Seller</p></div></div>
+        <div class="seller-section"><span class="seller-avatar" aria-hidden="true">S</span><div><strong>@Model.Item.Seller</strong><p><partial name="_SellerReputation" model="reputation" /></p></div></div>
         <p class="detail-price">US $@Model.Item.Price.ToString("N2", CultureInfo.InvariantCulture)</p>
         <p class="availability">@(Model.Quantity > 0 ? $"{Model.Quantity} available" : "Out of stock")</p>
         @if (Model.Quantity > 0) { <a class="button primary purchase-button" asp-controller="Checkout" asp-action="Index" asp-route-productId="@Model.Item.Id">Buy It Now</a> }

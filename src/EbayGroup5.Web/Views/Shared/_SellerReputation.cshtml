@@ -1,0 +1,12 @@
+@model EbayGroup5.Application.Feedback.SellerReputation
+@using System.Globalization
+@if (Model.Total == 0)
+{
+    <span class="seller-reputation">No feedback yet</span>
+}
+else
+{
+    <span class="seller-reputation"><span title="Feedback score: positive minus negative">(@Model.Score.ToString(CultureInfo.InvariantCulture))</span>
+        @if (Model.PositivePercent is decimal percent) { <span>@percent.ToString("0.#", CultureInfo.InvariantCulture)% positive feedback</span> }
+        else { <span>Neutral feedback only</span> }</span>
+}

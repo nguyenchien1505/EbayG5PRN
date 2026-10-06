@@ -150,7 +150,7 @@ public sealed class ReviewDisplayTests
         var form = await buyer.GetStringAsync(create);
         Assert.Contains("How would you rate this item?", form);
         Assert.Contains("Tell us more about this item", form);
-        Assert.Contains("0 / 2000", form.Replace("<span data-review-count>", "").Replace("</span>", ""));
+        Assert.Contains("0 / 2000", System.Text.RegularExpressions.Regex.Replace(form, "<[^>]+>", ""));
 
         var missing = await buyer.PostAsync("/Reviews/Create", new FormUrlEncodedContent(new Dictionary<string, string>
         { ["OrderItemId"] = s.Item.ToString(), ["Comment"] = "Keep this draft", ["__RequestVerificationToken"] = Field(form) }));

@@ -1,11 +1,12 @@
 using EbayGroup5.Application.Catalog;
+using EbayGroup5.Application.Feedback;
 using EbayGroup5.Application.Reviews;
 using EbayGroup5.Web.Models;
 using Microsoft.AspNetCore.Mvc;
 
 namespace EbayGroup5.Web.Controllers;
 
-public sealed class CatalogController(ICatalogService catalog, IReviewService reviews) : Controller
+public sealed class CatalogController(ICatalogService catalog, IReviewService reviews, IFeedbackService feedback) : Controller
 {
     [HttpGet]
     public async Task<IActionResult> Index(string? q, int? categoryId, int page = 1, CancellationToken cancellationToken = default)
@@ -26,6 +27,7 @@ public sealed class CatalogController(ICatalogService catalog, IReviewService re
         var result = await catalog.FindAsync(id, cancellationToken);
         if (result == null) return NotFound();
         ViewData["Reviews"] = await reviews.ProductReviewsAsync(id, cancellationToken: cancellationToken);
+        ViewData["SellerReputation"] = await feedback.ReputationAsync(result.Item.SellerId, cancellationToken);
         return View(result);
     }
 
