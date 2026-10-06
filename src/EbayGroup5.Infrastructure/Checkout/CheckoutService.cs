@@ -3,14 +3,16 @@ using System.Globalization;
 using System.Security.Cryptography;
 using System.Text;
 using EbayGroup5.Application.Checkout;
+using EbayGroup5.Application.Disputes;
 using EbayGroup5.Core.Entities;
 using EbayGroup5.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 
 namespace EbayGroup5.Infrastructure.Checkout;
 
-public sealed class CheckoutService(EbayDbContext db) : ICheckoutService
+public sealed class CheckoutService(EbayDbContext db, DisputeTiming? timing = null) : ICheckoutService
 {
+    private readonly DisputeTiming timing = timing ?? new();
     private static bool Field(string? value, int max) => !string.IsNullOrWhiteSpace(value) && value.Trim().Length <= max;
     private static bool Usable(Address address) => Field(address.FullName, 100) && Field(address.Street, 100) && Field(address.City, 50) && Field(address.Country, 50);
 
@@ -66,8 +68,10 @@ public sealed class CheckoutService(EbayDbContext db) : ICheckoutService
                 remaining -= taken;
                 if (remaining == 0) break;
             }
-            var order = new OrderTable { BuyerId = buyerId, SellerId = seller.Id, AddressId = address.Id, OrderDate = DateTime.UtcNow,
-                TotalPrice = total, Status = "Pending", CheckoutKey = request.Key, CheckoutFingerprint = fingerprint };
+            var ordered = DateTime.UtcNow;
+            // E01: latest estimated delivery is fixed at checkout; item-not-received requests open after it passes.
+            var order = new OrderTable { BuyerId = buyerId, SellerId = seller.Id, AddressId = address.Id, OrderDate = ordered,
+                EstimatedDeliveryUtc = this.timing.EstimatedDelivery(ordered), TotalPrice = total, Status = "Pending", CheckoutKey = request.Key, CheckoutFingerprint = fingerprint };
             db.Add(order);
             await db.SaveChangesAsync(cancellationToken);
             db.Add(new OrderItem { OrderId = order.Id, ProductId = product.Id, Quantity = request.Quantity, UnitPrice = product.Price });

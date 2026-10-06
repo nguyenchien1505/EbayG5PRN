@@ -26,7 +26,11 @@ public sealed record OrderLine(int Id, int? ProductId, string Title, int? Quanti
 public sealed record DeliveryAddress(string FullName, string? Phone, string Street, string City, string? State, string Country);
 public sealed record OrderDetail(int Id, DateTime? Date, string Status, decimal? Total, IReadOnlyList<OrderLine> Lines, int ItemCount,
     DeliveryAddress? Address, string? PaymentMethod, string? PaymentStatus, DateTime? PaidAt, string? Carrier, string? Tracking,
-    bool CanShip, bool CanReceive, string? Notice, OrderAudience Audience);
+    bool CanShip, bool CanReceive, string? Notice, OrderAudience Audience)
+{
+    /// <summary>Latest estimated delivery (E01); null for legacy orders without an order date.</summary>
+    public DateTime? EstimatedDeliveryUtc { get; init; }
+}
 
 public interface IOrderService
 {

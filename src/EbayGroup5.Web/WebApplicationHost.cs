@@ -63,6 +63,10 @@ public static class WebApplicationHost
         builder.Services.TryAddSingleton(TimeProvider.System);
         builder.Services.AddScoped<EbayGroup5.Application.Feedback.IFeedbackService, EbayGroup5.Infrastructure.Reputation.FeedbackService>();
         builder.Services.AddScoped<EbayGroup5.Application.Moderation.IModerationService, EbayGroup5.Infrastructure.Moderation.ModerationService>();
+        // E01: business-day timing; Disputes:DemoBusinessDaySeconds > 0 shortens deadlines for demos (DISPUTES.md).
+        builder.Services.AddSingleton(new EbayGroup5.Application.Disputes.DisputeTiming(
+            builder.Configuration.GetSection("Disputes").Get<EbayGroup5.Application.Disputes.DisputeTimingOptions>()));
+        builder.Services.AddScoped<EbayGroup5.Application.Disputes.IDisputeService, EbayGroup5.Infrastructure.Disputes.DisputeService>();
         builder.Services.AddScoped<EbayGroup5.Application.Checkout.ICheckoutService, EbayGroup5.Infrastructure.Checkout.CheckoutService>();
         builder.Services.AddScoped<EbayGroup5.Application.Catalog.ICatalogService, EbayGroup5.Infrastructure.Catalog.CatalogService>();
         builder.Services.AddScoped<AccessCookieEvents>();

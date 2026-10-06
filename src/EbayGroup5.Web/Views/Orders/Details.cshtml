@@ -25,6 +25,7 @@
     @if(Model.Address is {} address) { <p>@address.FullName<br/>@address.Street<br/>@address.City @address.State<br/>@address.Country<br/>@address.Phone</p> }
     else { <p>Shipping address is unavailable.</p> }
 </section><section class="checkout-card"><h2>Delivery (demo)</h2>
+    @if(Model.EstimatedDeliveryUtc is {} estimated) { <p>Estimated delivery: <strong>@estimated.ToString("ddd, MMM dd, yyyy", CultureInfo.InvariantCulture)</strong></p> }
     @if(Model.Tracking != null) { <p>@Model.Carrier<br/>@Model.Tracking</p><p class="field-help">Demo tracking reference. No real parcel is tracked.</p> }
     else { <p>No shipment details available.</p> }
 </section></div><aside class="checkout-card checkout-summary"><h2>Order summary</h2>

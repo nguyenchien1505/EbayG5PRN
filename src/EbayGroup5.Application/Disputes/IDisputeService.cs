@@ -1,0 +1,55 @@
+namespace EbayGroup5.Application.Disputes;
+
+// Contract: docs/architecture/DISPUTES.md. Enum names are persisted as strings; do not rename members.
+public enum DisputeKind { ItemNotReceived, Return }
+public enum DisputeReason
+{
+    ItemNotReceived,
+    // Change of mind: seller may decline.
+    OrderedWrongItem, ChangedMind, NoLongerNeeded, BetterPrice, DoesntFit,
+    // Item problem (Money Back Guarantee): seller may not decline.
+    Damaged, Defective, MissingParts, NotAsDescribed, WrongItem
+}
+/// <summary>INR choice: "I'd like a refund" / "I'd still like the item".</summary>
+public enum DisputePreference { Refund, Item }
+public enum DisputeStatus { Open, ReturnAccepted, ReturnShipped, Escalated, Closed }
+public enum DisputeOutcome { Refunded, PartialRefund, BuyerClosed, ItemReceived, SellerDeclined, ReturnNotShipped, DecidedForBuyer, DecidedForSeller }
+public enum DisputeActor { Buyer, Seller, Admin, System }
+public enum DisputeAction { Message, AddTracking, Refund, AcceptReturn, OfferPartial, AcceptOffer, DeclineOffer, Decline, MarkReturnShipped, Escalate, Close, ExpireReturn, ItemReceived, Decide }
+/// <summary>AutoNotice is reserved for E04 automatic responses.</summary>
+public enum DisputeEventType { Opened, Message, TrackingAdded, Refunded, ReturnAccepted, OfferMade, OfferAccepted, OfferDeclined, Declined, ReturnShipped, Escalated, Closed, ReturnExpired, ItemReceived, Decided, AutoNotice }
+public enum DisputeResultCode { Success, Invalid, NotFound, Forbidden, Conflict }
+
+public static class DisputeLimits
+{
+    public const int MaxText = 2000;
+    public const int MaxTracking = 100;
+    public const int MaxEvents = 200;
+}
+
+public sealed record OpenDisputeRequest(int OrderItemId, DisputeKind Kind, DisputeReason Reason, DisputePreference? Preference, string? Details);
+public sealed record DisputeCommand(DisputeAction Action, string? Message = null, decimal? Amount = null, string? Tracking = null, bool? ForBuyer = null);
+/// <summary>ExistingDisputeId is set on Conflict when the line already has an open request.</summary>
+public sealed record DisputeResult(DisputeResultCode Code, int? DisputeId = null, string? Error = null, int? ExistingDisputeId = null);
+
+public sealed record KindEligibility(bool CanOpen, string? Reason, DateTime? OpensAtUtc, DateTime? ClosesAtUtc, int? ExistingDisputeId);
+public sealed record DisputeEligibility(int OrderId, int OrderItemId, DateTime? EstimatedDeliveryUtc, KindEligibility ItemNotReceived, KindEligibility Return);
+
+public sealed record DisputeEventView(int Id, DisputeActor ActorRole, DisputeEventType Type, string? Message, decimal? Amount, string? Tracking, DateTime CreatedAtUtc);
+public sealed record DisputeDetail(int Id, int OrderId, int OrderItemId, string ItemTitle, DisputeKind Kind, DisputeReason Reason, DisputePreference? Preference,
+    DisputeStatus Status, DisputeOutcome? Outcome, string? Details, DateTime CreatedAtUtc, DateTime? DueAtUtc, DateTime? EscalatedAtUtc, DateTime? ClosedAtUtc,
+    decimal LineTotal, decimal? OfferAmount, decimal? RefundAmount, string? ReturnTracking, DisputeActor Viewer, IReadOnlyList<DisputeAction> Actions,
+    IReadOnlyList<DisputeEventView> Events, bool DemoTiming);
+
+public interface IDisputeService
+{
+    /// <summary>Per-kind eligibility of one line for the Buyer who owns the order; null when missing, foreign or the actor is not a Buyer.</summary>
+    Task<DisputeEligibility?> EligibilityAsync(int buyerId, int orderItemId, CancellationToken cancellationToken = default);
+    Task<DisputeResult> OpenAsync(int buyerId, OpenDisputeRequest request, CancellationToken cancellationToken = default);
+    /// <summary>Buyer/Seller/Admin commands; the actor's role is derived from the request and the database, never from input.</summary>
+    Task<DisputeResult> ActAsync(int actorId, int disputeId, DisputeCommand command, CancellationToken cancellationToken = default);
+    /// <summary>System commands for the E04 job (Escalate, ExpireReturn); idempotent: a no-longer-applicable command returns Conflict without writes.</summary>
+    Task<DisputeResult> ActAsSystemAsync(int disputeId, DisputeAction action, CancellationToken cancellationToken = default);
+    /// <summary>Visible to the request's buyer and seller, and to Admin users; null otherwise.</summary>
+    Task<DisputeDetail?> FindAsync(int actorId, int disputeId, CancellationToken cancellationToken = default);
+}
