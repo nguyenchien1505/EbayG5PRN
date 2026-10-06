@@ -1,6 +1,6 @@
 # Handoff — D01 review gắn OrderItem
 
-06/10/2026. Repo D:/WINDOWS/PRN3/EbayGroup5; baseline main `2c58aac`, nhánh `task/D01-review-order-link` (commit local, **chưa push, chưa merge main**). Checkpoint `git log --oneline --grep=D01`. C05 handoff đã lưu ở [C05](C05.md).
+06/10/2026. Repo D:/WINDOWS/PRN3/EbayGroup5; baseline main `2c58aac`, runtime `6ba273a` trên `task/D01-review-order-link` → main fast-forward sau [CI37418785742](https://github.com/Twiash/EbayGroup5/actions/runs/37418785742) success. Checkpoint `git log --oneline --grep=D01`. C05 handoff đã lưu ở [C05](C05.md).
 
 ## Hoàn tất
 
@@ -14,7 +14,7 @@
 
 - [Evidence](../evidence/D01.md): Test-CI pass, **157/157 .NET + 14/14 Node**, build 0 warnings/errors, Verify-Planning/Verify-Migrations pass. Mutation bỏ guard Delivered làm 3 test fail rồi khôi phục.
 - G5-03 vẫn **Pending** (cần UI D02); G5-04 Pending D02/D05; SUP-05 Pending D05/E05. UI-01 project-wide Pending.
-- Chưa chạy GitHub Actions cho D01 (chưa push). Không thay đổi launchSettings.json chưa track của người dùng.
+- **[CI37418785742](https://github.com/Twiash/EbayGroup5/actions/runs/37418785742) exact runtime 6ba273a success**: job 4m10s, 157 .NET + 14 Node, build 0 warnings/errors, TRX upload. Docs-only [skip ci] sau CI. Không thay đổi launchSettings.json chưa track của người dùng.
 
 ## Quyết định/giả định cần D02 biết
 
@@ -27,5 +27,4 @@
 ## Tiếp theo / Jira
 
 - D01 only complete; chờ task người dùng chọn, không tự D02/D03/E/F. Gợi ý: D02 (UI + trung bình) hoặc E01.
-- Cần người dùng quyết: push `task/D01-review-order-link` lên origin để chạy GitHub CI rồi merge main fast-forward (như các task trước), hay giữ local.
 - Jira pending batch: B05+B06/KAN-11/TV1; C01/KAN-13, C02/KAN-14, C03+C04/KAN-15, C05/KAN-16/TV2; **D01 thuộc KAN-17/TV3 Pham Van Cuong, hoàn tất local một phần (KAN-17 còn D02)**. Chưa sync live, không worklog/review/duplicate.
