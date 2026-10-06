@@ -1,0 +1,9 @@
+@model EbayGroup5.Application.Checkout.OrderConfirmation
+@using System.Globalization
+@{ ViewData["Title"] = "Order placed"; }
+<section class="checkout-card confirmation-card"><h1>Your order is placed</h1><p>Order #@Model.Id · @Model.Status</p>
+<p>@Model.Quantity item(s) × US $@Model.UnitPrice.ToString("N2", CultureInfo.InvariantCulture)</p>
+<p><strong>Total: US $@Model.Total.ToString("N2", CultureInfo.InvariantCulture)</strong></p>
+<h2>Ship to</h2><p>@Model.Address.FullName<br />@Model.Address.Street<br />@Model.Address.City @Model.Address.State<br />@Model.Address.Country<br />@Model.Address.Phone</p>
+<h2>Cash on delivery (demo)</h2><p>Payment: @Model.PaymentStatus. No real payment or delivery is arranged.</p>
+<a class="button primary" asp-controller="Catalog" asp-action="Index">Continue shopping</a></section>

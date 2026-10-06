@@ -68,6 +68,9 @@ public sealed class EbayDbContext(DbContextOptions<EbayDbContext> options) : DbC
             entity.HasOne<Address>().WithMany().HasForeignKey(x => x.AddressId).OnDelete(DeleteBehavior.ClientNoAction);
             entity.Property(x => x.OrderDate).HasColumnName("orderDate").HasColumnType("datetime");
             entity.Property(x => x.TotalPrice).HasColumnName("totalPrice").HasColumnType("decimal(10,2)").HasPrecision(10, 2);
+            entity.Property(x => x.CheckoutKey).HasColumnType("uniqueidentifier");
+            entity.Property(x => x.CheckoutFingerprint).HasColumnType("varchar(64)").HasMaxLength(64).IsUnicode(false);
+            entity.HasIndex(x => new { x.BuyerId, x.CheckoutKey }).HasDatabaseName("UX_OrderTable_Buyer_CheckoutKey").IsUnique().HasFilter("[CheckoutKey] IS NOT NULL");
             entity.Property(x => x.Status).HasColumnName("status").HasColumnType("nvarchar(20)").HasMaxLength(20);
         });
         modelBuilder.Entity<OrderItem>(entity =>

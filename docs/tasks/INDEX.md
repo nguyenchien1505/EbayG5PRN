@@ -16,7 +16,7 @@ Trạng thái ở đây là đầu mối theo dõi. Planned = cần kiểm tra d
 | [B02](B02.md) | Authorization, CSRF và xử lý lỗi | B01 | Done |
 | [B03](B03.md) | Khung giao diện eBay và điều hướng | A03 | Done |
 | [B04](B04.md) | Catalog và product detail | A06, B03 | Done |
-| [B05](B05.md) | Buy Now, địa chỉ và COD mô phỏng | B02, B04 | Planned |
+| [B05](B05.md) | Buy Now, địa chỉ và COD mô phỏng | B02, B04 | Done |
 | [B06](B06.md) | Lịch sử mua/bán và giao/nhận | B05 | Planned |
 | [C01](C01.md) | Schema và contract chat | A05, B02 | Planned |
 | [C02](C02.md) | Service/API lưu và đọc chat | C01 | Planned |

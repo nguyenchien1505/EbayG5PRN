@@ -41,3 +41,11 @@ Ngày tìm 02/10/2026. Người dùng yêu cầu tìm ảnh thiếu trên Intern
 - M1/R1/P1/D1/D2 đã được chốt ngày 02/10/2026; không hỏi lại quyền dùng bố cục này. Task B06 dùng P1, C04/D02/D03/E02/E03 dùng các mẫu tương ứng cùng contract và U1; không yêu cầu mở tất cả ảnh.
 - Link ảnh M1/R1/P1/D1/D2 đã kiểm tra HTTP HEAD 200, content-type ảnh; dùng URL hiện tại vì URL Community cũ trả 410. Ảnh chỉ nhúng từ nguồn, không copy tài khoản/order/comment làm dữ liệu demo.
 - Chưa đủ bằng chứng UI mobile, đầy đủ timeline/escalation, trạng thái lỗi/draft và seller feedback profile. Khi đến task liên quan, tiếp tục tìm nguồn, trình mẫu hoặc đề xuất trạng thái clone để người dùng chốt. Admin thiết kế riêng, không mạo nhận UI admin eBay.
+
+## C1 — checkout (B05, đã chốt 06/10/2026)
+
+[eBay Pay with card chính thức](https://pages.ebay.com/pay-with-card/index.html), trang không ghi năm của ảnh; URL kiểm tra ngày 06/10/2026. User chốt “Chốt C1 và bố cục đề xuất” qua Q-UI-006. Nguồn bổ sung [eBay Connect Payments 2023, slide 3](https://developer.ebay.com/cms/files/connect-2023/payments.pdf) và [Checkout Help](https://www.ebay.com/help/buying/paying/checkout?id=4036).
+
+![C1 checkout](https://ir.ebaystatic.com/pictures/aw/pics/EUO-240/W43_PayWithCard_Gif_ROW.gif)
+
+Clone giản lược: Ship to → item/quantity → COD mô phỏng → total/Place order, desktop hai cột/mobile một cột. Không triển khai card/PayPal/coupon/vault/tax/shipping options từ mẫu. COD là quyết định demo của dự án, không suy ra từ ảnh hoặc chính sách eBay. Không copy thông tin cá nhân trong nguồn.

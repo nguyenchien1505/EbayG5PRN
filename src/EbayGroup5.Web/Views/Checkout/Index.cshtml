@@ -1,0 +1,50 @@
+@model EbayGroup5.Web.Models.CheckoutPage
+@using System.Globalization
+@{ ViewData["Title"] = "Checkout"; }
+<a class="back-to-catalog" asp-controller="Catalog" asp-action="Details" asp-route-id="@Model.Product.Item.Id">← Back to item</a>
+<h1>Checkout</h1>
+<p class="field-help">Demo checkout. No real payment or delivery is arranged.</p>
+<form asp-action="Place" method="post" class="checkout-grid">
+    <input type="hidden" name="ProductId" value="@Model.Form.ProductId" />
+    <input type="hidden" name="Key" value="@Model.Form.Key" />
+    <input type="hidden" name="ExpectedUnitPrice" value="@Model.Form.ExpectedUnitPrice.ToString(CultureInfo.InvariantCulture)" />
+    <div class="checkout-sections">
+        <div asp-validation-summary="All" class="validation-errors" role="alert"></div>
+        <section class="checkout-card"><h2>Ship to</h2>
+            @if (Model.Addresses.Count == 0) { <p>Add a shipping address to continue.</p> }
+            @foreach (var address in Model.Addresses)
+            {
+                <label class="address-choice"><input type="radio" name="AddressId" value="@address.Id" checked="@(address.Id == Model.Form.AddressId)" required />
+                    <span><strong>@address.FullName</strong><br />@address.Street<br />@address.City @address.State<br />@address.Country<br />@address.Phone</span>
+                </label>
+            }
+            <a id="add-address" asp-action="AddAddress" asp-route-productId="@Model.Form.ProductId" asp-route-quantity="@Model.Form.Quantity">Add a new address</a>
+        </section>
+        <section class="checkout-card"><h2>Review item</h2><p class="field-help">Seller: @Model.Product.Item.Seller</p>
+            <strong>@Model.Product.Item.Title</strong><p>US $@Model.Product.Item.Price.ToString("N2", CultureInfo.InvariantCulture) each</p>
+            <label for="quantity">Quantity</label><input class="quantity-input" id="quantity" name="Quantity" type="number" min="1" max="99" value="@Model.Form.Quantity" required />
+            <p class="field-help">@Model.Product.Quantity available. Availability is checked when you place your order.</p>
+        </section>
+        <section class="checkout-card"><h2>Pay with</h2><strong>Cash on delivery (demo)</strong><p>No money is collected. Payment stays pending.</p></section>
+    </div>
+    <aside class="checkout-card checkout-summary" aria-labelledby="summary-title"><h2 id="summary-title">Order summary</h2>
+        <p><span>Items (<span id="summary-quantity">@Model.Form.Quantity</span>)</span> <strong id="summary-total">US $@((Model.Product.Item.Price * Model.Form.Quantity).ToString("N2", CultureInfo.InvariantCulture))</strong></p>
+        <p class="field-help">USD demo. Total includes items only; no delivery service or extra charges are applied.</p>
+        <button class="button primary purchase-button" type="submit" disabled="@(Model.Addresses.Count == 0 || Model.Product.Quantity == 0)">Place order</button>
+        <p class="field-help">Review your address and quantity before placing your order.</p>
+    </aside>
+</form>
+<script>
+    const quantity = document.getElementById('quantity');
+    quantity.addEventListener('input', () => {
+        const count = Number(quantity.value);
+        document.getElementById('summary-quantity').textContent = quantity.value;
+        document.getElementById('summary-total').textContent = 'US $' + (count * @Model.Product.Item.Price.ToString(CultureInfo.InvariantCulture)).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        if (Number.isInteger(count) && count >= 1 && count <= 99) {
+            const addressLink = document.getElementById('add-address');
+            const addressUrl = new URL(addressLink.href);
+            addressUrl.searchParams.set('quantity', String(count));
+            addressLink.href = addressUrl.toString();
+        }
+    });
+</script>

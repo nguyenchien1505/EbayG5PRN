@@ -109,3 +109,19 @@ main.shell-width { flex: 1; padding-block: 32px 64px; }
     .marketplace-state { margin-block: 44px 16px; }
     .marketplace-state h2 { font-size: 23px; }
 }
+
+.checkout-grid { display:grid; grid-template-columns:minmax(0,2fr) minmax(280px,1fr); gap:24px; align-items:start; margin:24px 0 48px; }
+.checkout-sections { display:grid; gap:20px; min-width:0; }
+.checkout-card { border:1px solid #ddd; border-radius:16px; padding:24px; background:#fff; overflow-wrap:anywhere; }
+.checkout-card h2 { margin:0 0 18px; font-size:22px; }
+.checkout-summary { position:sticky; top:24px; }
+.checkout-summary p:first-of-type { display:flex; justify-content:space-between; gap:16px; }
+.address-choice { display:flex; align-items:flex-start; gap:12px; margin:0 0 20px; line-height:1.6; }
+.address-choice input { margin-top:7px; }
+.quantity-input { display:block; width:90px; padding:10px; margin-top:8px; border:1px solid #888; border-radius:8px; }
+.address-form { max-width:620px; margin:24px auto 48px; }
+.address-form label { display:block; margin:16px 0 6px; }
+.address-form input:not([type=hidden]) { width:100%; padding:12px; border:1px solid #888; border-radius:8px; box-sizing:border-box; }
+.address-form button { margin-top:24px; }
+.confirmation-card { max-width:700px; margin:36px auto; }
+@media(max-width:760px) { .checkout-grid { grid-template-columns:1fr; gap:20px; } .checkout-summary { position:static; } .checkout-card { padding:20px; } }
