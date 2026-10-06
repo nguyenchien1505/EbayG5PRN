@@ -8,7 +8,7 @@ Mở ngày 02/10/2026 tại A02. Đã đọc eBay Help, quan sát home/menu; Mes
 |---|---|---|---|---|
 | Q-UI-001 | C04 | Nếu sẵn có: ảnh hoặc video inbox Messages và một cuộc hội thoại, thấy danh sách, item context, composer và trạng thái gửi; mobile nếu có | Chờ để chốt layout chat giống eBay; C01–C03/backend tiếp tục được | Open |
 | Q-UI-002 | B06, D02–D04 | Nếu sẵn có: dòng hàng đã nhận trong Purchase History và form Leave feedback/rating, thể hiện star/sentiment/comment cùng hoặc khác bước | Chờ chốt hành trình màn hình review; điều kiện owner/Delivered trong kế hoạch giữ nguyên | Open |
-| Q-UI-003 | E02–E03 | Nếu sẵn có: form báo chưa nhận/sai mô tả, bước chi tiết và trang case có phản hồi buyer/seller; video ngắn cũng được | Chờ độ giống UI private; state/service theo requirement vẫn có thể thiết kế | Open |
+| Q-UI-003 | E02–E03 | Nếu sẵn có: form báo chưa nhận/sai mô tả, bước chi tiết và trang case có phản hồi buyer/seller; video ngắn cũng được | Chờ độ giống UI private; state/service theo requirement vẫn có thể thiết kế | Answered 06/10/2026 (xem [INDEX](INDEX.md)) |
 
 Chỉ cần gửi nhóm ảnh đang có, có thể che tên, địa chỉ, order ID và nội dung riêng tư. Không yêu cầu giao diện admin eBay. Khi chưa có nguồn, không lấy code kỳ trước làm bằng chứng giao diện thật.
 

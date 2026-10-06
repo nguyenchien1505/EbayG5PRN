@@ -24,7 +24,9 @@ Ngày tìm 02/10/2026. Người dùng yêu cầu tìm ảnh thiếu trên Intern
 
 ![P1 — purchase history](https://res.cloudinary.com/startup-grind/image/upload/c_fill,dpr_2,f_auto,g_center,q_auto:good/v1/gcs/platform-data-ebay/discussions/medium_zKDl6WM)
 
-## D1 — buyer return request
+## D1 — buyer return request (đã thay bằng E1 ngày 06/10/2026)
+
+**Không dùng nữa:** rà soát 06/10/2026 cho thấy ảnh là giao diện eBay đời cũ (xem mục Rà soát bên dưới). Giữ lại để lưu lịch sử.
 
 [Nguồn eBay Community, thảo luận năm 2023](https://community.ebay.com/forum/returns-57918/topic/i-ordered-two-items-but-only-got-one-104714/). Mẫu reason/detail/action cho E02. Không dùng lời khuyên trong bình luận làm quy tắc xử lý dispute.
 
@@ -38,9 +40,9 @@ Ngày tìm 02/10/2026. Người dùng yêu cầu tìm ảnh thiếu trên Intern
 
 ## Cách chốt và giới hạn
 
-- M1/R1/P1/D1/D2 đã được chốt ngày 02/10/2026; không hỏi lại quyền dùng bố cục này. Task B06 dùng P1, C04/D02/D03/E02/E03 dùng các mẫu tương ứng cùng contract và U1; không yêu cầu mở tất cả ảnh.
+- M1/R1/P1/D1/D2 đã được chốt ngày 02/10/2026; không hỏi lại quyền dùng bố cục này. Ngày 06/10/2026 D1 được thay bằng E1 theo ADR-002 (xem mục Rà soát). Task B06 dùng P1, C04/D02/D03/E02/E03 dùng các mẫu tương ứng cùng contract và U1; không yêu cầu mở tất cả ảnh.
 - Link ảnh M1/R1/P1/D1/D2 đã kiểm tra HTTP HEAD 200, content-type ảnh; dùng URL hiện tại vì URL Community cũ trả 410. Ảnh chỉ nhúng từ nguồn, không copy tài khoản/order/comment làm dữ liệu demo.
-- Chưa đủ bằng chứng UI mobile, đầy đủ timeline/escalation, trạng thái lỗi/draft và seller feedback profile. Khi đến task liên quan, tiếp tục tìm nguồn, trình mẫu hoặc đề xuất trạng thái clone để người dùng chốt. Admin thiết kế riêng, không mạo nhận UI admin eBay.
+- Chưa đủ bằng chứng UI mobile và trạng thái lỗi/draft. Seller feedback profile đã có F1; timeline/escalation lấy câu chữ từ Help 4042 (mục Rà soát). Khi đến task liên quan, tiếp tục tìm nguồn, trình mẫu hoặc đề xuất trạng thái clone để người dùng chốt. Admin thiết kế riêng, không mạo nhận UI admin eBay.
 
 ## C1 — checkout (B05, đã chốt 06/10/2026)
 
@@ -67,3 +69,56 @@ Bản giản lược cho clone gồm:
   - Reply của seller hiện ngay dưới comment; Seller chủ hồ sơ thấy nút Reply bên phải.
 - Lọc theo sentiment và phân trang.
 - Bỏ: Detailed seller ratings, tab buyer/left for others, ô tìm item, ảnh, Member Quick Links. Mobile xếp thành một cột theo shell của clone, không có ảnh eBay mobile làm mẫu.
+
+## Rà soát 06/10/2026 — khiếu nại (Q-UI-003)
+
+Áp dụng [ADR-002](../decisions/ADR-002-group5-fidelity.md): khiếu nại là yêu cầu nhóm 5, nên phải giống eBay. Tổng hợp rà soát nằm ở [UI_REVIEW](UI_REVIEW.md). Ảnh dưới đây là ảnh thành viên đăng trên eBay Community, có ghi năm; dùng để tham khảo bố cục, không coi là đặc tả nghiệp vụ. Thông tin cá nhân trong ảnh nguồn không được chép.
+
+### E1 — buyer return, desktop 2 bước (11/2022)
+
+[Nguồn](https://community.ebay.com/forum/returns-57918/topic/photos-for-a-return-443208/).
+
+- Bước 1: "Why are you returning this item?" với radio lý do → Next.
+- Bước 2: Add details, Add photos (0/10), Confirm return.
+- Banner thông tin ở đầu trang.
+
+Mẫu này thay D1.
+
+![E1 — return item](https://res.cloudinary.com/startup-grind/image/upload/c_fill,dpr_2,f_auto,g_center,q_auto:good/v1/gcs/platform-data-ebay/discussions/large_RkeQbTJ)
+
+### E1m — danh sách lý do hiện hành (03/2026)
+
+[Nguồn](https://community.ebay.com/forum/buying-57914/topic/fake-tracking-scammers-are-winning-173392/). Dropdown "Return reason" gồm: Ordered the wrong item, Changed my mind, No longer needed, Found a better price, Doesn't fit, Item damaged, Item defective, Missing parts or pieces, Item didn't match description, Received the wrong item.
+
+Cùng thread có card đơn 2026 ("Shipped—Carrier scan", View order details, Leave feedback ▾, View tracking). Ô "Report a problem" trong thread là của PayPal, **không dùng**.
+
+![E1m — return reason](https://res.cloudinary.com/startup-grind/image/upload/c_fill,dpr_2,f_auto,g_center,q_auto:good/v1/gcs/platform-data-ebay/discussions/large_JGLXbXz)
+
+### E0 — Report an item you didn't receive (live 06/10/2026)
+
+Trang eBay Help "Report an item you didn't receive — Select an item to get started": ô "Search by item or order number" và danh sách đơn gần đây. Agent đã xem live; ảnh lưu ignored tại `artifacts/ui-review/5b-ebay-inr-item-picker-live.jpg`.
+
+Form INR theo [Help 4042](https://www.ebay.com/help/buying/returns-refunds/get-help-item-hasnt-arrived?id=4042): More actions → I didn't receive it → "I'd like a refund" / "I'd still like the item" → Add any additional information → Send request.
+
+### H1 — timeline và escalation chính thức (Help 4042, live 06/10/2026)
+
+"What happens from here":
+
+1. Estimated delivery date passes.
+2. Report it.
+3. Seller has 3 business days.
+4. Ask eBay to step in — "We review and usually respond within 48 hours".
+
+Leo thang: Purchases → More actions → See request details → Ask eBay to step in and help → chọn lý do → Confirm. Có thể appeal trong 30 ngày. Ảnh ignored: `artifacts/ui-review/5a-ebay-help-inr-steps-live.jpg`.
+
+Không có ảnh thật của trang request details. Clone thiết kế trang này theo câu chữ H1/E0, cùng phong cách E1/D2, và ghi rõ là thiết kế của clone.
+
+### P2 — điểm vào khiếu nại trên đơn (01/2025)
+
+[Nguồn](https://community.ebay.com/forum/ask-a-mentor-57913/topic/report-item-not-delivered-i-didnt-receive-it-is-not-in-the-more-actions-option-318671/). Nhóm nút View order details / Buy again / View seller's other items / **More actions ▾**.
+
+![P2 — order actions](https://res.cloudinary.com/startup-grind/image/upload/c_fill,dpr_2,f_auto,g_center,q_auto:good/v1/gcs/platform-data-ebay/discussions/medium_zITPrPs)
+
+### D2
+
+Giữ như đã chốt (09/2024, giao diện hiện hành).
