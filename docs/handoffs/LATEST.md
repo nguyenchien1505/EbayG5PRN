@@ -1,6 +1,6 @@
 # Handoff — C03 authenticated WebSocket and Redis
 
-06/10/2026. Repo D:/WINDOWS/PRN3/EbayGroup5; baseline main060036d, branch task/C03-signalr-redis. Checkpoint `git log --oneline --grep=C03`; main fast-forward sau verified GitHub CI. C02 giữ tại [C02](C02.md).
+06/10/2026. Repo D:/WINDOWS/PRN3/EbayGroup5; baseline main060036d, runtime39da85c, task/C03-signalr-redis → main sau GitHub CI pass. Checkpoint `git log --oneline --grep=C03`; C02 giữ tại [C02](C02.md).
 
 ## Hoàn tất C03
 
@@ -15,7 +15,7 @@
 
 - `. ./scripts/Use-LocalDotnet.ps1; ./scripts/Test-CI.ps1`: locked restore/build0 warnings/errors; **134/134 pass38s**,18 C03+116 regression, none skipped. [Evidence](../evidence/C03.md): real WS+Redis send/read between two independent Kestrel apps/DI roots/ports **within one test process**, REST publish, SQL commit visible, third-party/Origin/role/credential/expiry/rotation/frame/subscription guards, retry/read event suppression, unavailable Redis durable receipt/SQL catch-up.
 - Shared ephemeral test-only key provider verifies cookie across hosts; not persistent deployed key sharing. Test-CI now starts isolated pinned Redis random-password/256MB beside fresh SQL2048MB/container3GB; `ebaygroup5-ci-2ab455b8b2d44f2bba5371164c6a5280`/`-redis` stopped/retained. Prefix per test DB avoids cross-case event contamination. No user DB writes/drop/reset; no browser UI smoke.
-- First128/134 had6 assertion failures because SignalR prepends method wrapper; corrected from official8.0.31 source, no weakening of guard. Nullable test warning fixed; final clean. Verify-Planning/Verify-Migrations/diff checks at final docs; GitHub runtime hash/run pending initially, append after push before main fast-forward. All G5 chat requirements remain Pending C04–C05/F.
+- First128/134 had6 assertion failures because SignalR prepends method wrapper; corrected from official8.0.31 source, no weakening of guard. Nullable test warning fixed; final clean. Verify-Planning115 Markdown/39cards/source17, Verify-Migrations7 assets/diff pass. [CI37408622971](https://github.com/Twiash/EbayGroup5/actions/runs/37408622971) tại39da85c690d37cf7b6bbb238ea97d4f294461a4f success: job2m58s/build0 warnings/errors/134tests pass1m14s/TRX upload pass. Docs-only final [skip ci], no runtime change; all G5 chat requirements Pending C04–C05/F.
 - Local ignored artifacts/b06/compose-memory.yaml engine4096MB/container6GB retained, same SQL volume; fresh CI containers standard2048MB/3GB. launchSettings.json user untracked untouched/uncommitted; .env secrets ignored. [LOCAL_INFRA](../runbooks/LOCAL_INFRA.md)/[LOCAL_SETUP](../runbooks/LOCAL_SETUP.md) updated Redis required/Development HTTP/Origin port.
 
 ## Tiếp theo C04 / Jira
