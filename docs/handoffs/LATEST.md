@@ -2,7 +2,7 @@
 
 06/10/2026. Repo D:/WINDOWS/PRN3/EbayGroup5.
 
-- Baseline main `6dee061`. Runtime nằm trên `task/D06-group5-entry-points` và chỉ fast-forward vào main sau khi GitHub CI chạy đúng hash pass; số run ghi bằng commit docs-only `[skip ci]`.
+- Baseline main `6dee061`. Runtime `0a99e49` trên `task/D06-group5-entry-points`, fast-forward vào main sau khi [CI37453888486](https://github.com/Twiash/EbayGroup5/actions/runs/37453888486) pass.
 - Checkpoint: `git log --oneline --grep=D06`.
 - Handoff trước: [UI-REVIEW-G5](UI-REVIEW-G5.md) (rà soát, ADR-002) và [D05](D05.md) (runtime gần nhất).
 
@@ -28,7 +28,7 @@ Người dùng chọn phương án 1 của Q-UI-008. Contract: [ENTRY_POINTS](..
 - [Evidence](../evidence/D06.md): Test-CI local **203/203 .NET + 14/14 Node**, build 0 warnings.
 - Mutation điều kiện 60 ngày bị test bắt.
 - Browser desktop, 390px và 320px trên preview cô lập; sửa lỗi menu bị cắt.
-- GitHub CI: xem commit docs `[skip ci]` của D06.
+- **GitHub [CI37453888486](https://github.com/Twiash/EbayGroup5/actions/runs/37453888486) exact runtime `0a99e49` success**: job build-test 4m49s, 203/203 .NET + 14/14 Node, build 0 warnings. Docs-only `[skip ci]` sau CI.
 - Không đụng `launchSettings.json` (untracked).
 
 ## Lưu ý cho task sau
