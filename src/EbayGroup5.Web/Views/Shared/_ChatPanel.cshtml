@@ -1,0 +1,5 @@
+@using System.Security.Claims
+<dialog id="chat-panel" class="chat-panel" aria-labelledby="chat-panel-title">
+    <div class="chat-panel-heading"><h2 id="chat-panel-title">Message seller</h2><button class="chat-icon-button" type="button" data-close-chat aria-label="Close message seller">×</button></div>
+    <div data-chat-root data-mode="panel" data-actor-id="@User.FindFirstValue(ClaimTypes.NameIdentifier)"><partial name="_ChatConversation" /></div>
+</dialog>

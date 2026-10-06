@@ -1,0 +1,18 @@
+<section class="chat-conversation" aria-label="Conversation" data-thread>
+    <header class="chat-thread-heading"><button type="button" class="chat-back" data-back>← Inbox</button><span class="chat-avatar" data-peer-avatar aria-hidden="true">M</span><div><h2 data-peer-name>Select a conversation</h2><p class="chat-connection" data-connection role="status">Your messages with buyers and sellers</p></div><button class="chat-icon-button chat-thread-refresh" type="button" data-refresh-thread aria-label="Refresh conversation">↻</button></header>
+    <div class="chat-item" data-context hidden><span class="chat-item-icon" aria-hidden="true">▢</span><div><a data-item-link>Item</a><p data-item-price></p></div></div>
+    <div class="chat-status" data-status role="status" aria-live="polite" hidden></div>
+    <button type="button" class="chat-more" data-retry-load hidden>Try again</button>
+    <div class="chat-transcript" data-transcript tabindex="0" aria-label="Message history">
+        <button type="button" class="chat-more" data-more-messages hidden>Load older messages</button>
+        <p class="chat-empty" data-thread-empty>Choose a conversation to read your messages.</p>
+        <div data-message-list class="chat-message-list"></div>
+    </div>
+    <button type="button" class="chat-new-messages" data-new-messages hidden>New messages ↓</button>
+    <form class="chat-compose" data-compose aria-label="Send a message">
+        <label class="sr-only" for="chat-message-text">Message</label><textarea id="chat-message-text" data-input rows="2" maxlength="4000" placeholder="Send a message…" disabled></textarea>
+        <button type="submit" class="chat-send" data-send aria-label="Send message" disabled>➤</button>
+        <span class="chat-compose-help" data-count>0 / 4000</span>
+    </form>
+    <p class="chat-safety">Keep your conversation on eBay Clone.</p>
+</section>

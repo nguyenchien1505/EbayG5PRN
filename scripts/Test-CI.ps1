@@ -16,6 +16,10 @@ try {
     if ($LASTEXITCODE -ne 0) { throw 'Planning validation failed.' }
     pwsh -NoProfile -File "$PSScriptRoot/Verify-Migrations.ps1"
     if ($LASTEXITCODE -ne 0) { throw 'Migration checksum validation failed.' }
+    pwsh -NoProfile -File "$PSScriptRoot/Verify-ClientAssets.ps1"
+    if ($LASTEXITCODE -ne 0) { throw 'Pinned browser assets failed.' }
+    node --test tests/chat-client.test.mjs
+    if ($LASTEXITCODE -ne 0) { throw 'Chat client state tests failed; Node20+ is required.' }
     dotnet restore --locked-mode
     if ($LASTEXITCODE -ne 0) { throw 'Locked restore failed.' }
     dotnet build --no-restore -c Release

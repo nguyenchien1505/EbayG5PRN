@@ -16,7 +16,7 @@ namespace EbayGroup5.Database.Tests;
 public sealed class ChatHttpTests
 {
     private const string Root = "/api/v1/chat";
-    private static async Task<HttpClient> SignIn(AccountHttpTests.Factory factory, int index)
+    internal static async Task<HttpClient> SignIn(AccountHttpTests.Factory factory, int index)
     {
         var client = factory.CreateClient(new() { AllowAutoRedirect = false, BaseAddress = new Uri("https://localhost") });
         var html = await client.GetStringAsync("/Account/Login");

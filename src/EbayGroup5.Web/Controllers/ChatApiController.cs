@@ -38,6 +38,9 @@ public sealed class ChatApiController(IChatService chat, ChatRealtime realtime, 
     public async Task<IActionResult> History(int id, string? before, string? after, int limit = ChatLimits.DefaultHistorySize, CancellationToken ct = default) =>
         Ok(await chat.HistoryAsync(ActorId, id, new(before, after, limit), ct));
 
+    [HttpGet("conversations/{id:int}")]
+    public async Task<IActionResult> Conversation(int id, CancellationToken ct) => Ok(await chat.ConversationAsync(ActorId, id, ct));
+
     [HttpPost("conversations/{id:int}/messages"), RequestSizeLimit(ChatLimits.MaxBodyBytes)]
     public async Task<IActionResult> Send(int id, ChatSendCommand command, CancellationToken ct) => Ok(await realtime.SendAsync(ActorId, id, command, ct));
 

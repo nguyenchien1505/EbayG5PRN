@@ -24,7 +24,8 @@ public static class ChatCursor
 
 public sealed record ChatContext(int ProductId, int? OrderItemId, string Title, decimal UnitPrice);
 public sealed record ChatConversationDto(int Id, int BuyerId, int SellerId, string LastSequence, string OwnReadSequence, string PeerReadSequence,
-    DateTimeOffset UpdatedAtUtc, ChatContext? InitialContext, string UnreadCount = "0");
+    DateTimeOffset UpdatedAtUtc, ChatContext? InitialContext, string UnreadCount = "0", string PeerName = "",
+    string? LastMessagePreview = null, DateTimeOffset? LastMessageAtUtc = null);
 public sealed record ChatOpenResult(ChatConversationDto Conversation, ChatContext RequestedContext);
 public sealed record ChatInboxCursor(DateTimeOffset UpdatedAtUtc, int ConversationId);
 public sealed record ChatInboxPage(IReadOnlyList<ChatConversationDto> Conversations, ChatInboxCursor? NextCursor);

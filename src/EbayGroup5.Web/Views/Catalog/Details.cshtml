@@ -12,10 +12,11 @@
         @if (Model.Quantity > 0) { <a class="button primary purchase-button" asp-controller="Checkout" asp-action="Index" asp-route-productId="@Model.Item.Id">Buy It Now</a> }
         else { <button class="button primary purchase-button" disabled>Buy It Now</button> }
         <p class="field-help">Cash on delivery demo checkout.</p>
-        <details class="contact-seller">
-            <summary>Contact seller</summary>
-            <div class="contact-content"><h2>Message @Model.Item.Seller</h2><p>About: @Model.Item.Title</p><p>Messaging is not available yet. Please check back soon.</p></div>
-        </details>
+        @if (User.IsInRole("Buyer")) { <button type="button" class="chat-contact" data-chat-product-id="@Model.Item.Id">Contact seller</button> }
+        else if (User.Identity?.IsAuthenticated != true) { <a class="chat-contact" asp-controller="Account" asp-action="Login" asp-route-returnUrl="@Url.Action("Details", "Catalog", new { id = Model.Item.Id, message = true })">Contact seller</a> }
     </section>
 </div>
 <section class="item-description"><h2>About this item</h2><p class="field-help">Item number: @Model.Item.Id</p><p>@(string.IsNullOrWhiteSpace(Model.Item.Description) ? "No description provided." : Model.Item.Description)</p></section>
+@if (User.IsInRole("Buyer")) { <partial name="_ChatPanel" /> }
+@section Styles { <link rel="stylesheet" href="~/css/chat.css" asp-append-version="true" /> }
+@section Scripts { @if (User.IsInRole("Buyer")) { <partial name="_ChatScripts" /> } }
