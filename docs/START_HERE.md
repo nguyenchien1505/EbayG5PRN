@@ -1,6 +1,6 @@
 # Bắt đầu ở đây
 
-**Checkpoint:** A00–A07, B01–B06, C01–C05, D01–D03 hoàn tất (D01 review gắn OrderItem/0007; D02 form R1 + tổng hợp review, **G5-03 Done**; D03 seller feedback/0008, công thức P−N và P/(P+N), 60 ngày/chờ 7 ngày, form gộp, badge seller, 177 .NET +14 Node; G5-04 chờ D05, G5-05 chờ D04; Q-BIZ-001..003 Answered; CI xem handoff); sourceSQL17 và DbUp0001–0007 bất biến (D03 thêm 0008), chat SQL/REST +cookie WS/Redis +inbox/contact/read +automatic recovery/metadata trace.140 .NET +14 Node pass; actual browser restart1050-message catch-up/lost event/lost ack verified. G5-01/G5-02 Done; TLS/deployment/perf/operational logs còn F. GitHub CI/runtime xem handoff.
+**Checkpoint:** A00–A07, B01–B06, C01–C05, D01–D03 hoàn tất (D01 review gắn OrderItem/0007; D02 form R1 + tổng hợp review, **G5-03 Done**; D03 seller feedback/0008, công thức P−N và P/(P+N), 60 ngày/chờ 7 ngày, form gộp, badge seller, 177 .NET +14 Node; G5-04 chờ D05, G5-05 chờ D04; Q-BIZ-001..003 Answered; GitHub [CI37425953453](https://github.com/Twiash/EbayGroup5/actions/runs/37425953453) success, main FF); sourceSQL17 và DbUp0001–0007 bất biến (D03 thêm 0008), chat SQL/REST +cookie WS/Redis +inbox/contact/read +automatic recovery/metadata trace.140 .NET +14 Node pass; actual browser restart1050-message catch-up/lost event/lost ack verified. G5-01/G5-02 Done; TLS/deployment/perf/operational logs còn F. GitHub CI/runtime xem handoff.
 
 1. Đọc [quy định agent](../AGENTS.md) và [handoff mới nhất](handoffs/LATEST.md).
 2. Xem [task index](tasks/INDEX.md), chọn đúng task được yêu cầu.

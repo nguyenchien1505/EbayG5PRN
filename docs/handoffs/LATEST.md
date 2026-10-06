@@ -2,7 +2,7 @@
 
 06/10/2026. Repo D:/WINDOWS/PRN3/EbayGroup5.
 
-- Baseline main `7b96a97`; nhánh `task/D03-seller-feedback`.
+- Baseline main `7b96a97`; runtime `f8189df` trên `task/D03-seller-feedback`, fast-forward vào main sau khi [CI37425953453](https://github.com/Twiash/EbayGroup5/actions/runs/37425953453) pass.
 - Checkpoint: `git log --oneline --grep=D03`.
 - Handoff D02 lưu ở [D02](D02.md).
 
@@ -35,7 +35,7 @@
   - G5-03 vẫn Done.
   - **G5-05 Pending**: còn trang uy tín và seller reply (D04).
   - G5-04 Pending D05; SUP-05 Pending.
-- GitHub CI: kết quả ghi bên dưới sau khi push.
+- **[CI37425953453](https://github.com/Twiash/EbayGroup5/actions/runs/37425953453) exact runtime f8189df success**: job 4m17s, 177 .NET + 14 Node, build 0 warnings, TRX upload. Docs-only [skip ci] sau CI.
 - `launchSettings.json` (untracked) không bị đụng. Artifacts nằm trong `artifacts/d02/preview`, `artifacts/d03`, đã ignore.
 
 ## Lưu ý cho task sau
