@@ -1,0 +1,40 @@
+@model EbayGroup5.Web.Models.DisputeFormPage
+@using EbayGroup5.Application.Disputes
+@using EbayGroup5.Web.Models
+@{ ViewData["Title"] = "Return item"; var form = Model.Form; }
+<a class="back-to-catalog" asp-controller="Orders" asp-action="Details" asp-route-id="@Model.Line.OrderId">← Back to order #@Model.Line.OrderId</a>
+<div class="dispute-banner" role="note">
+    <strong>30-day returns.</strong> You can return this item within 30 days of delivery.
+    If it arrived damaged, defective or not as described, you're covered by the Money Back Guarantee (demo).
+</div>
+<section class="dispute-card dispute-return" aria-labelledby="dispute-title">
+    @if (ViewData["DisputeError"] is string error) { <div class="validation-errors" role="alert">@error</div> }
+    <partial name="_DisputeItem" model="Model.Line" />
+    <form asp-action="Open" method="post" class="dispute-form" data-dispute-form data-draft-url="@Url.Action("Draft")" data-steps>
+        <input type="hidden" name="OrderItemId" value="@form.OrderItemId" />
+        <input type="hidden" name="Kind" value="@DisputeKind.Return" />
+        <div class="dispute-step" data-step="1">
+            <h1 id="dispute-title">Return item</h1>
+            <fieldset class="dispute-options">
+                <legend>Why are you returning this item?</legend>
+                @foreach (var reason in DisputeText.ReturnReasons)
+                {
+                    <label class="dispute-option"><input type="radio" name="Reason" value="@reason" required checked="@(form.Reason == reason)" data-change-of-mind="@(DisputeRules.IsChangeOfMind(reason) ? "true" : "false")" /> <span>@DisputeText.Reason(reason)</span></label>
+                }
+            </fieldset>
+            <p class="field-help" data-remorse-note hidden>The seller may decline returns for this reason.</p>
+            <button type="button" class="button primary" data-next hidden>Next</button>
+        </div>
+        <div class="dispute-step" data-step="2">
+            <h2 class="dispute-step-title">Return item</h2>
+            <button type="button" class="link-button" data-back hidden>← Change reason</button>
+            <label for="dispute-details" class="dispute-label">Add details</label>
+            <textarea id="dispute-details" name="Details" rows="6" maxlength="@DisputeLimits.MaxText" placeholder="Give us a little more info." data-count-target="dispute-count">@form.Details</textarea>
+            <p class="field-help review-count"><span id="dispute-count">@(form.Details?.Length ?? 0)</span> / @DisputeLimits.MaxText</p>
+            <p class="field-help">Photos can't be added in this demo.</p>
+            <partial name="_DisputeDraftStatus" model="Model" />
+            <button type="submit" class="button primary" data-confirm>Confirm return</button>
+        </div>
+    </form>
+</section>
+@section Scripts { <script type="module" src="~/js/dispute-form.js" asp-append-version="true"></script> }

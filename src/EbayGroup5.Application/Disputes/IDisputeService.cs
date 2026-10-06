@@ -25,6 +25,7 @@ public static class DisputeLimits
     public const int MaxText = 2000;
     public const int MaxTracking = 100;
     public const int MaxEvents = 200;
+    public const int MaxBatchLines = 50;
 }
 
 public sealed record OpenDisputeRequest(int OrderItemId, DisputeKind Kind, DisputeReason Reason, DisputePreference? Preference, string? Details);
@@ -33,7 +34,19 @@ public sealed record DisputeCommand(DisputeAction Action, string? Message = null
 public sealed record DisputeResult(DisputeResultCode Code, int? DisputeId = null, string? Error = null, int? ExistingDisputeId = null);
 
 public sealed record KindEligibility(bool CanOpen, string? Reason, DateTime? OpensAtUtc, DateTime? ClosesAtUtc, int? ExistingDisputeId);
-public sealed record DisputeEligibility(int OrderId, int OrderItemId, DateTime? EstimatedDeliveryUtc, KindEligibility ItemNotReceived, KindEligibility Return);
+/// <summary>Requests on a line (newest first) for status display; at most one is not Closed.</summary>
+public sealed record DisputeSummary(int Id, DisputeKind Kind, DisputeStatus Status, DisputeOutcome? Outcome, DateTime? DueAtUtc);
+public sealed record DisputeEligibility(int OrderId, int OrderItemId, DateTime? EstimatedDeliveryUtc, KindEligibility ItemNotReceived, KindEligibility Return)
+{
+    public string ItemTitle { get; init; } = "Item unavailable";
+    public decimal? LineTotal { get; init; }
+    public IReadOnlyList<DisputeSummary> Requests { get; init; } = [];
+    public KindEligibility For(DisputeKind kind) => kind == DisputeKind.ItemNotReceived ? ItemNotReceived : Return;
+}
+
+public sealed record DisputeDraftInput(int OrderItemId, DisputeKind Kind, DisputeReason? Reason, DisputePreference? Preference, string? Details);
+public sealed record DisputeDraftView(DisputeReason? Reason, DisputePreference? Preference, string? Details, DateTime UpdatedAtUtc);
+public sealed record DraftSaveResult(DisputeResultCode Code, DateTime? SavedAtUtc = null, string? Error = null);
 
 public sealed record DisputeEventView(int Id, DisputeActor ActorRole, DisputeEventType Type, string? Message, decimal? Amount, string? Tracking, DateTime CreatedAtUtc);
 public sealed record DisputeDetail(int Id, int OrderId, int OrderItemId, string ItemTitle, DisputeKind Kind, DisputeReason Reason, DisputePreference? Preference,
@@ -45,6 +58,12 @@ public interface IDisputeService
 {
     /// <summary>Per-kind eligibility of one line for the Buyer who owns the order; null when missing, foreign or the actor is not a Buyer.</summary>
     Task<DisputeEligibility?> EligibilityAsync(int buyerId, int orderItemId, CancellationToken cancellationToken = default);
+    /// <summary>Same rules for up to MaxBatchLines lines (E02 Purchases page); lines the Buyer doesn't own are omitted.</summary>
+    Task<IReadOnlyDictionary<int, DisputeEligibility>> EligibilityAsync(int buyerId, IReadOnlyCollection<int> orderItemIds, CancellationToken cancellationToken = default);
+    Task<DisputeDraftView?> FindDraftAsync(int buyerId, int orderItemId, DisputeKind kind, CancellationToken cancellationToken = default);
+    /// <summary>Upserts the draft only while the Buyer owns the line and the kind can be opened (Conflict otherwise).</summary>
+    Task<DraftSaveResult> SaveDraftAsync(int buyerId, DisputeDraftInput input, CancellationToken cancellationToken = default);
+    /// <summary>Opens the request and deletes the matching draft in the same transaction (G5-N03).</summary>
     Task<DisputeResult> OpenAsync(int buyerId, OpenDisputeRequest request, CancellationToken cancellationToken = default);
     /// <summary>Buyer/Seller/Admin commands; the actor's role is derived from the request and the database, never from input.</summary>
     Task<DisputeResult> ActAsync(int actorId, int disputeId, DisputeCommand command, CancellationToken cancellationToken = default);

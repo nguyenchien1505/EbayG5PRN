@@ -1,4 +1,5 @@
 using System.Security.Claims;
+using EbayGroup5.Application.Disputes;
 using EbayGroup5.Application.Feedback;
 using EbayGroup5.Application.Orders;
 using EbayGroup5.Application.Reviews;
@@ -9,7 +10,7 @@ namespace EbayGroup5.Web.Controllers;
 
 [Authorize(Roles = "Buyer,Seller")]
 [ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
-public sealed class OrdersController(IOrderService orders, IReviewService reviews, IFeedbackService feedback) : Controller
+public sealed class OrdersController(IOrderService orders, IReviewService reviews, IFeedbackService feedback, IDisputeService disputes, DisputeTiming timing) : Controller
 {
     private int ActorId => int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
     private OrderAudience Audience => User.IsInRole("Seller") ? OrderAudience.Seller : OrderAudience.Buyer;
@@ -22,7 +23,14 @@ public sealed class OrdersController(IOrderService orders, IReviewService review
     private async Task<IActionResult> History(OrderAudience audience, int page, string? status, CancellationToken ct)
     {
         if (!ModelState.IsValid || page < 1 || page > int.MaxValue / OrderHistory.PageSize || !OrderHistory.IsValidFilter(status, audience)) return BadRequest();
-        return View("History", await orders.HistoryAsync(ActorId, audience, page, status, ct));
+        var history = await orders.HistoryAsync(ActorId, audience, page, status, ct);
+        if (audience == OrderAudience.Buyer)
+        {
+            // E02: More actions entries for the line the menu acts on (first line with a product).
+            ViewData["DisputeLines"] = await disputes.EligibilityAsync(ActorId, history.Orders.Where(x => x.ContactItemId != null).Select(x => x.ContactItemId!.Value).ToArray(), ct);
+            ViewData["DisputeTiming"] = timing;
+        }
+        return View("History", history);
     }
 
     [HttpGet]
@@ -38,6 +46,8 @@ public sealed class OrdersController(IOrderService orders, IReviewService review
         {
             ViewData["ReviewLines"] = await reviews.ListForOrderAsync(ActorId, order.Id, ct);
             ViewData["FeedbackLines"] = await feedback.ListForOrderAsync(ActorId, order.Id, ct);
+            ViewData["DisputeLines"] = await disputes.EligibilityAsync(ActorId, order.Lines.Select(x => x.Id).ToArray(), ct);
+            ViewData["DisputeTiming"] = timing;
         }
         return View("Details", order);
     }

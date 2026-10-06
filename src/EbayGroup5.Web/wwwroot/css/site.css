@@ -260,3 +260,38 @@ main.shell-width { flex: 1; padding-block: 32px 64px; }
 .more-actions-menu > button:hover, .more-actions-menu > a:hover { background:#f5f5f5; }
 .order-chip:focus-visible, .more-actions-menu > button:focus-visible { outline:3px solid #3665f3; outline-offset:2px; }
 @media(max-width:760px) { .order-card-actions { width:100%; } .more-actions-menu { left:0; right:auto; } .order-chips { flex-wrap:nowrap; overflow-x:auto; padding:2px; margin-inline:-2px; scrollbar-width:none; } .order-chip { flex-shrink:0; white-space:nowrap; } }
+
+/* E02 — request forms (DISPUTE_FORMS.md; E1 return layout, Help 4042 INR steps) */
+.dispute-layout { display:grid; grid-template-columns:minmax(0,1fr) 320px; gap:28px; align-items:start; }
+.dispute-card { border:1px solid #ddd; border-radius:16px; padding:24px; overflow-wrap:anywhere; background:white; }
+.dispute-card h1 { font-size:26px; margin:0 0 18px; }
+.dispute-return { max-width:720px; }
+.dispute-item { display:flex; gap:16px; align-items:center; padding:12px 0 16px; border-bottom:1px solid #eee; margin-bottom:16px; }
+.dispute-item .order-item-icon { width:72px; }
+.dispute-item h2 { font-size:17px; margin:0 0 4px; }
+.dispute-banner { background:#3665f3; color:white; border-radius:12px; padding:16px 20px; margin:0 0 20px; max-width:720px; line-height:1.5; }
+.dispute-form { display:grid; gap:12px; }
+.dispute-options { border:0; padding:0; margin:0 0 6px; display:grid; gap:4px; }
+.dispute-options legend { font-size:19px; font-weight:700; margin-bottom:12px; }
+.dispute-option { display:flex; gap:12px; align-items:center; padding:10px 4px; border-radius:8px; cursor:pointer; }
+.dispute-option:hover { background:#f7f7f7; }
+.dispute-option input { width:20px; height:20px; margin:0; accent-color:#3665f3; flex-shrink:0; }
+.dispute-label { font-weight:700; margin-top:6px; }
+.dispute-form textarea { box-sizing:border-box; width:100%; font:inherit; padding:12px 14px; border:1px solid #888; border-radius:10px; background:#f7f7f7; resize:vertical; }
+.dispute-form textarea:focus { outline:2px solid #3665f3; outline-offset:1px; }
+.dispute-form .button { justify-self:start; min-width:200px; }
+.dispute-form .button:disabled { background:#c7c7c7; color:white; cursor:not-allowed; }
+.dispute-step { display:grid; gap:12px; }
+.dispute-step[hidden] { display:none; }
+.dispute-step-title { font-size:22px; margin:0; }
+.link-button { justify-self:start; border:0; background:transparent; color:#2448bf; text-decoration:underline; font:inherit; padding:0; cursor:pointer; }
+.dispute-draft-status { min-height:1.3em; margin:0; }
+.dispute-demo { margin:0; padding:8px 12px; border-radius:8px; background:#fff7dc; color:#604400; font-size:13px; }
+.dispute-steps h2 { font-size:19px; margin:0 0 14px; }
+.dispute-steps ol { margin:0; padding:0; list-style:none; counter-reset:step; display:grid; gap:16px; }
+.dispute-steps li { counter-increment:step; display:grid; grid-template-columns:30px minmax(0,1fr); column-gap:10px; }
+.dispute-steps li::before { content:counter(step); grid-row:span 2; width:28px; height:28px; border-radius:50%; background:#191919; color:white; display:grid; place-items:center; font-size:13px; font-weight:700; }
+.dispute-steps li span { color:#555; font-size:14px; }
+.dispute-status { margin:8px 0 0; padding:8px 12px; border-left:4px solid #3665f3; background:#f2f5fe; font-size:14px; }
+@media(max-width:860px) { .dispute-layout { grid-template-columns:minmax(0,1fr); } }
+@media(max-width:700px) { .dispute-card { padding:18px; } .dispute-card h1 { font-size:22px; } .dispute-form .button { justify-self:stretch; } .dispute-item .order-item-icon { width:56px; } }

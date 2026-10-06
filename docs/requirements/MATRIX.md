@@ -11,7 +11,7 @@ Status `Pending` nghĩa là chưa triển khai/chưa nghiệm thu. Task tài li�
 | G5-03 | Rating và comment sau mỗi đơn đã nhận | D01–D02 | Chỉ owner đơn Delivered, một review mỗi OrderItem; mua lại được review | Done |
 | G5-04 | Trung bình đánh giá trên sản phẩm | D02, D05 | Trung bình/số lượt đúng, đổi theo kiểm duyệt, không chia cho zero | Done |
 | G5-05 | Điểm uy tín seller từ feedback tích cực | D03–D04 | Sentiment riêng, công thức đã chốt, seller reply đúng quyền | Done |
-| G5-06 | Gửi khiếu nại có nội dung và lý do | E01–E02 | Đúng dòng hàng/owner; không tạo trùng khi gửi lại | Pending |
+| G5-06 | Gửi khiếu nại có nội dung và lý do | E01–E02 | Đúng dòng hàng/owner; không tạo trùng khi gửi lại | Done |
 | G5-07 | Buyer quản lý đã gửi, seller quản lý đã nhận | E03 | Danh sách/chi tiết/timeline đúng quyền và phân trang | Pending |
 | G5-08 | Phản hồi tự động kết nối hệ thống admin | E04–E05 | Tiếp nhận, hướng dẫn, chuyển quá hạn, admin phân xử có audit | Pending |
 
@@ -21,7 +21,7 @@ Status `Pending` nghĩa là chưa triển khai/chưa nghiệm thu. Task tài li�
 |---|---|---|---|---|
 | G5-N01 | Bảo mật tin nhắn, WebSocket qua SSL, mã hóa khi cần | B02, C01–C03, F01, F04 | HTTPS/WSS, kiểm tra membership; không log nội dung/secret; không tuyên bố có E2EE | Pending |
 | G5-N02 | Chat mượt và realtime | C04–C05, F05 | UI không treo; có pending/error/reconnect; đo latency theo PERF-01 | Pending |
-| G5-N03 | Khiếu nại không mất dữ liệu khi reload | E02 | Nháp server và khôi phục; gửi thành công mới xóa nháp | Pending |
+| G5-N03 | Khiếu nại không mất dữ liệu khi reload | E02 | Nháp server và khôi phục; gửi thành công mới xóa nháp | Done |
 | G5-N04 | Mở rộng lưu trữ lịch sử, phản hồi nhanh với dữ liệu lớn | C01–C05, F02, F05 | Cursor/index, nhiều instance, đo dataset lớn | Pending |
 | G5-N05 | Debug tin nhắn theo thời gian/log ID | C05, F03 | Message ID/UTC/trace ID liên kết được log và DB không lộ nội dung | Pending |
 
@@ -111,3 +111,5 @@ D05: [moderation evidence](../evidence/D05.md), 190 .NET +14 Node; Report/queue/
 D06: [entry point evidence](../evidence/D06.md), 203 .NET +14 Node; điểm vào nhóm 5 theo eBay (ADR-002): nút Message trong seller card, sao/% positive trên card catalog (batch, cùng quy tắc với trang chi tiết), Leave feedback + Ready for feedback và More actions → Contact seller trên Purchases, thu cột thư mục Messages. Không đổi luật nghiệp vụ; G5-01/03/04/05 giữ Done; G5-06 Pending E01–E02. UI-01 project-wide Pending.
 
 E01: [dispute schema/state machine evidence](../evidence/E01.md), 225 .NET +14 Node; DbUp 0011 (ngày giao dự kiến, Dispute mở rộng, DisputeEvent append-only), rules thuần kiểm 7.728 tổ hợp, service open/act/system/find, INR đóng khi Confirm received, constraint/trigger/grant/migration/mutation. **G5-06 vẫn Pending** (form E02), G5-07 Pending E03, G5-08 Pending E04–E05, G5-N03 Pending E02, SUP-05 Pending E05.
+
+E02: [dispute form/draft evidence](../evidence/E02.md); DbUp 0012 nháp server, form INR/Return theo eBay, autosave + khôi phục khi reload + xóa khi gửi thành công, gửi lại không tạo trùng, đúng dòng hàng/owner. **G5-06 Done** (E01 rule + E02 form), **G5-N03 Done**. G5-07 Pending E03, G5-08 Pending E04–E05, SUP-05 Pending E05.

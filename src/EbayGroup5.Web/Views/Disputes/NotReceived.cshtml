@@ -1,0 +1,37 @@
+@model EbayGroup5.Web.Models.DisputeFormPage
+@using EbayGroup5.Application.Disputes
+@using EbayGroup5.Web.Models
+@{ ViewData["Title"] = "Report an item you didn't receive"; var form = Model.Form; }
+<a class="back-to-catalog" asp-controller="Orders" asp-action="Details" asp-route-id="@Model.Line.OrderId">← Back to order #@Model.Line.OrderId</a>
+<div class="dispute-layout">
+    <section class="dispute-card" aria-labelledby="dispute-title">
+        <h1 id="dispute-title">Report an item you didn't receive</h1>
+        @if (ViewData["DisputeError"] is string error) { <div class="validation-errors" role="alert">@error</div> }
+        <partial name="_DisputeItem" model="Model.Line" />
+        @if (Model.Line.EstimatedDeliveryUtc is { } estimated) { <p>Estimated delivery: <strong>@DisputeText.Date(estimated, Model.Timing)</strong></p> }
+        <form asp-action="Open" method="post" class="dispute-form" data-dispute-form data-draft-url="@Url.Action("Draft")">
+            <input type="hidden" name="OrderItemId" value="@form.OrderItemId" />
+            <input type="hidden" name="Kind" value="@DisputeKind.ItemNotReceived" />
+            <fieldset class="dispute-options">
+                <legend>What would you like to do?</legend>
+                <label class="dispute-option"><input type="radio" name="Preference" value="@DisputePreference.Refund" required checked="@(form.Preference == DisputePreference.Refund)" /> <span>I'd like a refund</span></label>
+                <label class="dispute-option"><input type="radio" name="Preference" value="@DisputePreference.Item" required checked="@(form.Preference == DisputePreference.Item)" /> <span>I'd still like the item</span></label>
+            </fieldset>
+            <label for="dispute-details" class="dispute-label">Add any additional information <span class="field-help">(optional)</span></label>
+            <textarea id="dispute-details" name="Details" rows="5" maxlength="@DisputeLimits.MaxText" placeholder="Tell the seller what happened." data-count-target="dispute-count">@form.Details</textarea>
+            <p class="field-help review-count"><span id="dispute-count">@(form.Details?.Length ?? 0)</span> / @DisputeLimits.MaxText</p>
+            <partial name="_DisputeDraftStatus" model="Model" />
+            <button type="submit" class="button primary">Send request</button>
+        </form>
+    </section>
+    <aside class="dispute-card dispute-steps" aria-labelledby="steps-title">
+        <h2 id="steps-title">What happens from here</h2>
+        <ol>
+            <li><strong>Estimated delivery date passes</strong><span>You can report the item after this date, for up to 30 days.</span></li>
+            <li><strong>Report it</strong><span>We let the seller know right away.</span></li>
+            <li><strong>Seller has 3 business days</strong><span>They can send tracking details, a refund or a message.</span></li>
+            <li><strong>Ask eBay to step in</strong><span>If it isn't resolved, we review and usually respond within 48 hours.</span></li>
+        </ol>
+    </aside>
+</div>
+@section Scripts { <script type="module" src="~/js/dispute-form.js" asp-append-version="true"></script> }

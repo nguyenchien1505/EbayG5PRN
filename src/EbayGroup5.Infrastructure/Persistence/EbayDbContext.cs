@@ -332,6 +332,20 @@ public sealed class EbayDbContext(DbContextOptions<EbayDbContext> options) : DbC
             entity.HasIndex(x => x.OrderItemId).IsUnique().HasFilter("[OrderItemId] IS NOT NULL AND [ClosedAtUtc] IS NULL").HasDatabaseName("UX_Dispute_ActiveLine");
             entity.ToTable(t => t.HasTrigger("TR_Dispute_Guard"));
         });
+        modelBuilder.Entity<DisputeDraft>(entity =>
+        {
+            entity.ToTable("DisputeDraft", "dbo");
+            entity.HasKey(x => x.Id);
+            entity.Property(x => x.Id).HasColumnType("int").UseIdentityColumn();
+            entity.HasOne<User>().WithMany().HasForeignKey(x => x.BuyerId).OnDelete(DeleteBehavior.ClientNoAction);
+            entity.HasOne<OrderItem>().WithMany().HasForeignKey(x => x.OrderItemId).OnDelete(DeleteBehavior.ClientNoAction);
+            entity.Property(x => x.Kind).HasColumnType("varchar(16)").HasMaxLength(16).IsUnicode(false);
+            entity.Property(x => x.Reason).HasColumnType("varchar(16)").HasMaxLength(16).IsUnicode(false);
+            entity.Property(x => x.Preference).HasColumnType("varchar(6)").HasMaxLength(6).IsUnicode(false);
+            entity.Property(x => x.Details).HasColumnType("nvarchar(2000)").HasMaxLength(2000);
+            entity.Property(x => x.UpdatedAtUtc).HasColumnType("datetime2(7)").HasDefaultValueSql("SYSUTCDATETIME()");
+            entity.HasIndex(x => new { x.BuyerId, x.OrderItemId, x.Kind }).IsUnique().HasDatabaseName("UQ_DisputeDraft_Buyer_Line_Kind");
+        });
         modelBuilder.Entity<DisputeEvent>(entity =>
         {
             entity.ToTable("DisputeEvent", "dbo", t => t.HasTrigger("TR_DisputeEvent_AppendOnly"));

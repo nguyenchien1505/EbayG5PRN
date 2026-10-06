@@ -1,0 +1,15 @@
+@model EbayGroup5.Web.Models.DisputeUnavailablePage
+@using EbayGroup5.Application.Disputes
+@using EbayGroup5.Web.Models
+@{ ViewData["Title"] = Model.Kind == DisputeKind.ItemNotReceived ? "Report an item you didn't receive" : "Return item"; var kind = Model.Line.For(Model.Kind); }
+<a class="back-to-catalog" asp-controller="Orders" asp-action="Details" asp-route-id="@Model.Line.OrderId">← Back to order #@Model.Line.OrderId</a>
+<section class="dispute-card" aria-labelledby="dispute-title">
+    <h1 id="dispute-title">@ViewData["Title"]</h1>
+    <partial name="_DisputeItem" model="Model.Line" />
+    <div class="order-notice" role="alert">@(Model.Reason ?? "This request isn't available for this item.")</div>
+    @if (Model.Line.Requests.FirstOrDefault() is { } request)
+    { <p class="dispute-status"><strong>@DisputeText.Kind(request.Kind)</strong> · @DisputeText.Status(request, Model.Timing)</p> }
+    else if (kind.OpensAtUtc is { } opens && Model.Line.EstimatedDeliveryUtc != null && Model.Kind == DisputeKind.ItemNotReceived && opens > DateTime.UtcNow)
+    { <p>You can report it after @DisputeText.Date(opens, Model.Timing).</p> }
+    <a class="button outline" asp-controller="Orders" asp-action="Details" asp-route-id="@Model.Line.OrderId" asp-fragment="line-@Model.Line.OrderItemId">Back to order</a>
+</section>

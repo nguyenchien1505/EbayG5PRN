@@ -1,0 +1,9 @@
+@model EbayGroup5.Application.Disputes.DisputeEligibility
+@using System.Globalization
+<div class="dispute-item">
+    <div class="order-item-icon product-placeholder" aria-hidden="true"><svg viewBox="0 0 64 64"><path d="M12 20 32 10 52 20 32 30Z M12 20v24l20 10 20-10V20 M32 30v24" /></svg></div>
+    <div>
+        <h2>@Model.ItemTitle</h2>
+        <p class="field-help">Order #@Model.OrderId@(Model.LineTotal is decimal total ? " · US $" + total.ToString("N2", CultureInfo.InvariantCulture) : "")</p>
+    </div>
+</div>
