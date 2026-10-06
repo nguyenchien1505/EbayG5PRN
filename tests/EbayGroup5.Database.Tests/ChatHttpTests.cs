@@ -183,6 +183,7 @@ public sealed class ChatHttpTests
     }
     private sealed class FailingService : IChatService
     {
+        public Task<ChatConversationDto> ConversationAsync(int actorId, int conversationId, CancellationToken cancellationToken = default) => throw new NotSupportedException();
         public Task<ChatInboxPage> InboxAsync(int actorId, ChatInboxCursor? cursor = null, int limit = 20, CancellationToken cancellationToken = default) => throw new InvalidOperationException("Private sentinel SQL credential message");
         public Task<ChatOpenResult> OpenForProductAsync(int actorId, int productId, CancellationToken cancellationToken = default) => throw new NotSupportedException();
         public Task<ChatOpenResult> OpenForOrderItemAsync(int actorId, int orderItemId, CancellationToken cancellationToken = default) => throw new NotSupportedException();

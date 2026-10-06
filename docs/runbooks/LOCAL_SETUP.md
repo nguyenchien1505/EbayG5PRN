@@ -1,8 +1,8 @@
-# Chạy scaffold local — A03
+# Chạy Web local — .NET 8
 
-Chạy từ repo root bằng PowerShell 7 trên Windows x64. Chưa cần SQL Server/Redis/Docker ở checkpoint này.
+Chạy từ repo root bằng PowerShell 7 trên Windows x64. Checkpoint C03 cần SQL Server/Redis và database đã migrate; setup Docker theo runbook dưới.
 
-Sau A04, infrastructure có [runbook riêng](LOCAL_INFRA.md). Web shell vẫn chạy độc lập; A05 đã bổ sung DbContext/runtime config và [runbook database](DATABASE.md).
+Infrastructure có [LOCAL_INFRA](LOCAL_INFRA.md); DbUp/runtime config theo [DATABASE](DATABASE.md). A03 shell độc lập là checkpoint cũ, startup hiện tại yêu cầu Redis config cho chat backplane.
 
 ## SDK
 
@@ -11,6 +11,8 @@ Pin SDK **8.0.425**, kèm .NET/ASP.NET Core runtime **8.0.31**. Phiên bản và
 ```powershell
 pwsh -NoProfile -File scripts/Install-Dotnet8.ps1
 . ./scripts/Use-LocalDotnet.ps1
+. ./scripts/Use-LocalInfrastructure.ps1
+$env:ASPNETCORE_ENVIRONMENT = 'Development'
 dotnet --version
 dotnet restore --locked-mode
 dotnet build --no-restore -c Release
@@ -19,7 +21,7 @@ dotnet run --project src/EbayGroup5.Web -c Release --no-build --no-launch-profil
 
 Installer kiểm tra SHA512, giải nén vào `%LOCALAPPDATA%/EbayGroup5/dotnet`, không gỡ SDK hệ thống hay đổi PATH vĩnh viễn. Dot-source `Use-LocalDotnet.ps1` ở mỗi terminal mới. Máy đã có SDK tương thích trên PATH có thể bỏ hai lệnh setup đầu; vẫn xác minh `dotnet --version` tại repo root. Installer này chỉ phục vụ Windows x64, container/Linux dùng SDK tương thích trong task hạ tầng.
 
-Mở `http://127.0.0.1:5085/`. Dừng bằng Ctrl+C. Nếu cổng bận, đổi cổng trong lệnh; không dừng tiến trình lạ. App chạy Production mặc định; middleware trả lỗi 500 tổng quát. HTTP loopback này chỉ là scaffold; chưa nghiệm thu HTTPS/WSS, auth hoặc readiness của các dịch vụ.
+Mở `http://127.0.0.1:5085/`. Dừng Ctrl+C. C03 yêu cầu SQL+Redis/schema đã setup theo [LOCAL_INFRA](LOCAL_INFRA.md); Use-LocalInfrastructure nạp config không in secrets. Local HTTP dùng Development cho auth cookie, lỗi500 vẫn generic mọi môi trường. Production mặc định cần HTTPS. Nếu đổi port, đặt Chat:AllowedOrigins đúng port; không dừng tiến trình lạ. HTTP/WS loopback và two-host tests chưa nghiệm thu deployed HTTPS/WSS/shared persistent keys/readiness/performance.
 
 ## Kiểm tra
 

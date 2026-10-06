@@ -34,12 +34,13 @@ public sealed record ChatMessageDto(int Id, int ConversationId, string Sequence,
     string Content, DateTimeOffset SentAtUtc, string TraceId, ChatContext? Context);
 public sealed record ChatHistoryPage(IReadOnlyList<ChatMessageDto> Messages, string? OldestCursor, string? NewestCursor, bool HasMore, string HighWatermark);
 public sealed record ChatSendReceipt(ChatMessageDto Message, bool Replayed);
-public sealed record ChatReadReceipt(int ConversationId, int ReaderId, string ThroughSequence);
+public sealed record ChatReadReceipt(int ConversationId, int ReaderId, string ThroughSequence, bool Advanced = true);
 
 // actorId is supplied by the authenticated Web adapter, never bound from client request data.
 // All transports use the same service authorization and durable receipts.
 public interface IChatService
 {
+    Task<ChatConversationDto> ConversationAsync(int actorId, int conversationId, CancellationToken cancellationToken = default);
     Task<ChatOpenResult> OpenForProductAsync(int actorId, int productId, CancellationToken cancellationToken = default);
     Task<ChatOpenResult> OpenForOrderItemAsync(int actorId, int orderItemId, CancellationToken cancellationToken = default);
     Task<ChatInboxPage> InboxAsync(int actorId, ChatInboxCursor? cursor = null, int limit = ChatLimits.DefaultInboxSize, CancellationToken cancellationToken = default);
