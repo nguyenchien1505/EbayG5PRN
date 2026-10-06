@@ -115,4 +115,4 @@ E03 [evidence](../evidence/E03.md): danh sách buyer/seller, trang request và t
 
 E04 [evidence](../evidence/E04.md): job phản hồi tự động và chuyển quá hạn (DbUp 0013). **E04 → KAN-23/TV4 Nguyên Nguyễn: hoàn tất local.** Không tự tạo issue/worklog; chưa sync live. Runtime 4eb2a71/[CI37499272875](https://github.com/Twiash/EbayGroup5/actions/runs/37499272875) success.
 
-E05 [evidence](../evidence/E05.md): hàng đợi và phân xử của admin, audit (không migration). **E05 → KAN-24/TV4 Nguyên Nguyễn: hoàn tất local.** Không tự tạo issue/worklog; chưa sync live. GitHub CI: xem handoff.
+E05 [evidence](../evidence/E05.md): hàng đợi và phân xử của admin, audit (không migration). **E05 → KAN-24/TV4 Nguyên Nguyễn: hoàn tất local.** Không tự tạo issue/worklog; chưa sync live. Runtime 69fe292/[CI37501792548](https://github.com/Twiash/EbayGroup5/actions/runs/37501792548) success.

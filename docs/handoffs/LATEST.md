@@ -2,7 +2,7 @@
 
 07/10/2026. Repo D:/WINDOWS/PRN3/EbayGroup5.
 
-- Baseline main `029674b`. Runtime trên `task/E05-dispute-admin`; checkpoint `git log --oneline --grep=E05`. GitHub CI: xem mục Verification.
+- Baseline main `029674b`. Runtime `69fe292` trên `task/E05-dispute-admin`, fast-forward vào main sau khi [CI37501792548](https://github.com/Twiash/EbayGroup5/actions/runs/37501792548) pass. Checkpoint `git log --oneline --grep=E05`.
 - Handoff trước: [E04](E04.md). **Nhóm E (khiếu nại) đã xong E01–E05.**
 
 ## Hoàn tất
@@ -33,7 +33,7 @@
   - Mutation 2/2 bị bắt.
   - Browser: admin Decide, buyer thấy kết quả; desktop/390/320px.
 - **Test-CI local pass: 242/242 .NET + 20/20 Node**, build 0 warnings, container CI tự xóa.
-- GitHub CI cho runtime E05: ghi bằng commit docs-only `[skip ci]` sau khi pass.
+- **GitHub [CI37501792548](https://github.com/Twiash/EbayGroup5/actions/runs/37501792548) exact runtime `69fe292` success**: build-test 4m03s, **242/242 .NET + 20/20 Node**, build 0 warnings. Docs-only `[skip ci]` sau CI.
 - Fixture preview (bị ignore) có moderator `d02admin@example.invalid`. Request #3 của preview đã được quyết cho buyer.
 - Không đụng `launchSettings.json`.
 
