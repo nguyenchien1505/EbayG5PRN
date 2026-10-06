@@ -2,7 +2,7 @@
 
 06/10/2026. Repo D:/WINDOWS/PRN3/EbayGroup5.
 
-- Baseline main `aaec085`. Runtime nằm trên `task/E01-dispute-state-machine`. Chỉ fast-forward vào main sau khi GitHub CI chạy đúng hash pass; số run ghi bằng commit docs-only `[skip ci]`.
+- Baseline main `aaec085`. Runtime `a8406ee` trên `task/E01-dispute-state-machine`, fast-forward vào main sau khi [CI37460995489](https://github.com/Twiash/EbayGroup5/actions/runs/37460995489) pass.
 - Checkpoint: `git log --oneline --grep=E01`. Handoff trước: [D06](D06.md).
 
 ## Hoàn tất
@@ -37,6 +37,7 @@
 
 - [Evidence](../evidence/E01.md): Test-CI local **225/225 .NET + 14/14 Node**, build 0 warnings.
 - Mutation: 3/3 bị test bắt.
+- **GitHub [CI37460995489](https://github.com/Twiash/EbayGroup5/actions/runs/37460995489) exact runtime `a8406ee` success**: job build-test 5m05s, 225/225 .NET + 14/14 Node, build 0 warnings. Docs-only `[skip ci]` sau CI.
 - Chưa kiểm trên browser vì E01 không có UI khiếu nại.
 - Không đụng `launchSettings.json` (untracked).
 

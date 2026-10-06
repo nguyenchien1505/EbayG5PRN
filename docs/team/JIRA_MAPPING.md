@@ -107,4 +107,4 @@ D05 [evidence](../evidence/D05.md)190 .NET+14 Node/browser, DbUp0010/Report/Admi
 
 D06 [evidence](../evidence/D06.md) 203 .NET+14 Node/browser: điểm vào nhóm 5 theo eBay (A1–A5), task thêm ngày 06/10/2026 theo Q-UI-008. **Chưa có issue Jira tương ứng**; khi gom đợt, người dùng chọn gắn vào KAN-20 (nghiệm thu reputation) hay tạo issue mới. Không tự tạo issue/worklog. Runtime 0a99e49/[CI37453888486](https://github.com/Twiash/EbayGroup5/actions/runs/37453888486) success.
 
-E01 [evidence](../evidence/E01.md) 225 .NET+14 Node: schema/state machine khiếu nại (DbUp 0011). **E01 → KAN-21/TV4 Nguyên Nguyễn: hoàn tất local một phần**, KAN-21 còn E02. Không tự tạo issue/worklog; chưa sync live. Runtime CI: xem handoff.
+E01 [evidence](../evidence/E01.md) 225 .NET+14 Node: schema/state machine khiếu nại (DbUp 0011). **E01 → KAN-21/TV4 Nguyên Nguyễn: hoàn tất local một phần**, KAN-21 còn E02. Không tự tạo issue/worklog; chưa sync live. Runtime a8406ee/[CI37460995489](https://github.com/Twiash/EbayGroup5/actions/runs/37460995489) success.
