@@ -4,13 +4,13 @@
 
 1. Đọc [quy định agent](../AGENTS.md) và [handoff mới nhất](handoffs/LATEST.md).
 2. Xem [task index](tasks/INDEX.md), chọn đúng task được yêu cầu.
-3. Chat C01–C05 đã xong; [C05 evidence](evidence/C05.md)/[recovery runbook](runbooks/CHAT_RECOVERY.md)/[CHAT](architecture/CHAT.md) dẫn scope và giới hạn. SQL durable, không outbox, pending/draft memory-only; chưa deployed TLS/shared keys/latency/dataset/log collection acceptance. Chờ task người dùng chọn; không tự chuyển E/F. Moderation contract: [MODERATION](architecture/MODERATION.md). Contract [REVIEWS](architecture/REVIEWS.md), [FEEDBACK](architecture/FEEDBACK.md).
+3. Chat C01–C05 đã xong; [C05 evidence](evidence/C05.md)/[recovery runbook](runbooks/CHAT_RECOVERY.md)/[CHAT](architecture/CHAT.md) dẫn scope và giới hạn. SQL durable, không outbox, pending/draft memory-only; chưa deployed TLS/shared keys/latency/dataset/log collection acceptance. Chờ task người dùng chọn; không tự chuyển E/F. **Phạm vi:** [ADR-002](decisions/ADR-002-group5-fidelity.md) — nhóm 5 giống eBay, nhóm khác giản lược; rà soát 06/10/2026 ở [UI_REVIEW](architecture/UI_REVIEW.md), Q-UI-008 (A1–A5) đang mở. Moderation contract: [MODERATION](architecture/MODERATION.md). Contract [REVIEWS](architecture/REVIEWS.md), [FEEDBACK](architecture/FEEDBACK.md).
 
 Các quyết định cố định: .NET 8 MVC/Razor; SQL Server; schema chỉ mở rộng; viết mới; UI tiếng Anh; repo riêng; GitHub private; Jira KAN; demo local Docker/K8s. Xem [ADR-001](decisions/ADR-001-foundation.md) khi cần lý do.
 
 - [Ma trận yêu cầu](requirements/MATRIX.md): chỉ đọc những ID liên quan task.
 - [Nguồn và checksum](requirements/SOURCES.md): dùng khi đối chiếu yêu cầu/schema.
-- [Câu hỏi đang mở](questions/INDEX.md): deadline và UI phần chưa triển khai; tài khoản thành viên đã chốt; UI đã chốt U1/M1/R1/P1/D1/D2. GitHub private repo [Twiash/EbayGroup5](https://github.com/Twiash/EbayGroup5) đã nối origin.
+- [Câu hỏi đang mở](questions/INDEX.md): deadline và UI phần chưa triển khai; tài khoản thành viên đã chốt; UI đã chốt U1/M1/R1/P1/D2/C1/F1; E1 thay D1 (06/10/2026). GitHub private repo [Twiash/EbayGroup5](https://github.com/Twiash/EbayGroup5) đã nối origin.
 - [Phân công](team/OWNERSHIP.md): đã tạo/gán 5 Epic +20 issue; [Jira mapping](team/JIRA_MAPPING.md).
 - User chốt đồng bộ Jira theo đợt, chưa ấn định số task. B05+B06/KAN-11, C01/KAN-13, C02/KAN-14, C03+C04/KAN-15, C05/KAN-16, D01+D02/KAN-17, D03+D04/KAN-18, D05/KAN-19 complete locally, chờ gom đợt sync; chưa ghi Jira từng task.
 

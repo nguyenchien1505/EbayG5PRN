@@ -7,7 +7,8 @@
 | Q-TEAM-002 | Ngày nộp/mốc giảng viên | Chưa lập lịch ngày cụ thể; không chặn task kỹ thuật | Open |
 | Q-UI-001 | Inbox và conversation eBay | Chốt UI C04 | Answered: U1 + M1 desktop; mobile/trạng thái bổ sung khi làm C04 |
 | Q-UI-002 | Purchase history và form review/feedback | Chốt UI B06, D02–D04 | Answered 06/10/2026: R1, P1 và F1 (feedback profile, giản lược) đã chốt |
-| Q-UI-003 | Form khiếu nại và case buyer/seller | Chốt UI E02–E03 | Partial: D1/D2 đã chốt; timeline/escalation chưa đủ ảnh |
+| Q-UI-003 | Form khiếu nại và case buyer/seller | Chốt UI E02–E03 | Answered 06/10/2026 theo [ADR-002](../decisions/ADR-002-group5-fidelity.md): E1 thay D1 (D1 là giao diện cũ); giữ D2; INR và request details theo eBay Help 4042 (request details là thiết kế clone vì không có ảnh thật) |
+| Q-UI-008 | Thời điểm đồng bộ điểm vào nhóm 5 A1–A5 ([UI_REVIEW](../architecture/UI_REVIEW.md#điểm-vào-nhóm-5-cần-đồng-bộ-theo-ebay-chưa-triển-khai)) | UI B04/B06/C04; không chặn E01 | Open |
 
 A02 đã quan sát home/menu và đọc Help. Ngày 02/10/2026 người dùng gửi U1 và xác nhận “Chốt cả M1, R1, D1, D2”. Xem [gallery/quyết định](../architecture/UI_CANDIDATES.md); các ảnh là mẫu thiết kế, không chứng minh toàn bộ UI hiện hành. Chi tiết còn thiếu: [UI-REFERENCES](UI-REFERENCES.md). P1 cũng đã được chốt qua lời nhắn trực tiếp ngày 02/10/2026. Không chặn A05.
 
@@ -42,3 +43,9 @@ Q-BIZ-004 (D04, **Answered 06/10/2026**):
 - Chi tiết [FEEDBACK](../architecture/FEEDBACK.md#quyết-định-d04).
 
 Q-BIZ-005 (D05, **Answered 06/10/2026**): người dùng yêu cầu "Tìm cách ebay xử lý rồi thực hiện D05". Đã đối chiếu [Feedback policy](https://www.ebay.com/help/policies/feedback-policies/feedback-policies?id=4208) ("may remove the comment, ratings and/or images", gỡ trong 24 giờ), [Product reviews](https://www.ebay.com/help/selling/listings/product-reviews?id=5186) (Report + chọn lý do) và Community (feedback bị gỡ "no longer there"). Áp dụng: nội dung bị gỡ biến mất, không placeholder; hai mức Hide (cả mục) / RemoveComment (giữ rating); Restore/Dismiss có audit là quyết định thiết kế của agent. Chi tiết [MODERATION](../architecture/MODERATION.md).
+
+Nguyên tắc phạm vi (**Answered 06/10/2026**, [ADR-002](../decisions/ADR-002-group5-fidelity.md)): người dùng trả lời chung cho bốn câu hỏi rà soát (khiếu nại, thanh toán, catalog, tài khoản): đọc file đề bài; người dùng thuộc nhóm 5; tính năng thuộc yêu cầu nhóm 5 phải giống eBay; tính năng của nhóm khác chỉ cần cho demo thì làm giản lược, nhưng không được ảnh hưởng tính năng nhóm 5. Áp dụng: giữ giản lược B01/B04/B05/B06; điểm vào nhóm 5 trên trang nhóm khác phải giống eBay. Kết quả rà soát: [UI_REVIEW](../architecture/UI_REVIEW.md).
+
+Q-UI-003 (**Answered 06/10/2026**): rà soát lại ảnh mẫu theo yêu cầu "tự tìm các mẫu UI, kể cả ảnh mẫu Q-UI-003". D1 (ảnh đăng 2023) là giao diện eBay đời cũ nên thay bằng E1 (return item desktop 2 bước, 11/2022) và danh sách lý do E1m (03/2026). D2 giữ nguyên. Item not received theo [Help 4042](https://www.ebay.com/help/buying/returns-refunds/get-help-item-hasnt-arrived?id=4042) và trang item picker live. Trang request details/timeline không có ảnh thật nên là thiết kế của clone theo câu chữ Help; nếu sau này có ảnh thật thì thay. Việc thay D1 là agent áp dụng ADR-002, người dùng có thể đổi khi chốt E02. Chi tiết [UI_CANDIDATES](../architecture/UI_CANDIDATES.md#rà-soát-06102026--khiếu-nại-q-ui-003).
+
+Q-UI-008 (**Open 06/10/2026**): năm điểm vào nhóm 5 còn lệch eBay (A1 nút Message trong seller card, A2 sao/% positive trên card catalog, A3 Leave feedback + Ready for feedback trên Purchases, A4 More actions ▾, A5 thu cột thư mục Messages). Phương án: (1) task nhỏ riêng trước E01; (2) gộp A4 vào E02, phần còn lại vào G01. Chưa triển khai khi người dùng chưa chọn.

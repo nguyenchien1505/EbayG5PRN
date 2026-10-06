@@ -1,5 +1,7 @@
 # Tham chiếu giao diện — A02
 
+**Rà soát 06/10/2026 (sau D05):** đối chiếu lại eBay live, Help và Community theo [ADR-002](../decisions/ADR-002-group5-fidelity.md); kết quả ở [UI_REVIEW](UI_REVIEW.md). D1 được thay bằng E1; E02/E03 dùng mục Rà soát trong [UI_CANDIDATES](UI_CANDIDATES.md#rà-soát-06102026--khiếu-nại-q-ui-003). Ma trận bên dưới là tình trạng lúc A02.
+
 B04 06/10/2026 hoàn tất: Q-UI-005 đã có ảnh product detail người dùng gửi thay PD1; dùng bố cục ảnh lớn trái, seller/title/price/stock phải và Contact seller entry. Desktop/mobile390 đã kiểm chứng. Không đưa thông tin tài khoản/ảnh gốc vào Git. Catalog grid giản lược theo shell, images seed NULL hiển thị placeholder; không giả rating/shipping/condition/cart/watchlist. Checkout/chat ở B05/C04; UI-01 toàn dự án vẫn Pending.
 
 **Cập nhật sau A02, ngày 02/10/2026:** người dùng cung cấp U1 (panel Message seller) và chốt M1/R1/D1/D2 tìm trên Internet. Xem [gallery và quyết định](UI_CANDIDATES.md) cho C04/D02/D03/E02/E03. P1 Purchase history đã được người dùng chốt ở phiên A04; mobile/trạng thái đầy đủ chưa xác minh. Các ghi chép A02 bên dưới là lịch sử khảo sát, không phủ nhận quyết định mới này.
