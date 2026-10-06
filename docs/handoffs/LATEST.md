@@ -1,65 +1,57 @@
-# Handoff — E03: trang request, timeline và danh sách buyer/seller
+# Handoff — E04: phản hồi tự động và chuyển quá hạn
 
 06/10/2026. Repo D:/WINDOWS/PRN3/EbayGroup5.
 
-- Baseline main `0230693`. Runtime `483753e` trên `task/E03-dispute-details-dashboard`, fast-forward vào main sau khi [CI37494941834](https://github.com/Twiash/EbayGroup5/actions/runs/37494941834) pass. Checkpoint `git log --oneline --grep=E03`.
-- Handoff trước: [E02](E02.md).
+- Baseline main `fb9521f`. Commit docs Q-UI-009 `2728473`, sau đó là runtime trên `task/E04-dispute-automation`. Checkpoint `git log --oneline --grep=E04`. GitHub CI: xem mục Verification.
+- Handoff trước: [E03](E03.md).
+- Q-UI-009 Answered: giữ nhãn clone, tạm giữ luật offer của E01, đồng ý tên "Returns and requests".
 
 ## Hoàn tất
 
-- Contract: [DISPUTE_DETAILS](../architecture/DISPUTE_DETAILS.md). **Không có migration**; DbUp vẫn 0001–0012, 13 assets.
-- **Application/Infrastructure** (chỉ đọc, luật E01 giữ nguyên):
-  - `ListAsync(actor, DisputeListQuery)`: buyer xem request đã gửi, seller xem request đã nhận; lọc kind/state, 10 dòng/trang, `id DESC`; vai trò khác → null.
-  - `FindAsync(actor, id, timelinePage)`: timeline mới nhất trước, 20 event/trang, kèm `EventTotal`. Thêm `Counterpart`/`BuyerName`/`SellerName`. Overload cũ trả trang 1.
-  - `RequestsForOrderAsync(actor, orderId)`: request theo dòng hàng, cho trang chi tiết đơn phía seller.
+- Contract: [DISPUTE_AUTOMATION](../architecture/DISPUTE_AUTOMATION.md).
+- **DbUp `0013_DisputeNotice.sql`:**
+  - Thêm cột `DisputeEvent.NoticeKey` (varchar(20) BIN2).
+  - CHECK: có khóa ⇔ `AutoNotice` + System + có message + khóa thuộc 6 giá trị.
+  - Thêm `UX_DisputeEvent_Notice (DisputeId, NoticeKey)` có lọc.
+  - Manifest có 14 assets.
+- **Application** (`DisputeAutomation.cs`):
+  - `DisputeAutomationOptions` (`Disputes:Automation`: Enabled / IntervalSeconds 60 / BatchSize 100).
+  - `IDisputeAutomation`: `RunOnceAsync` và `NotifyAsync`.
+  - `DisputeNotices.Expected`: hàm thuần, chỉ trả thông báo của trạng thái hiện tại; dùng chung `Date` với Web.
+- **Infrastructure** (`DisputeAutomationService`):
+  - Chuyển quá hạn bằng `ActAsSystemAsync` (seller im lặng → Escalate; return không gửi → ExpireReturn).
+  - Tìm request còn thiếu thông báo; query chỉ so với hằng số, vì collation của `status` và `NoticeKey` khác nhau.
+  - `NotifyAsync`: khóa dòng UPDLOCK/HOLDLOCK, ghi các khóa còn thiếu, unique violation coi như replica khác đã ghi.
 - **Web:**
-  - `DisputesController`: class `[Authorize(Roles="Buyer,Seller")]`; 4 action của E02 giữ policy Buyer.
-    - `Index`: "Returns and requests". Seller có tab Returns / Requests and disputes; cả hai có chip Open/Closed.
-    - `Details`: theo D2/H1, với `?reply=` là bước 2 và `?activity=` là trang timeline.
-    - `Act` (POST): lý do Escalate/Close ghép vào message; amount parse theo invariant culture; chặn lệnh system/admin.
-  - `Models/DisputeRequests.cs`: form, câu chữ, nhãn reply, câu timeline, các bước.
-  - `DisputeText.Status` có thêm nhãn theo người xem (seller).
-  - Views `Disputes/Index`, `Disputes/Details`; `wwwroot/js/dispute-request.js` (bộ đếm ký tự, khóa nút khi submit); CSS trong `site.css`.
-  - **Điểm vào:**
-    - Purchases → See request details mở `/Disputes/Details/{id}`.
-    - Trang chi tiết đơn: buyer có link ở dòng trạng thái; seller có trạng thái và See request details.
-    - Menu tài khoản có "Returns and requests".
-  - Sau khi gửi form E02 vẫn redirect về trang chi tiết đơn như cũ.
+  - `Disputes/DisputeAutomationWorker`: BackgroundService chạy một lần lúc khởi động, sau đó theo chu kỳ; chỉ log số lượng.
+  - `DisputesController` gọi `NotifyAsync` sau khi Open/Act thành công; lỗi chỉ log cảnh báo.
+  - Trang chi tiết bỏ câu "eBay is reviewing" bị lặp.
 - **Tests:**
-  - `DisputeDetailsTests`: 4 test mới gồm service list/paging, timeline, HTTP luồng Return, HTTP luồng INR escalate/close.
-  - Test E01 (helper đảo thứ tự timeline) và E02 (link mới) được điều chỉnh có chủ ý.
+  - `DisputeAutomationTests`: 5 test (pure, service, song song/batch, constraint, HTTP + worker thật).
+  - `AccountHttpTests.Factory(…, automation: false)` mặc định tắt worker; `ChatSocketHost` cũng tắt.
+  - Số migration trong `DatabaseTests`/`CheckoutTests` tăng lên 13/10.
 
 ## Verification
 
-- [Evidence](../evidence/E03.md):
-  - `Dispute*` 31/31.
-  - **Test-CI local `scripts/Test-CI.ps1` pass: 234/234 .NET + 20/20 Node**, build 0 warnings, container CI tự xóa.
+- [Evidence](../evidence/E04.md):
+  - Test tập trung 63/63.
+  - 4 replica song song không nhân đôi.
   - Mutation 2/2 bị bắt.
-  - Browser desktop/390/320px trên preview cô lập.
-- Verify-Planning pass; `git diff --check` sạch.
-- Đã chạy `Clear-TestArtifacts.ps1 -Apply -DatabasesOnly`, xóa 53 DB test từ các lần chạy tập trung. Giữ DB preview `EbayGroup5_Test_D02Visual…`; xóa bằng `-IncludePreview` khi không cần nữa.
-- Fixture E03 nằm trong `artifacts/d02/preview/Program.cs` (bị ignore, không commit).
-- **GitHub [CI37494941834](https://github.com/Twiash/EbayGroup5/actions/runs/37494941834) exact runtime `483753e` success**: build-test 5m05s, **234/234 .NET + 20/20 Node**, build 0 warnings. Docs-only `[skip ci]` sau CI.
-- Không đụng `launchSettings.json` (untracked).
+  - Browser có worker thật.
+- **Test-CI local pass: 239/239 .NET + 20/20 Node**, build 0 warnings, container CI tự xóa.
+- GitHub CI cho runtime E04: ghi bằng commit docs-only `[skip ci]` sau khi pass.
+- Fixture E04 nằm trong `artifacts/d02/preview/Program.cs` (bị ignore). DB preview đã lên 0013.
+- **DB `EbayGroup5` của người dùng phải được áp 0013 trước khi chạy app**, vì EF đã map cột `NoticeKey`. Lệnh: `pwsh -NoProfile -File scripts/Initialize-Database.ps1`.
+- Không đụng `launchSettings.json`.
 
-## Câu hỏi / giả định
+## Cho task sau (E05)
 
-- **Q-UI-009 (Answered 06/10/2026: giữ cả ba mặc định dưới đây):**
-  - Nhãn lý do Ask eBay to step in / Close your request do clone tự soạn.
-  - D2 ghi "one chance to offer", nhưng luật E01 cho seller offer lại sau khi buyer từ chối.
-- Tên trang "Returns and requests" là giả định của clone, vì clone không có hủy đơn.
-
-## Cho task sau
-
-- **E04:**
-  - Job gọi `ActAsSystemAsync`: Escalate khi `Open` quá hạn mà seller chưa phản hồi; ExpireReturn khi `ReturnAccepted` quá hạn.
-  - Thêm event `AutoNotice`. Trang Details đã hiển thị actor System là "eBay" và có câu cho `AutoNotice`.
-  - Dùng index `IX_Dispute_Due`.
-- **E05:**
-  - Admin đọc qua `FindAsync` (Viewer = Admin).
-  - Cần trang/route riêng dưới AdminNetwork, vì `/Disputes/*` đang trả 403 cho Admin.
-  - `Decide` và Message của admin đi qua `ActAsync`.
+- Hàng đợi admin: request `Escalated` (`EscalatedAtUtc`, `DueAtUtc` = hạn 48 giờ).
+- Admin đọc qua `FindAsync` (Viewer = Admin); route riêng dưới AdminNetwork, vì `/Disputes/*` trả 403 cho Admin.
+- `Decide` (ForBuyer, note) và Message của admin đi qua `ActAsync`. Audit có sẵn trong timeline: actor/thời điểm/kết quả, `resolution`.
+- Sau `Decide`: request Closed, nên không có thông báo tự động mới. Nếu muốn thông báo kết quả thì thêm khóa bằng migration mới (0014), không sửa 0013 sau khi phát hành.
+- SUP-05 và G5-08 Done sau E05.
 
 ## Tiếp theo / Jira
 
-- E03 → **KAN-22 / TV4 Nguyên Nguyễn: hoàn tất local**. Chưa sync live; không tạo worklog/review/issue.
+- E04 → **KAN-23 / TV4 Nguyên Nguyễn: hoàn tất local**. Chưa sync live; không tạo worklog/review/issue.

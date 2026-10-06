@@ -11,9 +11,16 @@ namespace EbayGroup5.Web.Controllers;
 // E03 request list, details/timeline and replies for the request's buyer and seller (DISPUTE_DETAILS.md).
 [Authorize(Roles = "Buyer,Seller")]
 [ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
-public sealed class DisputesController(IDisputeService disputes, DisputeTiming timing) : Controller
+public sealed class DisputesController(IDisputeService disputes, DisputeTiming timing, IDisputeAutomation automation, ILogger<DisputesController> logger) : Controller
 {
     private int ActorId => int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+
+    // E04: write the automatic notice right away; the state is already committed, so a failure only defers it to the background job.
+    private async Task Notify(int disputeId)
+    {
+        try { await automation.NotifyAsync(disputeId, CancellationToken.None); }
+        catch (Exception ex) { logger.LogWarning(ex, "Automatic notice for request {DisputeId} deferred to the background job.", disputeId); }
+    }
 
     [HttpGet, Authorize(Policy = "Buyer")]
     public Task<IActionResult> NotReceived(int orderItemId, CancellationToken cancellationToken) => Form(orderItemId, DisputeKind.ItemNotReceived, cancellationToken);
@@ -48,6 +55,7 @@ public sealed class DisputesController(IDisputeService disputes, DisputeTiming t
         switch (result.Code)
         {
             case DisputeResultCode.Success:
+                await Notify(result.DisputeId!.Value);
                 var opened = await disputes.FindAsync(ActorId, result.DisputeId!.Value, cancellationToken);
                 TempData["OrderNotice"] = opened?.DueAtUtc is { } due
                     ? $"Your request was sent. The seller has until {DisputeText.Date(due, timing)} to respond." : "Your request was sent.";
@@ -136,6 +144,7 @@ public sealed class DisputesController(IDisputeService disputes, DisputeTiming t
         switch (result.Code)
         {
             case DisputeResultCode.Success:
+                await Notify(form.DisputeId);
                 TempData["DisputeNotice"] = DisputeRequestText.Notice(form.Action);
                 return RedirectToRequest(form.DisputeId);
             case DisputeResultCode.NotFound: return NotFound();

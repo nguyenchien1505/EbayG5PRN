@@ -12,4 +12,6 @@ public sealed class DisputeEvent
     public decimal? Amount { get; set; }
     public string? Tracking { get; set; }
     public DateTime CreatedAtUtc { get; set; }
+    /// <summary>E04 (DbUp 0013): set only on AutoNotice events; unique per request.</summary>
+    public string? NoticeKey { get; set; }
 }

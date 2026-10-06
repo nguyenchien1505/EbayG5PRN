@@ -41,7 +41,9 @@ internal sealed class ChatSocketHost(WebApplication app, Uri address) : IAsyncDi
             ["ConnectionStrings:Redis"] = redis ?? Environment.GetEnvironmentVariable("EBAY_TEST_REDIS") ?? throw new InvalidOperationException("Run Test-CI.ps1 or Test-Database.ps1; Redis is required."),
             ["Chat:RedisChannelPrefix"] = "EbayGroup5.Tests." + new SqlConnectionStringBuilder(fixture.Target).InitialCatalog,
             ["Chat:AllowedOrigins:0"] = Origin,
-            ["Chat:AllowedOrigins:1"] = "http://localhost:5085"
+            ["Chat:AllowedOrigins:1"] = "http://localhost:5085",
+            // E04: chat hosts don't exercise disputes; keep the dispute background pass off.
+            ["Disputes:Automation:Enabled"] = "false"
         });
         builder.Services.AddSingleton(keys);
         builder.Services.PostConfigure<Microsoft.AspNetCore.Authentication.Cookies.CookieAuthenticationOptions>(

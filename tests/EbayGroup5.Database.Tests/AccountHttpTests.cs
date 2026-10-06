@@ -20,7 +20,7 @@ namespace EbayGroup5.Database.Tests;
 
 public sealed class AccountHttpTests
 {
-    internal sealed class Factory(string target, string? remoteIp = "127.0.0.1") : WebApplicationFactory<EbayGroup5.Web.Controllers.AccountController>
+    internal sealed class Factory(string target, string? remoteIp = "127.0.0.1", bool automation = false) : WebApplicationFactory<EbayGroup5.Web.Controllers.AccountController>
     {
         protected override void ConfigureWebHost(IWebHostBuilder builder)
         {
@@ -33,6 +33,8 @@ public sealed class AccountHttpTests
                 services.RemoveAll<EbayDbContext>();
                 services.AddDbContext<EbayDbContext>(options => options.UseSqlServer(target));
                 services.AddSingleton<IStartupFilter>(new RemoteAddress(remoteIp));
+                // E04: the background pass is time-driven; HTTP tests opt in explicitly (DisputeAutomationTests).
+                services.PostConfigure<EbayGroup5.Application.Disputes.DisputeAutomationOptions>(options => options.Enabled = automation);
                 services.AddControllers().AddApplicationPart(typeof(SecurityProbeController).Assembly);
             });
         }
