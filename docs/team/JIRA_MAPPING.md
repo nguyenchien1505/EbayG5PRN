@@ -76,3 +76,5 @@
 B05 checkpoint06/10/2026: runtime6d14618, [CI37397925776](https://github.com/Twiash/EbayGroup5/actions/runs/37397925776) pass51tests. KAN-11 vẫn bao gồm B06 chưa triển khai; không chuyển Done, không tạo issue/worklog mới. Phiên B05 không ghi Jira; các status bảng trên là snapshot đồng bộ Jira trước, không phải status live. [Evidence](../evidence/B05.md).
 
 Quy ước mới user06/10/2026: gom một đợt task/evidence để phân chia thành viên rồi mới sync Jira, chưa có ngưỡng task cố định. Ledger chưa sync: **B05+B06 local Done → KAN-11/TV1 Tran Van Dat**, [B06 evidence](../evidence/B06.md). Chưa thay status/evidence live Jira trong B06; không coi bảng snapshot To Do là trạng thái code hiện tại.
+
+B06 evidence ready for next batch: runtimec2cf9e5, [CI37400491344](https://github.com/Twiash/EbayGroup5/actions/runs/37400491344) pass70tests; B05+B06/KAN-11 complete locally, Jira chưa ghi theo quy ước user mới. Không tạo worklog hoặc giả review của thành viên.

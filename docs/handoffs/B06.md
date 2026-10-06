@@ -1,6 +1,6 @@
 # Handoff — B06 history and simulated fulfillment
 
-06/10/2026. Repo D:/WINDOWS/PRN3/EbayGroup5; baseline27d5399; branch task/B06-order-history-delivery. Checkpoint `git log --oneline --grep=B06`. Handoff B05 giữ tại [B05](B05.md).
+06/10/2026. Repo D:/WINDOWS/PRN3/EbayGroup5; baseline27d5399; runtimec2cf9e5; main fast-forward từ task/B06-order-history-delivery sau CI pass. Checkpoint `git log --oneline --grep=B06`. Handoff B05 giữ tại [B05](B05.md).
 
 ## Hoàn tất
 
@@ -14,12 +14,12 @@
 
 ## Vận hành/checkpoint
 
-- Verify-Planning108 Markdown/39 cards/source17 tables, Verify-Migrations6 immutable SQL assets và diff --check pass. GitHub CI đang chuẩn bị push; ghi run/headSha cuối khi pass.
-- SQL local retained DBs gây repeated prelogin reset trên cấu hình2048MB/3GB; override ignored artifacts/b06/compose-memory.yaml dùng4096MB/6GB cho kết nối/preview/migration, giữ named volume ebaygroup5-local_sqlserver-data. Cấu hình repo không đổi. Giữ override local4096MB/6GB hiện tại để các DB retained kết nối ổn định; container healthy và named volume cũ đã kiểm tra. Compose up không kèm override sẽ quay về2048MB/3GB và có thể tái hiện prelogin reset. Không xóa DB để giải quyết RAM.
+- Verify-Planning108 Markdown/39 cards/source17 tables, Verify-Migrations6 immutable SQL assets và diff --check pass. GitHub [CI37400491344](https://github.com/Twiash/EbayGroup5/actions/runs/37400491344) tại runtimec2cf9e5 success: job3m17s, build0 warnings/errors, 70/70tests duration1m và TRX upload pass. Commit docs sau CI dùng [skip ci], chỉ checks docs/source integrity.
+- SQL local có470 databases (gồm DBs test retained), gặp repeated prelogin reset trên cấu hình2048MB/3GB; override ignored artifacts/b06/compose-memory.yaml dùng4096MB/6GB cho kết nối/preview/migration, giữ named volume ebaygroup5-local_sqlserver-data. Cấu hình repo không đổi. Giữ override local4096MB/6GB hiện tại để các DB retained kết nối ổn định; container healthy và named volume cũ đã kiểm tra. Compose up không kèm override sẽ quay về2048MB/3GB và có thể tái hiện prelogin reset. Không xóa DB để giải quyết RAM.
 - User untracked src/EbayGroup5.Web/Properties/launchSettings.json giữ nguyên, không stage. .env/.env.database/.env.auth và generated preview secrets không in/commit. SDK/config via Use-LocalDotnet/Use-LocalInfrastructure.
 
 ## Jira và bước tiếp
 
 - User yêu cầu đồng bộ Jira theo đợt task để phân chia thành viên, không sync sau mỗi task; mốc/số task chưa ấn định. [OWNERSHIP](../team/OWNERSHIP.md) lưu quy ước. B05+B06 đã hoàn tất local/KAN-11 parentKAN-4/owner Tran Van Dat, chờ một đợt sync. Không ghi Jira hoặc worklog trong phiên; không tạo ticket mới.
 - SUP-04Done, UI-01/SUP-05 và các C/D/E/F còn Pending. Không tự bắt đầu task khác. Commerce dependency cho D01/E01 đã có Delivered/COD evidence; task tiếp theo tùy user (thứ tự PLAN là C01).
-- Commit/push/CI private origin được user cho phép; fast-forward main sau CI pass, không force-push. Không subagents.
+- Commit/push/CI private origin được user cho phép; main fast-forward/push sau CI pass, không force-push. Không subagents.
