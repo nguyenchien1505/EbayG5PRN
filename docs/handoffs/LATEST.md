@@ -1,6 +1,6 @@
 # Handoff — C02 chat service and authorized REST
 
-06/10/2026. Repo D:/WINDOWS/PRN3/EbayGroup5; baseline main d6c8221; branch task/C02-chat-service-api. Checkpoint `git log --oneline --grep=C02`; main fast-forward sau verified GitHub CI. C01 handoff giữ tại [C01](C01.md).
+06/10/2026. Repo D:/WINDOWS/PRN3/EbayGroup5; baseline main d6c8221; runtime fb23013; task/C02-chat-service-api → main fast-forward sau GitHub CI pass. Checkpoint `git log --oneline --grep=C02`; C01 handoff giữ tại [C01](C01.md).
 
 ## Hoàn tất C02
 
@@ -15,7 +15,7 @@
 
 - `. ./scripts/Use-LocalDotnet.ps1; ./scripts/Test-CI.ps1`: locked restore/build0 warnings/errors, **116/116 pass23s** (91 regression+25 C02), none skipped. [Evidence](../evidence/C02.md): real service2-connections/concurrent pair and send/retry; precommit rollback after SQL writes; access/context/paging/read/bigint/runtime app login/logs +7 SQL-backed HTTP cases. Initial6 EF tracker conflicts fixed via transactional ExecuteUpdate, final green.
 - Fresh SQL engine2048MB/container3GB `ebaygroup5-ci-548f68742a7f472998a35caabcb6dd1e` stopped/retained. No local user DB writes/drop/reset/seed changes; migration not needed. TestServer/body evidence isn't deployed Kestrel/proxy/TLS/realtime evidence. Inbox N+1 count/performance F05 pending.
-- Verify-Planning/Verify-Migrations/diff checks at final docs checkpoint; immutable7 SQL assets/39cards/source17 preserved. GitHub runtime SHA/run pending initially; append after push before main fast-forward. All G5-01/02/G5-N01/02/04/05 remain Pending.
+- Verify-Planning113 Markdown/39cards/source17, Verify-Migrations7 immutable assets và diff checks pass. [GitHub CI37405713773](https://github.com/Twiash/EbayGroup5/actions/runs/37405713773) tại fb23013fb441009c250b1fe91296cd14e7b6390d success: job2m58s, build0 warnings/errors,116tests pass1m17s, TRX upload pass. Final docs-only commit [skip ci]; all G5-01/02/G5-N01/02/04/05 remain Pending.
 - Local SQL ignored artifacts/b06/compose-memory.yaml engine4096MB/container6GB stays active; volume ebaygroup5-local_sqlserver-data unchanged. Test-CI fresh server standard2048MB/3GB. User untracked src/EbayGroup5.Web/Properties/launchSettings.json untouched/uncommitted, .env secrets ignored; no UI preview needed.
 
 ## Tiếp theo C03 / Jira
