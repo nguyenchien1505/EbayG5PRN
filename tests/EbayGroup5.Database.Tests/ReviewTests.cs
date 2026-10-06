@@ -17,11 +17,11 @@ namespace EbayGroup5.Database.Tests;
 
 public sealed class ReviewTests
 {
-    private const string Password = "Reviews-Test-Password!";
-    private static EbayDbContext Open(string target) => new(new DbContextOptionsBuilder<EbayDbContext>().UseSqlServer(target).Options);
-    private sealed record SetupData(string Target, int Buyer, int Seller, int OtherBuyer, int OtherSeller, int Admin, int Address, int Order, int Item, int Product, int OtherProduct);
+    internal const string Password = "Reviews-Test-Password!";
+    internal static EbayDbContext Open(string target) => new(new DbContextOptionsBuilder<EbayDbContext>().UseSqlServer(target).Options);
+    internal sealed record SetupData(string Target, int Buyer, int Seller, int OtherBuyer, int OtherSeller, int Admin, int Address, int Order, int Item, int Product, int OtherProduct);
 
-    private static async Task<SetupData> Setup()
+    internal static async Task<SetupData> Setup()
     {
         var target = SqlFixture.NewTarget();
         MigrationRunner.Run(target);
@@ -44,7 +44,7 @@ public sealed class ReviewTests
         return new(target, users["buyer"].Id, users["seller"].Id, users["otherbuyer"].Id, users["otherseller"].Id, admin, address.Value, placed.OrderId!.Value, item, product.Id, other.Id);
     }
 
-    private static async Task Deliver(SetupData s, int order)
+    internal static async Task Deliver(SetupData s, int order)
     {
         await using var db = Open(s.Target);
         var orders = new OrderService(db);
@@ -280,8 +280,8 @@ public sealed class ReviewTests
         SqlFixture.Execute(target, "INSERT dbo.Review(rating) VALUES(11)");
     }
 
-    private static string Field(string html) => WebUtility.HtmlDecode(Regex.Match(html, "name=\"__RequestVerificationToken\"[^>]*value=\"([^\"]+)\"").Groups[1].Value);
-    private static async Task<HttpClient> Login(AccountHttpTests.Factory factory, string who)
+    internal static string Field(string html) => WebUtility.HtmlDecode(Regex.Match(html, "name=\"__RequestVerificationToken\"[^>]*value=\"([^\"]+)\"").Groups[1].Value);
+    internal static async Task<HttpClient> Login(AccountHttpTests.Factory factory, string who)
     {
         var client = factory.CreateClient(new() { AllowAutoRedirect = false, BaseAddress = new Uri("https://localhost") });
         var page = await client.GetStringAsync("/Account/Login");

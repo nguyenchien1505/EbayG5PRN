@@ -1,5 +1,6 @@
 using System.Security.Claims;
 using EbayGroup5.Application.Orders;
+using EbayGroup5.Application.Reviews;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -7,7 +8,7 @@ namespace EbayGroup5.Web.Controllers;
 
 [Authorize(Roles = "Buyer,Seller")]
 [ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
-public sealed class OrdersController(IOrderService orders) : Controller
+public sealed class OrdersController(IOrderService orders, IReviewService reviews) : Controller
 {
     private int ActorId => int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
     private OrderAudience Audience => User.IsInRole("Seller") ? OrderAudience.Seller : OrderAudience.Buyer;
@@ -27,7 +28,13 @@ public sealed class OrdersController(IOrderService orders) : Controller
     public async Task<IActionResult> Details(int id, CancellationToken cancellationToken)
     {
         var order = await orders.FindAsync(ActorId, Audience, id, cancellationToken);
-        return order == null ? NotFound() : View(order);
+        return order == null ? NotFound() : await DetailsView(order, cancellationToken);
+    }
+
+    private async Task<IActionResult> DetailsView(OrderDetail order, CancellationToken ct)
+    {
+        if (order.Audience == OrderAudience.Buyer) ViewData["ReviewLines"] = await reviews.ListForOrderAsync(ActorId, order.Id, ct);
+        return View("Details", order);
     }
 
     [HttpPost, Authorize(Policy = "Seller")]
@@ -45,6 +52,6 @@ public sealed class OrdersController(IOrderService orders) : Controller
         Response.StatusCode = 409;
         ViewData["OrderError"] = result.Error;
         var order = await orders.FindAsync(ActorId, Audience, id, ct);
-        return order == null ? NotFound() : View("Details", order);
+        return order == null ? NotFound() : await DetailsView(order, ct);
     }
 }

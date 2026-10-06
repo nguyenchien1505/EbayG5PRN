@@ -35,3 +35,5 @@ B01: Infrastructure/Authentication/AccountService; Web/Controllers/AccountContro
 B04: Application/Catalog DTO + ICatalogService; Infrastructure/Catalog EF queries; Web CatalogApiController/CatalogController + Views/Catalog; CatalogTests và HTTP tests. Q-UI-005 answered ảnh người dùng; Home redirect catalog. [So sánh project cũ/mới](PROJECT_COMPARISON.md).
 
 D01: Database/Scripts/0007_ReviewOrderLink.sql; Core/Entities/Review (OrderItemId) + EbayDbContext map; Application/Reviews/IReviewService; Infrastructure/Reviews/ReviewService; Web/Controllers/ReviewsController + Models/ReviewForms; tests ReviewTests.cs. [REVIEWS](REVIEWS.md).
+
+D02: ReviewService ProductReviewsAsync/FindItemAsync; Web ReviewsController GET/POST + Views/Reviews/Create, CatalogController Details/Reviews + Views/Catalog/Reviews/InvalidReviewFilters, Shared/_Stars/_RatingSummary/_ReviewList, Orders/Details review actions, site.css review styles; tests `ReviewDisplayTests.cs`.

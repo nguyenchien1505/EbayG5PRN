@@ -1,0 +1,3 @@
+@model int
+@{ ViewData["Title"] = "Check your review filters"; }
+<section class="marketplace-state"><h1>Let's try those reviews again</h1><p>Use a positive page number and sort by most recent, highest or lowest rating.</p><a class="button primary" asp-action="Reviews" asp-route-id="@Model">See all reviews</a></section>

@@ -24,7 +24,7 @@ Trạng thái ở đây là đầu mối theo dõi. Planned = cần kiểm tra d
 | [C04](C04.md) | Inbox, màn hình chat và trạng thái đọc | C03, B03 | Done |
 | [C05](C05.md) | Reconnect, tải bù và truy vết | C04 | Done |
 | [D01](D01.md) | Review gắn đơn hàng và điều kiện gửi | B06 | Done |
-| [D02](D02.md) | Giao diện review và điểm trung bình | D01, B04 | Planned |
+| [D02](D02.md) | Giao diện review và điểm trung bình | D01, B04 | Done |
 | [D03](D03.md) | Seller feedback và công thức uy tín | D01 | Planned |
 | [D04](D04.md) | Trang uy tín và seller reply | D03, B03 | Planned |
 | [D05](D05.md) | Kiểm duyệt và audit review/feedback | D04, B02 | Planned |
