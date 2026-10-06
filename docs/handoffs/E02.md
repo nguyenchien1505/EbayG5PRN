@@ -2,7 +2,7 @@
 
 06/10/2026. Repo D:/WINDOWS/PRN3/EbayGroup5.
 
-- Baseline main `e61e3ec`. Runtime trên `task/E02-dispute-form-draft`; chỉ fast-forward vào main sau khi GitHub CI chạy đúng hash pass.
+- Baseline main `e61e3ec`. Runtime `fbc1f33` trên `task/E02-dispute-form-draft`, fast-forward vào main sau khi [CI37484965524](https://github.com/Twiash/EbayGroup5/actions/runs/37484965524) pass.
 - Checkpoint: `git log --oneline --grep=E02`. Handoff trước: [E01](E01.md).
 
 ## Hoàn tất
@@ -29,7 +29,7 @@
   - Node 6/6; SQL tập trung 86/86; mutation 2/2 bị bắt.
   - Browser: luồng Return đầy đủ, desktop/390/320px.
 - **Full Test-CI local bị chặn vì ổ C: còn 0,2 GB.** Docker Desktop dừng và SQL báo mất log. Đã báo người dùng; không tự xóa dữ liệu.
-- GitHub CI: xem commit docs `[skip ci]` của E02.
+- **GitHub [CI37484965524](https://github.com/Twiash/EbayGroup5/actions/runs/37484965524) exact runtime `fbc1f33` success**: job build-test 5m13s, **230/230 .NET + 20/20 Node** (14 chat + 6 draft), build 0 warnings. Đây là bằng chứng full suite. Docs-only `[skip ci]` sau CI.
 - Không đụng `launchSettings.json` (untracked).
 
 ## Cho task sau
