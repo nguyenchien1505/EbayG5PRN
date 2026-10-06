@@ -1,6 +1,6 @@
 # Handoff — C04 inbox/contact/read UI
 
-06/10/2026. Repo D:/WINDOWS/PRN3/EbayGroup5; baseline main403e52a, branch task/C04-chat-ui. Checkpoint `git log --oneline --grep=C04`; runtime GitHub CI pending, main FF only after exact success. C03 archived [C03](C03.md), runtime39da85c/CI37408622971/134tests dependency verified.
+06/10/2026. Repo D:/WINDOWS/PRN3/EbayGroup5; baseline main403e52a, runtime2c09a7f, task/C04-chat-ui →main sau GitHub CI pass. Checkpoint `git log --oneline --grep=C04`; C03 archived [C03](C03.md), runtime39da85c/CI37408622971/134tests dependency verified.
 
 ## Hoàn tất C04
 
@@ -15,9 +15,10 @@
 - `. ./scripts/Use-LocalDotnet.ps1; ./scripts/Test-CI.ps1`: locked restore/Release build0 warnings/errors, **137/137 .NET pass36s, none skipped +8/8 Node pass**. Three page/role/ownership/no GET-write/public DTO/context/Unicode cases +134 regression (including real two independent Kestrel apps/DI roots/ports within one test process). [Evidence](../evidence/C04.md); planning/source17/7 migrations/vendor hashes pass; final docs checks after updates.
 - Fresh isolated SQL ebaygroup5-ci-ba4d46a19e934c6e98f91c5c1bdc5581 +Redis stopped/retained. Ignored visual DB EbayGroup5_Test_C04Visualdc150a463d404a68824474df3217cbdf, fake3 accounts/24conversations/125seed messages, same production host/scoped app login/ephemeral keys; no user DB reset/drop. Local b06 ignored SQL4GB/6GB override and same volume retained.
 - Actual browser Buyer/Seller WS exchange,63unread/read, closed panel SQL128/BuyerRead127/SellerRead128, history50→100→128 no duplicate, inbox20→24; peer inactive409/Not sent+Retry retains UUID/one SQL row129, restored fake peer. Literal HTML remains text/no image/dialog, thirdBuyer404/emptyownInbox, order$20 vslisting$24.50, RefreshConnected/Ctrl+Enter one persistedbubble132/Escapeclose. Desktop1265/mobile390/320 no overflow, mobile Back/panel verified. Screenshots ignored artifacts/c04/chat-desktop.jpg/chat-panel-desktop.jpg/chat-panel-mobile.jpg/chat-mobile.jpg/chat-320.jpg/chat-forbidden.jpg. Preview/tabs closed, overrides reset.
-- First136/137 failed JSON raw-HTML assertion, corrected media-type/DTO test; actual browser textContent injection proof. Early failed-state screenshot unusable, not evidence; DOM+SQL failure proof retained. Final desktop/panel visually inspected. Background browser tabs not fully audited; Node hidden/unfocused flags +actual closed-panel read cover current evidence.
+- First136/137 failed JSON raw-HTML assertion, corrected media-type/DTO test; actual browser textContent injection proof. Early full-page failed-state/mobile screenshots unusable; mobile390/320/panel390 replaced with inspected viewport captures, no runtime change. DOM+SQL failure proof retained. Final desktop/panel visually inspected; SQL Last132/BuyerRead132/SellerRead131/retryUUID one row129. Background browser tabs not fully audited; Node hidden/unfocused flags +actual closed-panel read cover current evidence.
 - **G5-01 Done** browser+owned denial+transport evidence. G5-02/N01/N02/N04/N05 and UI-01 Pending C05/F; no automatic reconnect/restart/TLS/WSS/deployed replicas/shared persistent keys/latency/dataset/operational trace claims.
 - User launchSettings.json untracked untouched/uncommitted; .env ignored. [LOCAL_SETUP](../runbooks/LOCAL_SETUP.md) Node20+/Messages/vendor/refresh documented.
+- [CI37413352483](https://github.com/Twiash/EbayGroup5/actions/runs/37413352483) exact runtime2c09a7fd49eea6f64eecc0ac2af737cf17f0fb95 success: job3m17s/build0 warnings/errors/**137tests1m38s +8Node**/vendor/source/migrations/planning/TRX upload pass. Final docs-only [skip ci], main FF after exact success; no runtime changes. Final planning117 Markdown/39cards/source17/migrations7/vendor hashes/diff pass. History [C04](C04.md).
 
 ## Tiếp theo C05 / Jira
 

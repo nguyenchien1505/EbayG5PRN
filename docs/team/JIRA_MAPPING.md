@@ -88,3 +88,5 @@ C02 ready for next batch: runtimefb23013 SQL service/owned REST, [evidence](../e
 C03 runtime39da85c/[CI37408622971](https://github.com/Twiash/EbayGroup5/actions/runs/37408622971) success, [evidence](../evidence/C03.md)134tests WS/Redis/two-host guards complete locally, **partial KAN-15/TV2 Đoàn Công Huy** (còn C04 UI nên chưa issueDone). Ledger chưa sync giữ B05+B06/KAN-11, C01/KAN-13, C02/KAN-14 và C03 partialKAN-15. Chờ batch user, ngưỡng chưa ấn định; không live status/evidence/worklog/review/duplicate.
 
 C04 [evidence](../evidence/C04.md)137 .NET +8 Node tests/browser inbox/contact/read/paging/retry/third-party verified; **C03+C04 → KAN-15/TV2 Đoàn Công Huy complete locally**. Ledger pending batch: B05+B06/KAN-11/TV1 Tran Van Dat; C01/KAN-13, C02/KAN-14, C03+C04/KAN-15/TV2. Không cập nhật live Jira từng task, không tự đặt ngưỡng/giả worklog/review; bảng status phía trên snapshot cũ.
+
+C04 runtime2c09a7f/[CI37413352483](https://github.com/Twiash/EbayGroup5/actions/runs/37413352483) success137 .NET+8 Node, [C04 handoff](../handoffs/C04.md) ready cho batch. Ledger/status live Jira vẫn chưa thay đổi.
