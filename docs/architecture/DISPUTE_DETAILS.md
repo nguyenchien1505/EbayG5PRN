@@ -29,7 +29,7 @@ Không có ảnh thật của trang request details, nên phần sau là **thi�
 - Nhãn trạng thái phía seller.
 - Danh sách lý do khi Ask eBay to step in / Close your request.
 
-**Lệch có chủ ý / giả định** (người dùng có thể đổi):
+**Lệch có chủ ý / giả định** — người dùng đã chấp nhận ngày 06/10/2026 (Q-UI-009): giữ nhãn clone tự đặt (sẽ chỉnh nếu người dùng xác nhận được eBay thật), tạm giữ luật offer của E01, đồng ý tên "Returns and requests".
 
 - **Câu "Please respond by":** D2 ghi "…or we may approve it for you". Clone ghi "…or we may step in to help", vì quá hạn thì E04 chuyển eBay chứ không tự chấp nhận return (E01).
 - **Offer a partial refund:** D2 ghi "You have one chance to offer an amount". Luật E01 cho seller offer lại sau khi buyer từ chối, nên clone dùng mô tả "Offer an amount. The buyer keeps the item." Đưa về đúng một lần thì phải sửa luật E01 bằng task riêng.
