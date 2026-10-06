@@ -11,4 +11,6 @@ public sealed class OrderTable
     public string? Status { get; set; }
     public Guid? CheckoutKey { get; set; }
     public string? CheckoutFingerprint { get; set; }
+    /// <summary>Latest estimated delivery (E01, DbUp 0011); set at checkout, backfilled for legacy orders.</summary>
+    public DateTime? EstimatedDeliveryUtc { get; set; }
 }

@@ -1,14 +1,17 @@
 using System.Data;
+using EbayGroup5.Application.Disputes;
 using EbayGroup5.Application.Orders;
 using EbayGroup5.Core.Entities;
+using EbayGroup5.Infrastructure.Disputes;
 using EbayGroup5.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 
 namespace EbayGroup5.Infrastructure.Orders;
 
-public sealed class OrderService(EbayDbContext db, TimeProvider? clock = null) : IOrderService
+public sealed class OrderService(EbayDbContext db, TimeProvider? clock = null, DisputeTiming? timing = null) : IOrderService
 {
     private readonly TimeProvider clock = clock ?? TimeProvider.System;
+    private readonly DisputeTiming timing = timing ?? new();
     private static string Role(OrderAudience audience) => audience == OrderAudience.Buyer ? "Buyer" : "Seller";
     private IQueryable<OrderTable> Owned(int actorId, OrderAudience audience) => db.Set<OrderTable>().AsNoTracking()
         .Where(x => audience == OrderAudience.Buyer ? x.BuyerId == actorId : x.SellerId == actorId);
@@ -93,7 +96,8 @@ public sealed class OrderService(EbayDbContext db, TimeProvider? clock = null) :
             "This order is read-only because its legacy details are incomplete or inconsistent. No records have been changed.";
         return new(order.Id, order.OrderDate, order.Status ?? "Unknown", order.TotalPrice, lines, state.ItemCount, address,
             payment?.Method, payment?.Status, payment?.PaidAt, shipping?.Carrier, shipping?.TrackingNumber,
-            audience == OrderAudience.Seller && state.CanShip, audience == OrderAudience.Buyer && state.CanReceive, notice, audience);
+            audience == OrderAudience.Seller && state.CanShip, audience == OrderAudience.Buyer && state.CanReceive, notice, audience)
+            { EstimatedDeliveryUtc = order.EstimatedDeliveryUtc is { } estimated ? DateTime.SpecifyKind(estimated, DateTimeKind.Utc) : null };
     }
 
     public async Task<OrderActionResult> ActAsync(int actorId, OrderAction action, int orderId, CancellationToken cancellationToken = default)
@@ -117,7 +121,7 @@ public sealed class OrderService(EbayDbContext db, TimeProvider? clock = null) :
             {
                 order.Status = "Shipped";
                 db.Add(new ShippingInfo { OrderId = order.Id, Carrier = "Demo Carrier", TrackingNumber = "DEMO-B06-" + order.Id,
-                    Status = "Shipped", EstimatedArrival = null });
+                    Status = "Shipped", EstimatedArrival = order.EstimatedDeliveryUtc });
             }
             else
             {
@@ -128,7 +132,10 @@ public sealed class OrderService(EbayDbContext db, TimeProvider? clock = null) :
                 var payment = state.Payments[0];
                 db.Attach(payment);
                 payment.Status = "Paid";
-                payment.PaidAt = DateTime.UtcNow;
+                var now = clock.GetUtcNow().UtcDateTime;
+                payment.PaidAt = now;
+                // E01: the item arrived, so open item-not-received requests close in the same transaction (Outcome ItemReceived).
+                await DisputeService.ItemReceivedAsync(db, actorId, order.Id, now, this.timing, cancellationToken);
             }
             await db.SaveChangesAsync(cancellationToken);
             await transaction.CommitAsync(cancellationToken);

@@ -73,6 +73,7 @@ public sealed class EbayDbContext(DbContextOptions<EbayDbContext> options) : DbC
             entity.Property(x => x.CheckoutKey).HasColumnType("uniqueidentifier");
             entity.Property(x => x.CheckoutFingerprint).HasColumnType("varchar(64)").HasMaxLength(64).IsUnicode(false);
             entity.HasIndex(x => new { x.BuyerId, x.CheckoutKey }).HasDatabaseName("UX_OrderTable_Buyer_CheckoutKey").IsUnique().HasFilter("[CheckoutKey] IS NOT NULL");
+            entity.Property(x => x.EstimatedDeliveryUtc).HasColumnType("datetime2(7)");
             entity.Property(x => x.Status).HasColumnName("status").HasColumnType("nvarchar(20)").HasMaxLength(20);
         });
         modelBuilder.Entity<OrderItem>(entity =>
@@ -310,6 +311,40 @@ public sealed class EbayDbContext(DbContextOptions<EbayDbContext> options) : DbC
             entity.Property(x => x.Description).HasColumnName("description").HasColumnType("nvarchar(max)");
             entity.Property(x => x.Status).HasColumnName("status").HasColumnType("nvarchar(20)").HasMaxLength(20);
             entity.Property(x => x.Resolution).HasColumnName("resolution").HasColumnType("nvarchar(max)");
+            // E01 extension columns (DISPUTES.md).
+            entity.Property(x => x.OrderItemId).HasColumnType("int");
+            // SQL also enforces the composite FK_Dispute_OrderItemOrder (line belongs to orderId); EF maps the single-column link like Review.
+            entity.HasOne<OrderItem>().WithMany().HasForeignKey(x => x.OrderItemId).OnDelete(DeleteBehavior.ClientNoAction);
+            entity.Property(x => x.SellerId).HasColumnType("int");
+            entity.HasOne<User>().WithMany().HasForeignKey(x => x.SellerId).OnDelete(DeleteBehavior.ClientNoAction);
+            entity.Property(x => x.Kind).HasColumnType("varchar(16)").HasMaxLength(16).IsUnicode(false);
+            entity.Property(x => x.Reason).HasColumnType("varchar(16)").HasMaxLength(16).IsUnicode(false);
+            entity.Property(x => x.Preference).HasColumnType("varchar(6)").HasMaxLength(6).IsUnicode(false);
+            entity.Property(x => x.CreatedAtUtc).HasColumnType("datetime2(7)");
+            entity.Property(x => x.DueAtUtc).HasColumnType("datetime2(7)");
+            entity.Property(x => x.SellerRespondedAtUtc).HasColumnType("datetime2(7)");
+            entity.Property(x => x.EscalatedAtUtc).HasColumnType("datetime2(7)");
+            entity.Property(x => x.ClosedAtUtc).HasColumnType("datetime2(7)");
+            entity.Property(x => x.Outcome).HasColumnType("varchar(16)").HasMaxLength(16).IsUnicode(false);
+            entity.Property(x => x.OfferAmount).HasColumnType("decimal(10,2)").HasPrecision(10, 2);
+            entity.Property(x => x.RefundAmount).HasColumnType("decimal(10,2)").HasPrecision(10, 2);
+            entity.Property(x => x.ReturnTracking).HasColumnType("nvarchar(100)").HasMaxLength(100);
+            entity.HasIndex(x => x.OrderItemId).IsUnique().HasFilter("[OrderItemId] IS NOT NULL AND [ClosedAtUtc] IS NULL").HasDatabaseName("UX_Dispute_ActiveLine");
+            entity.ToTable(t => t.HasTrigger("TR_Dispute_Guard"));
+        });
+        modelBuilder.Entity<DisputeEvent>(entity =>
+        {
+            entity.ToTable("DisputeEvent", "dbo", t => t.HasTrigger("TR_DisputeEvent_AppendOnly"));
+            entity.HasKey(x => x.Id);
+            entity.Property(x => x.Id).HasColumnType("int").UseIdentityColumn();
+            entity.HasOne<Dispute>().WithMany().HasForeignKey(x => x.DisputeId).OnDelete(DeleteBehavior.ClientNoAction);
+            entity.HasOne<User>().WithMany().HasForeignKey(x => x.ActorId).OnDelete(DeleteBehavior.ClientNoAction);
+            entity.Property(x => x.ActorRole).HasColumnType("varchar(6)").HasMaxLength(6).IsUnicode(false);
+            entity.Property(x => x.Type).HasColumnType("varchar(16)").HasMaxLength(16).IsUnicode(false);
+            entity.Property(x => x.Message).HasColumnType("nvarchar(2000)").HasMaxLength(2000);
+            entity.Property(x => x.Amount).HasColumnType("decimal(10,2)").HasPrecision(10, 2);
+            entity.Property(x => x.Tracking).HasColumnType("nvarchar(100)").HasMaxLength(100);
+            entity.Property(x => x.CreatedAtUtc).HasColumnType("datetime2(7)").HasDefaultValueSql("SYSUTCDATETIME()");
         });
         modelBuilder.Entity<Store>(entity =>
         {

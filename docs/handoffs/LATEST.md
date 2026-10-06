@@ -1,44 +1,60 @@
-# Handoff — D06: đồng bộ điểm vào nhóm 5 theo eBay (A1–A5)
+# Handoff — E01: schema và state machine khiếu nại
 
 06/10/2026. Repo D:/WINDOWS/PRN3/EbayGroup5.
 
-- Baseline main `6dee061`. Runtime `0a99e49` trên `task/D06-group5-entry-points`, fast-forward vào main sau khi [CI37453888486](https://github.com/Twiash/EbayGroup5/actions/runs/37453888486) pass.
-- Checkpoint: `git log --oneline --grep=D06`.
-- Handoff trước: [UI-REVIEW-G5](UI-REVIEW-G5.md) (rà soát, ADR-002) và [D05](D05.md) (runtime gần nhất).
+- Baseline main `aaec085`. Runtime nằm trên `task/E01-dispute-state-machine`. Chỉ fast-forward vào main sau khi GitHub CI chạy đúng hash pass; số run ghi bằng commit docs-only `[skip ci]`.
+- Checkpoint: `git log --oneline --grep=E01`. Handoff trước: [D06](D06.md).
 
 ## Hoàn tất
 
-Người dùng chọn phương án 1 của Q-UI-008. Contract: [ENTRY_POINTS](../architecture/ENTRY_POINTS.md). Không có migration và không đổi luật nghiệp vụ.
-
-- **A1** — `Views/Catalog/Details.cshtml`: nút `Message` nằm trong seller card, bỏ link "Contact seller" riêng. Hành vi giữ như C04.
-- **A2** — Card catalog có sao + `(N)` và dòng `seller X% positive (score)`.
-  - Dữ liệu lấy theo lô qua `IReviewService.SummariesAsync` và `IFeedbackService.ReputationsAsync`.
-  - Cả hai dùng chung code tổng hợp với trang chi tiết (`Summarize`, `ReputationsAsync`).
-  - Định dạng score: `SellerReputation.CompactScore`.
-- **A3** — Purchases:
-  - Chip lọc (thay cho select + Apply); có `Ready for feedback`, chỉ dành cho Buyer.
-  - Nút `Leave feedback` trên card.
-  - Quy tắc duy nhất nằm ở `Infrastructure/Orders/FeedbackDue.cs`; `OrderService` nhận thêm `TimeProvider` tùy chọn.
-- **A4** — Menu `More actions ▾` (`<details class="more-actions">`) → Contact seller (`data-chat-order-item-id`). Trang Purchases nạp panel chat.
-- **A5** — Messages: thanh tiêu đề có nút `data-folder-toggle`; cột Inbox mặc định ẩn. Toggle trong `chat.js`, CSS trong `chat.css`.
-- Thêm D06 vào PLAN/INDEX; `Verify-Planning.ps1` kiểm 40 task.
+- **Q-BIZ-006 (người dùng chốt):**
+  - Ngày giao dự kiến tính lúc checkout và lưu lại.
+  - Return có bước gửi trả.
+  - Mọi listing coi như "30-day returns"; seller chỉ được Decline lý do đổi ý.
+- **Contract** [DISPUTES](../architecture/DISPUTES.md) gồm nguồn eBay Help 4042/4041, thời gian, điều kiện mở, trạng thái/outcome và bảng chuyển trạng thái.
+- **DbUp `0011_Dispute.sql`:**
+  - `OrderTable.EstimatedDeliveryUtc` + backfill.
+  - `UQ_OrderItem_Id_Order`.
+  - Mở rộng bảng gốc `Dispute`; CHECK chỉ áp cho dòng của module và NULL-safe.
+  - `UX_Dispute_ActiveLine`, `UX_Dispute_LineKind`; index buyer/seller/due.
+  - `TR_Dispute_Guard`: không xóa, không đổi danh tính, request đã đóng bị đóng băng.
+  - `DisputeEvent` append-only. Manifest có 12 assets.
+- **Application/Disputes:**
+  - `DisputeTiming`: ngày làm việc UTC; `Disputes:DemoBusinessDaySeconds` để demo; `EstimatedDeliveryBusinessDays` = 5.
+  - `DisputeRules`: hàm thuần `Decide` / `StateAllows` / `AvailableActions`.
+  - `IDisputeService` cùng các enum và record.
+- **Infrastructure/Disputes/`DisputeService`:**
+  - Eligibility, Open (khóa đơn, unique index là chốt chặn cuối), Act / ActAsSystem (khóa dòng request), Find (buyer/seller/admin).
+  - Nội bộ `ItemReceivedAsync` được `OrderService` gọi khi buyer Confirm received.
+- **B05/B06:**
+  - Checkout lưu ngày giao dự kiến.
+  - Ship ghi `estimatedArrival`.
+  - Receive đóng INR.
+  - Trang chi tiết đơn hiện "Estimated delivery".
+  - DI đăng ký `DisputeTiming` và `IDisputeService`.
 
 ## Verification
 
-- [Evidence](../evidence/D06.md): Test-CI local **203/203 .NET + 14/14 Node**, build 0 warnings.
-- Mutation điều kiện 60 ngày bị test bắt.
-- Browser desktop, 390px và 320px trên preview cô lập; sửa lỗi menu bị cắt.
-- **GitHub [CI37453888486](https://github.com/Twiash/EbayGroup5/actions/runs/37453888486) exact runtime `0a99e49` success**: job build-test 4m49s, 203/203 .NET + 14/14 Node, build 0 warnings. Docs-only `[skip ci]` sau CI.
+- [Evidence](../evidence/E01.md): Test-CI local **225/225 .NET + 14/14 Node**, build 0 warnings.
+- Mutation: 3/3 bị test bắt.
+- Chưa kiểm trên browser vì E01 không có UI khiếu nại.
 - Không đụng `launchSettings.json` (untracked).
 
-## Lưu ý cho task sau
+## Cho task sau
 
-- **E02:** thêm I didn't receive it / Return this item / See request details vào menu More actions trong `Views/Orders/History.cshtml`. Mẫu UI: E1/E1m/E0/H1 ([UI_CANDIDATES](../architecture/UI_CANDIDATES.md#rà-soát-06102026--khiếu-nại-q-ui-003)).
-- **E01:** phải chốt nguồn ngày giao dự kiến (`ShippingInfo.estimatedArrival` đang NULL).
-- Nếu đổi điều kiện review (D01) hoặc feedback (D03), phải sửa `FeedbackDue` theo; test `Ready_for_feedback_matches_the_order_details_button_for_every_order` sẽ báo lệch.
+- **E02:**
+  - Form ở `Purchases → More actions` (menu D06 trong `Views/Orders/History.cshtml`) và trang chi tiết đơn.
+  - Dùng `EligibilityAsync` để hiện/ẩn "I didn't receive it" / "Return this item" kèm lý do.
+  - Gọi `OpenAsync`; mẫu UI E1/E1m/E0.
+  - Nháp server (G5-N03) cần migration riêng (0012).
+  - Khi đang chạy thời gian demo (`DisputeDetail.DemoTiming`) phải ghi rõ trên UI.
+- **E03:** trang request details/timeline lấy từ `FindAsync`; nút theo `Actions`; nhãn trạng thái kiểu eBay; mẫu D2/H1.
+- **E04:** job gọi `ActAsSystemAsync(Escalate | ExpireReturn)`; dùng index `IX_Dispute_Due`; lệnh đã idempotent (trả Conflict khi không còn áp dụng); event `AutoNotice` đã có trong CHECK.
+- **E05:** `ActAsync(Decide, ForBuyer, note)` ghi `resolution`; cần thêm AdminNetwork ở tầng web.
+- Ngoài phạm vi: appeal 30 ngày; chọn số lượng khi return; hoàn tiền thật.
 
 ## Tiếp theo / Jira
 
-- Chờ người dùng chọn task tiếp theo; không tự làm E/F.
-- D06 chưa có issue Jira; khi gom đợt, người dùng quyết định gắn vào KAN-20 hay tạo issue mới.
-- Ledger giữ như [D05](D05.md). Chưa sync live; không tạo worklog/review/issue.
+- Chờ người dùng chọn task.
+- E01 thuộc KAN-21 (cùng E02) → **hoàn tất local một phần**, còn chờ E02.
+- Chưa sync live; không tạo worklog/review/issue.
