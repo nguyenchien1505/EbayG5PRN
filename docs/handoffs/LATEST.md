@@ -2,7 +2,7 @@
 
 06/10/2026. Repo D:/WINDOWS/PRN3/EbayGroup5.
 
-- Baseline main `0230693`. Runtime trên `task/E03-dispute-details-dashboard`; checkpoint `git log --oneline --grep=E03`. GitHub CI: xem mục Verification.
+- Baseline main `0230693`. Runtime `483753e` trên `task/E03-dispute-details-dashboard`, fast-forward vào main sau khi [CI37494941834](https://github.com/Twiash/EbayGroup5/actions/runs/37494941834) pass. Checkpoint `git log --oneline --grep=E03`.
 - Handoff trước: [E02](E02.md).
 
 ## Hoàn tất
@@ -39,7 +39,7 @@
 - Verify-Planning pass; `git diff --check` sạch.
 - Đã chạy `Clear-TestArtifacts.ps1 -Apply -DatabasesOnly`, xóa 53 DB test từ các lần chạy tập trung. Giữ DB preview `EbayGroup5_Test_D02Visual…`; xóa bằng `-IncludePreview` khi không cần nữa.
 - Fixture E03 nằm trong `artifacts/d02/preview/Program.cs` (bị ignore, không commit).
-- GitHub CI cho runtime E03: ghi bằng commit docs-only `[skip ci]` sau khi pass.
+- **GitHub [CI37494941834](https://github.com/Twiash/EbayGroup5/actions/runs/37494941834) exact runtime `483753e` success**: build-test 5m05s, **234/234 .NET + 20/20 Node**, build 0 warnings. Docs-only `[skip ci]` sau CI.
 - Không đụng `launchSettings.json` (untracked).
 
 ## Câu hỏi / giả định
