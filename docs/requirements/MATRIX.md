@@ -7,7 +7,7 @@ Status `Pending` nghĩa là chưa triển khai/chưa nghiệm thu. Task tài li�
 | ID | Yêu cầu chuẩn hóa | Task | Nghiệm thu tối thiểu | Status |
 |---|---|---|---|---|
 | G5-01 | Giao diện chat buyer–seller qua WebSocket | C01–C04 | Hai tài khoản trao đổi realtime; user thứ ba không truy cập | Done |
-| G5-02 | Lưu lịch sử chat theo thời gian/người gửi | C01–C02, C05 | Restart/reconnect đọc lại đúng thứ tự, có phân trang | Pending |
+| G5-02 | Lưu lịch sử chat theo thời gian/người gửi | C01–C02, C05 | Restart/reconnect đọc lại đúng thứ tự, có phân trang | Done |
 | G5-03 | Rating và comment sau mỗi đơn đã nhận | D01–D02 | Chỉ owner đơn Delivered, một review mỗi OrderItem; mua lại được review | Pending |
 | G5-04 | Trung bình đánh giá trên sản phẩm | D02, D05 | Trung bình/số lượt đúng, đổi theo kiểm duyệt, không chia cho zero | Pending |
 | G5-05 | Điểm uy tín seller từ feedback tích cực | D03–D04 | Sentiment riêng, công thức đã chốt, seller reply đúng quyền | Pending |
@@ -95,3 +95,5 @@ C02: [service/REST evidence](../evidence/C02.md),116 tests pass (25 new+91 regre
 C03: [WS/Redis evidence](../evidence/C03.md),134 tests (18 new+116 regression), hai Kestrel apps/DI roots/cổng độc lập trong một process, real WebSocket+Redis cross-host send/read/REST publish. Origin/cookie/expiry/object/stale recipient/rotation/payload/replay guards, Redis unavailable durable SQL verified. G5-01/02 và G5-N01/02/04/05 vẫn Pending: UI/reconnect/restart/TLS/persistent shared keys/deployed replicas/perf/trace còn C04–C05/F; không suy ra end-to-end acceptance từ transport tests.
 
 C04: [UI evidence](../evidence/C04.md),137 .NET +8 Node tests, actual two-account loopback WS browser exchange/read/unread/error/retained UUID retry/paging and third-party404. **G5-01 Done**. G5-02/N01/N02/N04/N05 vẫn Pending C05/F cho restart/reconnect/TLS/trace/perf/scale; UI-01 toàn dự án chưa Done. Mobile responsive adaptation390/320 verified, không claim ảnh eBay mobile.
+
+C05: [recovery evidence](../evidence/C05.md),140 .NET +14 Node, fresh Kestrel host restart/rejoin/paged SQL history/read cursors/idempotent pending/metadata trace, actual browser restart1050-message catch-up/no Refresh/lost event/lost ack one row. **G5-02 Done**. G5-N01/N02/N04/N05 Pending F01–F05 cho deployed TLS/keys/scale/latency/dataset/log collection; UI-01 project-wide Pending. Không durable browser draft/outbox claim.

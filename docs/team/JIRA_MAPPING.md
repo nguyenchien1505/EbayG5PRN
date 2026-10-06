@@ -90,3 +90,5 @@ C03 runtime39da85c/[CI37408622971](https://github.com/Twiash/EbayGroup5/actions/
 C04 [evidence](../evidence/C04.md)137 .NET +8 Node tests/browser inbox/contact/read/paging/retry/third-party verified; **C03+C04 → KAN-15/TV2 Đoàn Công Huy complete locally**. Ledger pending batch: B05+B06/KAN-11/TV1 Tran Van Dat; C01/KAN-13, C02/KAN-14, C03+C04/KAN-15/TV2. Không cập nhật live Jira từng task, không tự đặt ngưỡng/giả worklog/review; bảng status phía trên snapshot cũ.
 
 C04 runtime2c09a7f/[CI37413352483](https://github.com/Twiash/EbayGroup5/actions/runs/37413352483) success137 .NET+8 Node, [C04 handoff](../handoffs/C04.md) ready cho batch. Ledger/status live Jira vẫn chưa thay đổi.
+
+C05 [recovery evidence](../evidence/C05.md)140 .NET+14 Node/browser restart1050-message gap/lost ack one row/metadata trace; **C05 →KAN-16/TV2 Đoàn Công Huy complete locally**. Pending batch ledger: B05+B06/KAN-11/TV1 Tran Van Dat; C01/KAN-13, C02/KAN-14, C03+C04/KAN-15, C05/KAN-16/TV2. Chưa sync live Jira, ngưỡng user chưa ấn định; không giả worklog/review/duplicate issue.

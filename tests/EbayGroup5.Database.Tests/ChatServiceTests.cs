@@ -297,7 +297,9 @@ public sealed class ChatServiceTests
         Assert.Equal(receipt.Message, (await service.SendAsync(f.Buyer, id, command)).Message);
         Assert.Equal(receipt.Message, Assert.Single((await service.HistoryAsync(f.Seller, id, new(After: "9007199254740992"))).Messages));
         Assert.Equal("9007199254740993", (await service.MarkReadAsync(f.Seller, id, receipt.Message.Sequence)).ThroughSequence);
-        Assert.Equal(2, logs.Lines.Count); Assert.All(logs.Lines, line => { Assert.Contains(receipt.Message.TraceId, line); Assert.DoesNotContain(command.Content, line); Assert.DoesNotContain(password, line); });
+        Assert.Equal(3, logs.Lines.Count); Assert.All(logs.Lines.Take(2), line => Assert.Contains(receipt.Message.TraceId, line));
+        Assert.Contains("Chat catch-up", logs.Lines[2]);
+        Assert.All(logs.Lines, line => { Assert.DoesNotContain(command.Content, line); Assert.DoesNotContain(password, line); });
     }
     private sealed class ReceiptLogger : ILogger<ChatService>
     {

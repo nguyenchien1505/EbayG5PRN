@@ -19,7 +19,7 @@ export class ChatState {
         this.generation = 0;
     }
     cache(id) {
-        if (!this.caches.has(id)) this.caches.set(id, { messages: new Map(), cursor: "0", initialized: false, hasOlder: false });
+        if (!this.caches.has(id)) this.caches.set(id, { messages: new Map(), cursor: "0", initialized: false, caughtUp: false, hasOlder: false });
         return this.caches.get(id);
     }
     select(id) { this.selectedId = id; return ++this.generation; }
@@ -41,7 +41,8 @@ export class ChatState {
         const cache = this.cache(message.conversationId);
         const existing = cache.messages.get(message.sequence);
         cache.messages.set(message.sequence, message);
-        if (message.senderId === this.actorId) this.pending.delete(message.clientMessageId.toLowerCase());
+        const pending = this.pending.get(message.clientMessageId.toLowerCase());
+        if (message.senderId === this.actorId && pending?.conversationId === message.conversationId) this.pending.delete(message.clientMessageId.toLowerCase());
         const conversation = this.conversations.get(message.conversationId);
         if (live && conversation && compareSequence(message.sequence, conversation.lastSequence) > 0) {
             conversation.lastSequence = message.sequence;
@@ -58,9 +59,11 @@ export class ChatState {
         if (kind === "latest") {
             cache.initialized = true;
             cache.cursor = page.highWatermark;
+            cache.caughtUp = true;
             cache.hasOlder = page.hasMore;
         } else if (kind === "after") {
             cache.cursor = highest(cache.cursor, page.newestCursor ?? page.highWatermark);
+            cache.caughtUp = !page.hasMore && compareSequence(cache.cursor, page.highWatermark) >= 0;
         } else cache.hasOlder = page.hasMore;
     }
     ordered(id) { return [...this.cache(id).messages.values()].sort((a, b) => compareSequence(a.sequence, b.sequence)); }
@@ -83,7 +86,8 @@ export class ChatState {
     readCandidate(id, { visible, focused, bottom, loading }) {
         const cache = this.cache(id), dto = this.conversations.get(id), messages = this.ordered(id);
         const newest = messages.at(-1)?.sequence;
-        if (id !== this.selectedId || !visible || !focused || !bottom || loading || !cache.initialized || !newest || !dto ||
+        if (id !== this.selectedId || !visible || !focused || !bottom || loading || !cache.initialized || !cache.caughtUp || !newest || !dto ||
+            compareSequence(cache.cursor, dto.lastSequence) < 0 ||
             compareSequence(newest, cache.cursor) > 0 || compareSequence(newest, dto.ownReadSequence) <= 0) return null;
         return newest;
     }

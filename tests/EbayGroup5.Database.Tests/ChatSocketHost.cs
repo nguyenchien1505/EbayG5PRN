@@ -26,15 +26,16 @@ internal sealed class ChatSocketHost(WebApplication app, Uri address) : IAsyncDi
     public Uri Address { get; } = address;
     private readonly List<SocketClient> sockets = [];
     public static async Task<ChatSocketHost> Start(ChatFixture fixture, IDataProtectionProvider keys, string? redis = null, int cookieSeconds = 1800,
-        Action<IServiceCollection>? customize = null)
+        Action<IServiceCollection>? customize = null, string? address = null, ILoggerProvider? logs = null)
     {
         var root = new DirectoryInfo(AppContext.BaseDirectory);
         while (root != null && !File.Exists(Path.Combine(root.FullName, "global.json"))) root = root.Parent;
         Assert.NotNull(root);
         var builder = WebApplication.CreateBuilder(new WebApplicationOptions { EnvironmentName = "Development",
             ContentRootPath = Path.Combine(root.FullName, "src", "EbayGroup5.Web"), ApplicationName = typeof(AccountController).Assembly.GetName().Name });
-        builder.WebHost.UseUrls("http://127.0.0.1:0");
+        builder.WebHost.UseUrls(address ?? "http://127.0.0.1:0");
         builder.Logging.ClearProviders();
+        if (logs != null) builder.Logging.AddProvider(logs);
         builder.Configuration.AddInMemoryCollection(new Dictionary<string, string?> {
             ["ConnectionStrings:DefaultConnection"] = fixture.Target,
             ["ConnectionStrings:Redis"] = redis ?? Environment.GetEnvironmentVariable("EBAY_TEST_REDIS") ?? throw new InvalidOperationException("Run Test-CI.ps1 or Test-Database.ps1; Redis is required."),
@@ -50,8 +51,8 @@ internal sealed class ChatSocketHost(WebApplication app, Uri address) : IAsyncDi
         try
         {
             await app.StartAsync();
-            var address = app.Services.GetRequiredService<IServer>().Features.Get<IServerAddressesFeature>()!.Addresses.Single();
-            return new(app, new(address));
+            var boundAddress = app.Services.GetRequiredService<IServer>().Features.Get<IServerAddressesFeature>()!.Addresses.Single();
+            return new(app, new(boundAddress));
         }
         catch { await app.DisposeAsync(); throw; }
     }
@@ -71,6 +72,7 @@ internal sealed class ChatSocketHost(WebApplication app, Uri address) : IAsyncDi
         return client;
     }
     public HttpClient Anonymous() => new(new HttpClientHandler { AllowAutoRedirect = false }) { BaseAddress = Address };
+    public Task Stop() => app.StopAsync();
     public async ValueTask DisposeAsync()
     {
         foreach (var client in sockets) await client.DisposeAsync();
