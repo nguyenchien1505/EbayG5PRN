@@ -25,8 +25,16 @@ public sealed class ChatService(EbayDbContext db, ILogger<ChatService> logger) :
         var ownRead = actor == c.BuyerId ? c.BuyerReadSequence : c.SellerReadSequence;
         var peerRead = actor == c.BuyerId ? c.SellerReadSequence : c.BuyerReadSequence;
         var unread = await db.Set<Message>().LongCountAsync(x => x.ConversationId == c.Id && x.SenderId != actor && x.Sequence > ownRead, ct);
+        var peerId = actor == c.BuyerId ? c.SellerId : c.BuyerId;
+        var peerName = await db.Set<User>().Where(x => x.Id == peerId).Select(x => x.Username).SingleOrDefaultAsync(ct);
+        var latest = await db.Set<Message>().AsNoTracking().Where(x => x.ConversationId == c.Id && x.Sequence <= c.LastSequence)
+            .OrderByDescending(x => x.Sequence).Select(x => new { Preview = x.Content!.Substring(0, x.Content.Length > 120 ? 120 : x.Content.Length), x.SentAtUtc }).FirstOrDefaultAsync(ct);
+        var preview = latest?.Preview;
+        if (preview?.Length > 0 && char.IsHighSurrogate(preview[^1])) preview = preview[..^1];
         return new(c.Id, c.BuyerId, c.SellerId, ChatCursor.Format(c.LastSequence), ChatCursor.Format(ownRead), ChatCursor.Format(peerRead),
-            Utc(c.UpdatedAtUtc), Context(c.ContextProductId, c.ContextOrderItemId, c.ContextTitle, c.ContextUnitPrice), ChatCursor.Format(unread));
+            Utc(c.UpdatedAtUtc), Context(c.ContextProductId, c.ContextOrderItemId, c.ContextTitle, c.ContextUnitPrice), ChatCursor.Format(unread),
+            string.IsNullOrWhiteSpace(peerName) ? (actor == c.BuyerId ? "Seller" : "Buyer") : peerName, preview,
+            latest?.SentAtUtc is DateTime sent ? Utc(sent) : null);
     }
     private Task<User?> UserAsync(int id, CancellationToken ct) => db.Set<User>()
         .FromSqlInterpolated($"SELECT * FROM dbo.[User] WITH (HOLDLOCK) WHERE id={id}").AsNoTracking().SingleOrDefaultAsync(ct);

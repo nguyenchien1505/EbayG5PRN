@@ -24,7 +24,7 @@ Ngày: 02/10/2026. eBay.com tiếng Anh, trình duyệt in-app ở trạng thái
 | Header/home — B03 | Quan sát một phần ở viewport nêu trên | Chưa quan sát | UI public; dùng bố cục chung, không sao chép toàn bộ banner/feature ngoài scope |
 | Catalog/detail — B04 | Chưa quan sát trực quan trang chi tiết | Chưa quan sát | Help xác minh điểm Contact seller; khảo sát public trang liên quan khi làm B04, không tự coi A02 đã chứng minh layout |
 | Purchase history — B06 | Thấy entry menu, chưa thấy nội dung tài khoản | Chưa quan sát | Q-UI-002; cần item đã nhận và các action |
-| Inbox/conversation — C04 | Bị chặn, chưa quan sát | Chưa quan sát | Q-UI-001; cần list, thread và composer |
+| Inbox/conversation — C04 | U1/M1 đã chốt, clone ba cột/panel verified | Clone 390/320px verified | Adaptation giản lược của mẫu trong UI_CANDIDATES; không claim ảnh eBay mobile |
 | Review/feedback form — D02/D03 | Help xác minh bước, chưa thấy form | Chưa quan sát | Q-UI-002; cần biết các phần trên cùng form hay khác màn hình |
 | Seller feedback profile — D04 | Chưa quan sát | Chưa quan sát | Có thể khảo sát trang public khi làm D04; chưa yêu cầu thêm ảnh hàng loạt |
 | Create dispute/draft — E02 | Help mô tả bước, chưa thấy form trạng thái thực | Chưa quan sát | Q-UI-003; cần chọn reason, detail và confirmation |
@@ -50,3 +50,5 @@ B01 03/10/2026: Q-UI-004 user chốt S1 từ [Shopify 28/05/2026](https://www.sh
 B03 03/10/2026: shell triển khai theo bố cục public A02, bản giản lược responsive. Desktop/home và mobile login/404 390px đã xem; home không tràn ngang ở 390/320px. My eBay keyboard và search navigation pass. [Evidence B03](../evidence/B03.md); UI-01 vẫn Pending toàn dự án.
 
 B06 06/10/2026: dùng P1 đã chốt cho card history (status/order/date/item/total/detail action), Seller sales dùng cùng card với context/action Seller. Detail reuse C1/shell: items/address/demo tracking/COD + Mark as shipped hoặc Confirm received theo quyền/trạng thái. Mobile là bố cục responsive giản lược của mẫu đã duyệt, không tuyên bố tái tạo ảnh mobile eBay. Không hiển thị review/chat/dispute actions giả. UI-01 toàn dự án vẫn Pending.
+
+C04 06/10/2026: U1 drawer và M1 ba cột theo mẫu đã chốt02/10; public shell/B03, Buyer listing/order contact, Seller Messages. Actual browser trao đổi hai fake accounts, read/unread, loading/error/Retry/empty, history128 rows/inbox24, ownership404, Escape/Ctrl+Enter, mobile390/320 không tràn ngang. Mobile list/thread Back và drawer full-width là responsive adaptation. [Evidence C04](../evidence/C04.md), ảnh fake-data chỉ ignored artifacts/c04, không copy dữ liệu nguồn. UI-01 vẫn Pending toàn dự án.

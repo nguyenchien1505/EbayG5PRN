@@ -21,7 +21,7 @@ Trạng thái ở đây là đầu mối theo dõi. Planned = cần kiểm tra d
 | [C01](C01.md) | Schema và contract chat | A05, B02 | Done |
 | [C02](C02.md) | Service/API lưu và đọc chat | C01 | Done |
 | [C03](C03.md) | SignalR có xác thực và Redis backplane | C02 | Done |
-| [C04](C04.md) | Inbox, màn hình chat và trạng thái đọc | C03, B03 | Planned |
+| [C04](C04.md) | Inbox, màn hình chat và trạng thái đọc | C03, B03 | Done |
 | [C05](C05.md) | Reconnect, tải bù và truy vết | C04 | Planned |
 | [D01](D01.md) | Review gắn đơn hàng và điều kiện gửi | B06 | Planned |
 | [D02](D02.md) | Giao diện review và điểm trung bình | D01, B04 | Planned |

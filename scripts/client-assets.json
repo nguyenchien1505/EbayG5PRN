@@ -1,0 +1,18 @@
+{
+  "package": "@microsoft/signalr",
+  "version": "8.0.29",
+  "source": "https://registry.npmjs.org/@microsoft/signalr/-/signalr-8.0.29.tgz",
+  "tarballIntegrity": "sha512-yzszFiTAuRxHm3qxNaSan3YzN8dffLqQcc3ZNJD2tn9eInCBBi7u2xCJ6AVNXjw19RDoBc+NPWfYN43K1HcjdA==",
+  "license": "MIT",
+  "licenseSource": "https://raw.githubusercontent.com/dotnet/aspnetcore/v8.0.29/LICENSE.txt",
+  "files": [
+    {
+      "path": "src/EbayGroup5.Web/wwwroot/lib/signalr/signalr.min.js",
+      "sha256": "b052d8d2d37dce0e911792322f3b2472b736a6658c0870a44ec2a4274fa189f7"
+    },
+    {
+      "path": "src/EbayGroup5.Web/wwwroot/lib/signalr/LICENSE.txt",
+      "sha256": "cfc21f5e8bd655ae997eec916138b707b1d290b83272c02a95c9f821b8c87310"
+    }
+  ]
+}

@@ -8,7 +8,7 @@
 @if(ViewData["OrderError"] is string error) { <div class="validation-errors" role="alert">@error</div> }
 @if(Model.Notice != null) { <p class="order-notice">@Model.Notice</p> }
 <div class="checkout-grid"><div class="checkout-sections"><section class="checkout-card"><h2>Items</h2>
-    @foreach(var item in Model.Lines) { <div class="order-line"><strong>@item.Title</strong><p>Quantity: @(item.Quantity?.ToString() ?? "Unavailable") · Unit price: @(item.UnitPrice is decimal price ? "US $" + price.ToString("N2", CultureInfo.InvariantCulture) : "Unavailable")</p></div> }
+    @foreach(var item in Model.Lines) { <div class="order-line"><strong>@item.Title</strong><p>Quantity: @(item.Quantity?.ToString() ?? "Unavailable") · Unit price: @(item.UnitPrice is decimal price ? "US $" + price.ToString("N2", CultureInfo.InvariantCulture) : "Unavailable")</p>@if(Model.Audience == OrderAudience.Buyer && item.ProductId != null) { <button type="button" class="chat-contact" data-chat-order-item-id="@item.Id">Contact seller</button> }</div> }
     @if(Model.ItemCount > Model.Lines.Count) { <p class="field-help">Showing the first @Model.Lines.Count of @Model.ItemCount order lines. This legacy order is read-only.</p> }
     @if(Model.Lines.Count == 0) { <p>Item details are unavailable.</p> }
 </section><section class="checkout-card"><h2>Ship to</h2>
@@ -25,3 +25,6 @@
     @if(Model.CanReceive) { <form asp-action="Receive" method="post"><input type="hidden" name="id" value="@Model.Id"/><button type="submit" class="button primary purchase-button">Confirm received</button></form><p class="field-help">Confirm only after receiving the item in this demo. Records COD as paid without collecting money.</p> }
     @if(Model.Status == "Delivered" && Model.Notice == null) { <p>Delivery complete. No real payment was collected.</p> }
 </aside></div>
+@if(Model.Audience == OrderAudience.Buyer) { <partial name="_ChatPanel" /> }
+@section Styles { <link rel="stylesheet" href="~/css/chat.css" asp-append-version="true" /> }
+@section Scripts { @if(Model.Audience == OrderAudience.Buyer) { <partial name="_ChatScripts" /> } }

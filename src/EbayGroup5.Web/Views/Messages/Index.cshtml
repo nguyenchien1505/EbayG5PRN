@@ -1,0 +1,14 @@
+@{ ViewData["Title"] = "Messages"; }
+<div id="chat-app" class="chat-workspace" data-chat-root data-mode="inbox" data-actor-id="@ViewData["ActorId"]" data-conversation-id="@ViewData["ConversationId"]">
+    <aside class="chat-folders" aria-label="Messages navigation"><h1>Messages</h1><a class="chat-folder active" asp-controller="Messages" asp-action="Index" aria-current="page">Inbox</a></aside>
+    <section class="chat-inbox" aria-labelledby="chat-inbox-title">
+        <div class="chat-inbox-heading"><h2 id="chat-inbox-title">Inbox</h2><button type="button" class="chat-icon-button" data-refresh aria-label="Refresh messages">↻</button></div>
+        <p class="chat-inbox-notice" data-inbox-notice role="status">Loading conversations…</p>
+        <div data-conversations class="chat-conversations"></div>
+        <button type="button" class="chat-more" data-more-conversations hidden>Load more conversations</button>
+    </section>
+    <partial name="_ChatConversation" />
+</div>
+<noscript><p class="validation-errors">Enable JavaScript to load and send messages.</p></noscript>
+@section Styles { <link rel="stylesheet" href="~/css/chat.css" asp-append-version="true" /> }
+@section Scripts { <partial name="_ChatScripts" /> }

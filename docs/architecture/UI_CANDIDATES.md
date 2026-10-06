@@ -49,3 +49,5 @@ Ngày tìm 02/10/2026. Người dùng yêu cầu tìm ảnh thiếu trên Intern
 ![C1 checkout](https://ir.ebaystatic.com/pictures/aw/pics/EUO-240/W43_PayWithCard_Gif_ROW.gif)
 
 Clone giản lược: Ship to → item/quantity → COD mô phỏng → total/Place order, desktop hai cột/mobile một cột. Không triển khai card/PayPal/coupon/vault/tax/shipping options từ mẫu. COD là quyết định demo của dự án, không suy ra từ ảnh hoặc chính sách eBay. Không copy thông tin cá nhân trong nguồn.
+
+C04 06/10/2026 triển khai U1/M1 đã chốt: right white dialog/backdrop/item context/plaintext composer và Messages navigation/inbox/thread ba cột. Mobile full-width drawer hoặc list/thread Back là adaptation clone, không nguồn eBay mobile mới. Không attachments/offer/email/archive. [C04 evidence](../evidence/C04.md) ghi thực chứng desktop/mobile/error/paging/read/ownership; không hỏi lại phê duyệt U1/M1.

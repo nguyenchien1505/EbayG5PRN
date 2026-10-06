@@ -1,6 +1,6 @@
 # Chạy Web local — .NET 8
 
-Chạy từ repo root bằng PowerShell 7 trên Windows x64. Checkpoint C03 cần SQL Server/Redis và database đã migrate; setup Docker theo runbook dưới.
+Chạy từ repo root bằng PowerShell 7 trên Windows x64. Checkpoint C04 cần SQL Server/Redis và database đã migrate; setup Docker theo runbook dưới.
 
 Infrastructure có [LOCAL_INFRA](LOCAL_INFRA.md); DbUp/runtime config theo [DATABASE](DATABASE.md). A03 shell độc lập là checkpoint cũ, startup hiện tại yêu cầu Redis config cho chat backplane.
 
@@ -38,3 +38,7 @@ git diff --check
 Kỳ vọng `200`, `Healthy`, `200`. Liveness chỉ xác nhận process nhận request, không chứng minh DB/Redis sẵn sàng. A05 đã có SQL integration tests: chạy `pwsh -NoProfile -File scripts/Test-Database.ps1`. Không dùng health smoke thay test database/nghiệp vụ.
 
 Commit `packages.lock.json` cho từng project. Khi chủ động thêm/nâng NuGet package: restore bình thường, review diff lock, rồi restore locked và build lại. Không sửa schema hoặc sinh EF migration trong setup.
+
+C04 Buyer/Seller mở My eBay →Messages (`/Messages`); Buyer listing/order item Contact seller mở dialog. Hai browser profiles hoặc localhost/127.0.0.1 dùng cookies riêng khi test hai tài khoản; cả origin phải exact. SignalR JS8.0.29 local pinned checksum/license, không CDN/npm install khi chạy app. Refresh messages/conversation là recovery thủ công; draft/pending mất khi reload, automatic reconnect C05 chưa có.
+
+`./scripts/Test-CI.ps1` cần **Node20+** trên PATH bên cạnh SDK/PowerShell7/Docker. Chạy Verify-ClientAssets rồi `node --test tests/chat-client.test.mjs` (8 cases), locked build và137 SQL/HTTP/socket tests trên containers riêng. Test-Database chỉ .NET checks, không thay Node/browser verification. Không dùng user DB để seed/giả peer-role failure; visual helper/test DB artifacts ignored.

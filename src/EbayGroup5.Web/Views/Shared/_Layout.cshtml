@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>@ViewData["Title"] — eBay Clone Group 5</title>
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    @await RenderSectionAsync("Styles", required: false)
 </head>
 <body>
     <a class="skip-link" href="#main-content">Skip to main content</a>
@@ -27,6 +28,7 @@
                     <a asp-controller="Account" asp-action="Me">Your account</a>
                     @if (User.IsInRole("Buyer")) { <a asp-controller="Orders" asp-action="Purchases">Purchase history</a> }
                     @if (User.IsInRole("Seller")) { <a asp-controller="Orders" asp-action="Sales">Sales history</a> }
+                    @if (User.IsInRole("Buyer") || User.IsInRole("Seller")) { <a asp-controller="Messages" asp-action="Index">Messages</a> }
                     @if (User.Identity?.IsAuthenticated != true)
                     {
                         <a asp-controller="Account" asp-action="Register">Create an account</a>
@@ -49,5 +51,6 @@
     </header>
     <main id="main-content" class="shell-width" tabindex="-1">@RenderBody()</main>
     <footer class="site-footer"><div class="shell-width">eBay Clone · Group 5 <span>Educational demo. Not affiliated with eBay.</span></div></footer>
+    @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>
