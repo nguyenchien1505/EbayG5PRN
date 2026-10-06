@@ -39,7 +39,7 @@
   - Thêm danh sách request cho buyer và seller (G5-07).
   - Mẫu UI: D2/H1.
 - **E04/E05:** như [E01](E01.md).
-- **Môi trường:** trước khi chạy Test-CI local cần giải phóng ổ C: (Docker Desktop VM + DB test `EbayGroup5_Test_*` trong SQL local).
+- **Môi trường:** người dùng đã purge Docker ngày 06/10/2026; local đã dựng lại (migration 12, seed, demo auth). Quy trình Docker mới (tự xóa container và DB test khi pass, `Clear-TestArtifacts.ps1`) xem [LOCAL_INFRA](../runbooks/LOCAL_INFRA.md#vòng-đời-docker-và-dọn-dữ-liệu-test-từ-06102026). Test-CI local chạy lại pass 230 + 20.
 
 ## Tiếp theo / Jira
 
