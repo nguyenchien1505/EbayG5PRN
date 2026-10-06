@@ -2,7 +2,7 @@
 
 06/10/2026. Repo D:/WINDOWS/PRN3/EbayGroup5.
 
-- Baseline main `baa8a8a`; nhánh `task/D04-reputation-reply`.
+- Baseline main `baa8a8a`; runtime `83d6c25` trên `task/D04-reputation-reply`, fast-forward vào main sau khi [CI37428908236](https://github.com/Twiash/EbayGroup5/actions/runs/37428908236) pass.
 - Checkpoint: `git log --oneline --grep=D04`.
 - Handoff D03 lưu ở [D03](D03.md).
 
@@ -37,7 +37,7 @@
 - Trạng thái requirement:
   - **G5-05 Done.** G5-03 Done.
   - G5-04 Pending D05; SUP-05 Pending D05/E05; UI-01 Pending.
-- GitHub CI: ghi bên dưới sau khi push.
+- **[CI37428908236](https://github.com/Twiash/EbayGroup5/actions/runs/37428908236) exact runtime 83d6c25 success**: job 4m18s, 183 .NET + 14 Node, build 0 warnings, TRX upload. Docs-only [skip ci] sau CI.
 - `launchSettings.json` (untracked) không bị đụng.
 
 ## Lưu ý cho D05
