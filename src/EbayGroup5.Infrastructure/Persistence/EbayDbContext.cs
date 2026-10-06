@@ -357,6 +357,7 @@ public sealed class EbayDbContext(DbContextOptions<EbayDbContext> options) : DbC
             entity.Property(x => x.Type).HasColumnType("varchar(16)").HasMaxLength(16).IsUnicode(false);
             entity.Property(x => x.Message).HasColumnType("nvarchar(2000)").HasMaxLength(2000);
             entity.Property(x => x.Amount).HasColumnType("decimal(10,2)").HasPrecision(10, 2);
+            entity.Property(x => x.NoticeKey).HasColumnType("varchar(20)").HasMaxLength(20).IsUnicode(false);
             entity.Property(x => x.Tracking).HasColumnType("nvarchar(100)").HasMaxLength(100);
             entity.Property(x => x.CreatedAtUtc).HasColumnType("datetime2(7)").HasDefaultValueSql("SYSUTCDATETIME()");
         });

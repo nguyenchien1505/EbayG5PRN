@@ -79,7 +79,8 @@ public static class DisputeRequestText
             DisputeStatus.ReturnAccepted => $"The seller accepted your return. Ship the item back and add tracking by {due}.",
             DisputeStatus.ReturnShipped when seller => $"The item is on its way back. Refund the buyer by {due}.",
             DisputeStatus.ReturnShipped => $"The seller has until {due} to refund you after getting the item back.",
-            DisputeStatus.Escalated => $"eBay is reviewing this request. We usually respond within 48 hours{(d.DueAtUtc is { } review ? " (by " + DisputeText.Date(review, timing) + ")" : "")}.",
+            // The status line already says eBay is reviewing; give the timing and what both sides can still do.
+            DisputeStatus.Escalated => $"We usually respond within 48 hours{(d.DueAtUtc is { } review ? " (by " + DisputeText.Date(review, timing) + ")" : "")}. You can still message the {(seller ? "buyer" : "seller")} here.",
             _ => "This request is closed."
         };
     }

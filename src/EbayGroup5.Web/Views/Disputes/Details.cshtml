@@ -122,7 +122,6 @@
             @for (var i = 0; i < steps.Count; i++)
             { <li class="@(i == current ? "current" : current == null || i < current ? "done" : "upcoming")" aria-current="@(i == current ? "step" : null)"><strong>@steps[i].Title</strong><span>@steps[i].Text</span></li> }
         </ol>
-        @if (d.Status == DisputeStatus.Escalated) { <p class="dispute-status">eBay is reviewing this request.</p> }
     </aside>
 </div>
 @section Scripts { <script type="module" src="~/js/dispute-request.js" asp-append-version="true"></script> }

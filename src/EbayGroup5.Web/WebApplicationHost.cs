@@ -67,6 +67,10 @@ public static class WebApplicationHost
         builder.Services.AddSingleton(new EbayGroup5.Application.Disputes.DisputeTiming(
             builder.Configuration.GetSection("Disputes").Get<EbayGroup5.Application.Disputes.DisputeTimingOptions>()));
         builder.Services.AddScoped<EbayGroup5.Application.Disputes.IDisputeService, EbayGroup5.Infrastructure.Disputes.DisputeService>();
+        // E04: overdue System commands and automatic notices on every replica (DISPUTE_AUTOMATION.md); bound lazily so hosts/tests can override.
+        builder.Services.AddOptions<EbayGroup5.Application.Disputes.DisputeAutomationOptions>().Bind(builder.Configuration.GetSection("Disputes:Automation"));
+        builder.Services.AddScoped<EbayGroup5.Application.Disputes.IDisputeAutomation, EbayGroup5.Infrastructure.Disputes.DisputeAutomationService>();
+        builder.Services.AddHostedService<EbayGroup5.Web.Disputes.DisputeAutomationWorker>();
         builder.Services.AddScoped<EbayGroup5.Application.Checkout.ICheckoutService, EbayGroup5.Infrastructure.Checkout.CheckoutService>();
         builder.Services.AddScoped<EbayGroup5.Application.Catalog.ICatalogService, EbayGroup5.Infrastructure.Catalog.CatalogService>();
         builder.Services.AddScoped<AccessCookieEvents>();

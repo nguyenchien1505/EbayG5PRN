@@ -112,3 +112,5 @@ E01 [evidence](../evidence/E01.md) 225 .NET+14 Node: schema/state machine khiế
 E02 [evidence](../evidence/E02.md): form khiếu nại + nháp server (DbUp 0012). **E01+E02 → KAN-21/TV4 Nguyên Nguyễn: hoàn tất local.** Không tự tạo issue/worklog; chưa sync live. Runtime fbc1f33/[CI37484965524](https://github.com/Twiash/EbayGroup5/actions/runs/37484965524) success.
 
 E03 [evidence](../evidence/E03.md): danh sách buyer/seller, trang request và timeline (không migration). **E03 → KAN-22/TV4 Nguyên Nguyễn: hoàn tất local.** Không tự tạo issue/worklog; chưa sync live. Runtime 483753e/[CI37494941834](https://github.com/Twiash/EbayGroup5/actions/runs/37494941834) success.
+
+E04 [evidence](../evidence/E04.md): job phản hồi tự động và chuyển quá hạn (DbUp 0013). **E04 → KAN-23/TV4 Nguyên Nguyễn: hoàn tất local.** Không tự tạo issue/worklog; chưa sync live. GitHub CI: xem handoff.

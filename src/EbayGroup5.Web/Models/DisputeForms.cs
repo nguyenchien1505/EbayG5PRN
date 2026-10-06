@@ -44,8 +44,7 @@ public static class DisputeText
 
     public static string Kind(DisputeKind kind) => kind == DisputeKind.ItemNotReceived ? "Item not received request" : "Return request";
 
-    public static string Date(DateTime utc, DisputeTiming timing) =>
-        utc.ToString(timing.IsDemo ? "MMM dd, yyyy HH:mm:ss 'UTC'" : "MMM dd, yyyy", CultureInfo.InvariantCulture);
+    public static string Date(DateTime utc, DisputeTiming timing) => DisputeNotices.Date(utc, timing);
 
     public static string Status(DisputeSummary request, DisputeTiming timing, DisputeActor viewer = DisputeActor.Buyer) =>
         Status(request.Status, request.Outcome, request.DueAtUtc, null, timing, viewer);
