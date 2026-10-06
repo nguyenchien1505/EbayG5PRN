@@ -1,0 +1,38 @@
+@model EbayGroup5.Web.Models.AdminDisputeQueuePage
+@using EbayGroup5.Application.Disputes
+@using EbayGroup5.Web.Models
+@{ ViewData["Title"] = "Requests for eBay review"; var q = Model.Queue.Query; var waiting = q.State == DisputeQueueState.Waiting;
+    var demo = DisputeText.DemoNotice(Model.Timing);
+    (DisputeQueueState State, string Label)[] tabs = [(DisputeQueueState.Waiting, "Waiting for a decision"), (DisputeQueueState.Closed, "Closed")]; }
+<h1>Requests for eBay review</h1>
+<p class="field-help">Requests the buyer or the automation asked eBay to step in on · @Model.Queue.Total results. Decisions refund in simulation only; no money moves.</p>
+@if (demo != null) { <p class="dispute-demo" role="note">@demo</p> }
+<nav class="dispute-tabs" aria-label="Queue">
+    @foreach (var tab in tabs)
+    {
+        var active = q.State == tab.State;
+        <a class="dispute-tab@(active ? " active" : "")" asp-action="Disputes" asp-route-state="@tab.State" aria-current="@(active ? "page" : null)">@tab.Label</a>
+    }
+</nav>
+@if (Model.Queue.Items.Count == 0) { <section class="checkout-card"><h2>Nothing here</h2><p>@(waiting ? "No requests are waiting for a decision." : "No reviewed requests are closed yet.")</p></section> }
+@foreach (var item in Model.Queue.Items)
+{
+    var overdue = waiting && item.DueAtUtc is { } due && Model.NowUtc >= due;
+    <article class="order-card dispute-row">
+        <div class="order-card-heading">
+            <strong>@DisputeText.Status(item.Status, item.Outcome, item.DueAtUtc, null, Model.Timing, DisputeActor.Admin)@if (overdue) { <span class="dispute-overdue">Overdue</span> }</strong>
+            <span>@DisputeText.Kind(item.Kind) · @(waiting ? item.DueAtUtc is { } by ? "Decide by " + DisputeText.Date(by, Model.Timing) : "" : item.ClosedAtUtc is { } closed ? "Closed " + DisputeText.Date(closed, Model.Timing) : "")</span>
+        </div>
+        <div class="order-card-content">
+            <div class="order-item-text"><h2><a asp-action="Dispute" asp-route-id="@item.Id">@item.ItemTitle</a></h2>
+                <p>@DisputeText.Reason(item.Reason) · Order #@item.OrderId · @DisputeRequestText.Money(item.LineTotal)@(item.RefundAmount is { } refund ? " · refunded " + DisputeRequestText.Money(refund) + " (simulated)" : "")</p>
+                <p class="field-help">Buyer: @(item.BuyerName ?? "(unknown)") · Seller: @(item.SellerName ?? "(unknown)")@(item.EscalatedAtUtc is { } at ? " · escalated " + DisputeText.Date(at, Model.Timing) : "")</p></div>
+            <div class="order-card-actions"><a class="button outline" asp-action="Dispute" asp-route-id="@item.Id">Review</a></div>
+        </div>
+    </article>
+}
+<nav class="pagination" aria-label="Queue pages">
+    @if (q.Page > 1) { <a asp-action="Disputes" asp-route-state="@q.State" asp-route-page="@(q.Page - 1)">← Previous</a> }
+    <span>Page @q.Page of @Model.Queue.TotalPages</span>
+    @if (q.Page < Model.Queue.TotalPages) { <a asp-action="Disputes" asp-route-state="@q.State" asp-route-page="@(q.Page + 1)">Next →</a> }
+</nav>

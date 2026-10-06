@@ -209,12 +209,16 @@ public sealed class DisputeService(EbayDbContext db, TimeProvider clock, Dispute
         // Newest first: the latest activity is what a participant acts on; older pages follow.
         var events = await allEvents.OrderByDescending(x => x.Id).Skip((timelinePage - 1) * DisputeLimits.TimelinePageSize).Take(DisputeLimits.TimelinePageSize)
             .ToListAsync(cancellationToken);
+        // E05: only Admin viewers see who acted (admin usernames never reach buyers or sellers).
+        var actorIds = viewer == DisputeActor.Admin ? events.Where(x => x.ActorId != null).Select(x => x.ActorId!.Value).Distinct().ToArray() : [];
+        var actors = actorIds.Length == 0 ? new Dictionary<int, string?>()
+            : await db.Set<User>().AsNoTracking().Where(x => actorIds.Contains(x.Id)).ToDictionaryAsync(x => x.Id, x => x.Username, cancellationToken);
         return new DisputeDetail(row.Id, row.OrderId!.Value, row.OrderItemId!.Value, title ?? "Item unavailable", snapshot.Kind, snapshot.Reason,
             row.Preference == null ? null : Enum.Parse<DisputePreference>(row.Preference), snapshot.Status,
             row.Outcome == null ? null : Enum.Parse<DisputeOutcome>(row.Outcome), row.Description, Utc(row.CreatedAtUtc)!.Value, Utc(row.DueAtUtc), Utc(row.EscalatedAtUtc),
             Utc(row.ClosedAtUtc), snapshot.LineTotal, row.OfferAmount, row.RefundAmount, row.ReturnTracking, viewer, DisputeRules.AvailableActions(snapshot, viewer, Now, timing),
             events.Select(x => new DisputeEventView(x.Id, Enum.Parse<DisputeActor>(x.ActorRole), Enum.Parse<DisputeEventType>(x.Type), x.Message, x.Amount, x.Tracking,
-                DateTime.SpecifyKind(x.CreatedAtUtc, DateTimeKind.Utc))).ToList(), timing.IsDemo)
+                DateTime.SpecifyKind(x.CreatedAtUtc, DateTimeKind.Utc)) { ActorName = x.ActorId is { } a ? actors.GetValueOrDefault(a) : null }).ToList(), timing.IsDemo)
         {
             BuyerName = buyerName, SellerName = sellerName,
             Counterpart = viewer == DisputeActor.Buyer ? sellerName : viewer == DisputeActor.Seller ? buyerName : null,
@@ -279,13 +283,40 @@ public sealed class DisputeService(EbayDbContext db, TimeProvider clock, Dispute
 
     private Task<bool> IsRole(int userId, string role, CancellationToken ct) => db.Set<User>().AnyAsync(x => x.Id == userId && x.Role == role, ct);
 
-    // Buyer/Seller of the request, else any Admin; null hides the request (404) from everyone else.
+    // Buyer/Seller of the request, else an Admin with a credential (D05/E05); null hides the request (404) from everyone else.
     private async Task<DisputeActor?> ViewerRole(int userId, Dispute row, CancellationToken ct)
     {
-        var role = await db.Set<User>().Where(x => x.Id == userId).Select(x => x.Role).SingleOrDefaultAsync(ct);
-        if (role == "Buyer" && row.RaisedBy == userId) return DisputeActor.Buyer;
-        if (role == "Seller" && row.SellerId == userId) return DisputeActor.Seller;
-        return role == "Admin" ? DisputeActor.Admin : null;
+        var user = await db.Set<User>().Where(x => x.Id == userId).Select(x => new { x.Role, Credential = x.Password != null }).SingleOrDefaultAsync(ct);
+        if (user?.Role == "Buyer" && row.RaisedBy == userId) return DisputeActor.Buyer;
+        if (user?.Role == "Seller" && row.SellerId == userId) return DisputeActor.Seller;
+        return user is { Role: "Admin", Credential: true } ? DisputeActor.Admin : null;
+    }
+
+    private Task<bool> IsAdmin(int userId, CancellationToken ct) => db.Set<User>().AnyAsync(x => x.Id == userId && x.Role == "Admin" && x.Password != null, ct);
+
+    public async Task<DisputeQueue?> QueueAsync(int adminId, DisputeQueueQuery query, CancellationToken cancellationToken = default)
+    {
+        if (query.Page < 1 || query.Page > int.MaxValue / DisputeLimits.QueuePageSize || !Enum.IsDefined(query.State)) throw new ArgumentOutOfRangeException(nameof(query));
+        if (!await IsAdmin(adminId, cancellationToken)) return null;
+        var rows = db.Set<Dispute>().AsNoTracking().Where(x => x.OrderItemId != null && x.EscalatedAtUtc != null);
+        rows = query.State == DisputeQueueState.Waiting ? rows.Where(x => x.Status == "Escalated" && x.ClosedAtUtc == null) : rows.Where(x => x.ClosedAtUtc != null);
+        var total = await rows.CountAsync(cancellationToken);
+        var ordered = query.State == DisputeQueueState.Waiting ? rows.OrderBy(x => x.DueAtUtc).ThenBy(x => x.Id) : rows.OrderByDescending(x => x.ClosedAtUtc).ThenByDescending(x => x.Id);
+        var page = await (from d in ordered.Skip((query.Page - 1) * DisputeLimits.QueuePageSize).Take(DisputeLimits.QueuePageSize)
+                          join i in db.Set<OrderItem>() on d.OrderItemId equals i.Id
+                          select new
+                          {
+                              d.Id, OrderId = d.OrderId!.Value, d.Kind, d.Reason, d.Status, d.Outcome, d.EscalatedAtUtc, d.DueAtUtc, d.ClosedAtUtc, d.RefundAmount, i.Quantity, i.UnitPrice,
+                              Title = db.Set<Product>().Where(p => p.Id == i.ProductId).Select(p => p.Title).FirstOrDefault(),
+                              Buyer = db.Set<User>().Where(u => u.Id == d.RaisedBy).Select(u => u.Username).FirstOrDefault(),
+                              Seller = db.Set<User>().Where(u => u.Id == d.SellerId).Select(u => u.Username).FirstOrDefault()
+                          }).ToListAsync(cancellationToken);
+        // The join can reorder rows; restore the queue order in memory.
+        var items = page.Select(x => new DisputeQueueItem(x.Id, x.OrderId, x.Title ?? "Item unavailable", Enum.Parse<DisputeKind>(x.Kind!), Enum.Parse<DisputeReason>(x.Reason!),
+            Enum.Parse<DisputeStatus>(x.Status!), x.Outcome == null ? null : Enum.Parse<DisputeOutcome>(x.Outcome), Utc(x.EscalatedAtUtc), Utc(x.DueAtUtc), Utc(x.ClosedAtUtc),
+            (x.Quantity ?? 0) * (x.UnitPrice ?? 0), x.RefundAmount, x.Buyer, x.Seller));
+        items = query.State == DisputeQueueState.Waiting ? items.OrderBy(x => x.DueAtUtc).ThenBy(x => x.Id) : items.OrderByDescending(x => x.ClosedAtUtc).ThenByDescending(x => x.Id);
+        return new(query, items.ToList(), total);
     }
 
     // One query each for lines, payments of delivered orders and existing requests; same rules for one line or a Purchases page.

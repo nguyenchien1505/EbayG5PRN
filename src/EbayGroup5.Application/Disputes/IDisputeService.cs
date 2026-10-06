@@ -28,6 +28,7 @@ public static class DisputeLimits
     public const int MaxBatchLines = 50;
     public const int ListPageSize = 10;
     public const int TimelinePageSize = 20;
+    public const int QueuePageSize = 20;
 }
 
 public sealed record OpenDisputeRequest(int OrderItemId, DisputeKind Kind, DisputeReason Reason, DisputePreference? Preference, string? Details);
@@ -50,7 +51,11 @@ public sealed record DisputeDraftInput(int OrderItemId, DisputeKind Kind, Disput
 public sealed record DisputeDraftView(DisputeReason? Reason, DisputePreference? Preference, string? Details, DateTime UpdatedAtUtc);
 public sealed record DraftSaveResult(DisputeResultCode Code, DateTime? SavedAtUtc = null, string? Error = null);
 
-public sealed record DisputeEventView(int Id, DisputeActor ActorRole, DisputeEventType Type, string? Message, decimal? Amount, string? Tracking, DateTime CreatedAtUtc);
+public sealed record DisputeEventView(int Id, DisputeActor ActorRole, DisputeEventType Type, string? Message, decimal? Amount, string? Tracking, DateTime CreatedAtUtc)
+{
+    /// <summary>Username of the acting user; filled only for Admin viewers (E05 audit trail), never shown to buyers or sellers.</summary>
+    public string? ActorName { get; init; }
+}
 public sealed record DisputeDetail(int Id, int OrderId, int OrderItemId, string ItemTitle, DisputeKind Kind, DisputeReason Reason, DisputePreference? Preference,
     DisputeStatus Status, DisputeOutcome? Outcome, string? Details, DateTime CreatedAtUtc, DateTime? DueAtUtc, DateTime? EscalatedAtUtc, DateTime? ClosedAtUtc,
     decimal LineTotal, decimal? OfferAmount, decimal? RefundAmount, string? ReturnTracking, DisputeActor Viewer, IReadOnlyList<DisputeAction> Actions,
@@ -67,6 +72,15 @@ public sealed record DisputeDetail(int Id, int OrderId, int OrderItemId, string 
 }
 
 public enum DisputeListState { Open, Closed }
+/// <summary>E05 admin queue: Waiting = escalated and undecided; Closed = escalated at some point and now closed.</summary>
+public enum DisputeQueueState { Waiting, Closed }
+public sealed record DisputeQueueQuery(DisputeQueueState State = DisputeQueueState.Waiting, int Page = 1);
+public sealed record DisputeQueueItem(int Id, int OrderId, string ItemTitle, DisputeKind Kind, DisputeReason Reason, DisputeStatus Status, DisputeOutcome? Outcome,
+    DateTime? EscalatedAtUtc, DateTime? DueAtUtc, DateTime? ClosedAtUtc, decimal LineTotal, decimal? RefundAmount, string? BuyerName, string? SellerName);
+public sealed record DisputeQueue(DisputeQueueQuery Query, IReadOnlyList<DisputeQueueItem> Items, int Total)
+{
+    public int TotalPages => Math.Max(1, (int)Math.Ceiling(Total / (double)DisputeLimits.QueuePageSize));
+}
 public sealed record DisputeListQuery(DisputeKind? Kind = null, DisputeListState? State = null, int Page = 1);
 public sealed record DisputeListItem(int Id, int OrderId, int OrderItemId, string ItemTitle, DisputeKind Kind, DisputeReason Reason, DisputeStatus Status,
     DisputeOutcome? Outcome, DateTime CreatedAtUtc, DateTime? DueAtUtc, decimal LineTotal, decimal? OfferAmount, string? Counterpart);
@@ -96,6 +110,8 @@ public interface IDisputeService
     Task<DisputeDetail?> FindAsync(int actorId, int disputeId, int timelinePage, CancellationToken cancellationToken = default);
     /// <summary>Requests the Buyer raised or the Seller received (E03, G5-07); null for any other role.</summary>
     Task<DisputeList?> ListAsync(int actorId, DisputeListQuery query, CancellationToken cancellationToken = default);
+    /// <summary>E05: requests waiting for or closed after an eBay review; Admin users with a credential only, null otherwise.</summary>
+    Task<DisputeQueue?> QueueAsync(int adminId, DisputeQueueQuery query, CancellationToken cancellationToken = default);
     /// <summary>Requests per order line (newest first) for the order's buyer or seller; empty for anyone else.</summary>
     Task<IReadOnlyDictionary<int, IReadOnlyList<DisputeSummary>>> RequestsForOrderAsync(int actorId, int orderId, CancellationToken cancellationToken = default);
 }

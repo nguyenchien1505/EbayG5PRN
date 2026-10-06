@@ -324,6 +324,9 @@ main.shell-width { flex: 1; padding-block: 32px 64px; }
 .dispute-tabs { display:flex; flex-wrap:wrap; gap:4px 24px; border-bottom:1px solid #ddd; margin:8px 0 16px; }
 .dispute-tab { padding:10px 0; color:#191919; text-decoration:none; border-bottom:3px solid transparent; }
 .dispute-tab.active { border-bottom-color:#191919; font-weight:700; }
+/* E05 admin request reviews (DISPUTE_ADMIN.md) */
+.dispute-summary-plain { padding:0; border:0; margin:0; }
+.dispute-overdue { display:inline-block; margin-left:8px; padding:2px 8px; border-radius:10px; background:#e0103a; color:white; font-size:12px; font-weight:700; vertical-align:middle; }
 @media(max-width:860px) { .dispute-layout { grid-template-columns:minmax(0,1fr); } }
 @media(max-width:520px) { .dispute-info { grid-template-columns:minmax(0,1fr); gap:2px; } .dispute-info dd { margin-bottom:8px; } .dispute-buttons .button { flex:1 1 100%; } }
 @media(max-width:700px) { .dispute-card { padding:18px; } .dispute-card h1 { font-size:22px; } .dispute-form .button { justify-self:stretch; } .dispute-item .order-item-icon { width:56px; } }

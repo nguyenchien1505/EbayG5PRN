@@ -1,0 +1,93 @@
+@model EbayGroup5.Web.Models.AdminDisputePage
+@using EbayGroup5.Application.Disputes
+@using EbayGroup5.Web.Models
+@{ var d = Model.Detail; var timing = Model.Timing; var form = Model.Form; ViewData["Title"] = "Review request #" + d.Id;
+    var demo = DisputeText.DemoNotice(timing); var canDecide = d.Actions.Contains(DisputeAction.Decide); var canMessage = d.Actions.Contains(DisputeAction.Message);
+    var overdue = d.Status == DisputeStatus.Escalated && d.DueAtUtc is { } due && Model.NowUtc >= due;
+    var decisionForm = form?.Action == DisputeAction.Decide ? form : null; var messageForm = form?.Action == DisputeAction.Message ? form : null; }
+<a class="back-to-catalog" asp-action="Disputes">← Back to request reviews</a>
+<h1>Review request #@d.Id</h1>
+@if (ViewData["DisputeError"] is string error) { <div class="validation-errors" role="alert">@error</div> }
+<div class="checkout-grid">
+    <div class="checkout-sections">
+        <section class="checkout-card"><div class="dispute-summary dispute-summary-plain">
+            <p class="dispute-headline">@DisputeText.Status(d.Status, d.Outcome, d.DueAtUtc, d.OfferAmount, timing, DisputeActor.Admin)@if (overdue) { <span class="dispute-overdue">Overdue</span> }</p>
+            @if (d.Status == DisputeStatus.Escalated && d.DueAtUtc is { } by) { <p>Decide by @DisputeText.Date(by, timing) (48-hour review target).</p> }
+            @if (d.EscalatedAtUtc is { } escalated) { <p class="field-help">eBay was asked to step in @DisputeText.Date(escalated, timing).</p> }
+            @if (demo != null) { <p class="dispute-demo" role="note">@demo</p> }
+        </div></section>
+        <section class="checkout-card">
+            <h2>Request</h2>
+            <dl class="dispute-info">
+                <dt>Type</dt><dd>@DisputeText.Kind(d.Kind) · opened @DisputeText.Date(d.CreatedAtUtc, timing)</dd>
+                <dt>Item</dt><dd>@d.ItemTitle · Order #@d.OrderId · @DisputeRequestText.Money(d.LineTotal)</dd>
+                <dt>Buyer</dt><dd>@(d.BuyerName ?? "(unknown)")</dd>
+                <dt>Seller</dt><dd>@(d.SellerName ?? "(unknown)")</dd>
+                <dt>Reason</dt><dd>@DisputeText.Reason(d.Reason)</dd>
+                @if (d.Preference is { } preference) { <dt>The buyer would like</dt><dd>@(preference == DisputePreference.Refund ? "A refund" : "The item")</dd> }
+                <dt>Buyer's comments</dt><dd class="dispute-text">@(d.Details ?? "No comments")</dd>
+                @if (d.OfferAmount is { } offer && d.Status != DisputeStatus.Closed) { <dt>Pending partial offer</dt><dd>@DisputeRequestText.Money(offer)</dd> }
+                @if (d.ReturnTracking != null) { <dt>Return tracking</dt><dd>@d.ReturnTracking</dd> }
+                @if (d.RefundAmount is { } refund) { <dt>Refunded (simulated)</dt><dd>@DisputeRequestText.Money(refund)</dd> }
+            </dl>
+        </section>
+        <section class="checkout-card dispute-activity" id="activity" aria-labelledby="audit-title">
+            <h2 id="audit-title">Audit trail</h2>
+            <p class="field-help">Every action on this request, newest first. Entries can't be edited or deleted.</p>
+            <ol class="dispute-events">
+                @foreach (var e in d.Events)
+                {
+                    <li>
+                        <p><strong>@DisputeRequestText.AuditActor(e)</strong> @DisputeRequestText.Verb(e, d) <time datetime="@e.CreatedAtUtc.ToString("O")">@DisputeText.Date(e.CreatedAtUtc, timing)</time></p>
+                        @if (e.Tracking != null) { <p class="field-help">Tracking: @e.Tracking</p> }
+                        @if (e.Message != null) { <p class="dispute-text">@e.Message</p> }
+                    </li>
+                }
+            </ol>
+            @if (d.EventPages > 1)
+            {
+                <nav class="pagination" aria-label="Audit pages">
+                    @if (d.EventPage > 1) { <a asp-action="Dispute" asp-route-id="@d.Id" asp-route-activity="@(d.EventPage - 1)" asp-fragment="activity">← Newer</a> }
+                    <span>Page @d.EventPage of @d.EventPages</span>
+                    @if (d.EventPage < d.EventPages) { <a asp-action="Dispute" asp-route-id="@d.Id" asp-route-activity="@(d.EventPage + 1)" asp-fragment="activity">Older →</a> }
+                </nav>
+            }
+        </section>
+    </div>
+    <aside class="checkout-card checkout-summary">
+        <h2>Decision</h2>
+        @if (canDecide)
+        {
+            <form asp-action="DisputeAct" method="post" class="dispute-form dispute-reply">
+                <input type="hidden" name="DisputeId" value="@d.Id" />
+                <input type="hidden" name="Action" value="@DisputeAction.Decide" />
+                <fieldset class="dispute-options">
+                    <legend>Who does the decision favor?</legend>
+                    <label class="dispute-option dispute-option-help"><input type="radio" name="ForBuyer" value="true" required checked="@(decisionForm?.ForBuyer == true)" />
+                        <span><strong>Decide for the buyer</strong><span class="field-help">Refund @DisputeRequestText.Money(d.LineTotal) (simulated) and close the request.</span></span></label>
+                    <label class="dispute-option dispute-option-help"><input type="radio" name="ForBuyer" value="false" required checked="@(decisionForm?.ForBuyer == false)" />
+                        <span><strong>Decide for the seller</strong><span class="field-help">Close the request without a refund.</span></span></label>
+                </fieldset>
+                <label for="decision-note" class="dispute-label">Decision note <span class="field-help">(shown to the buyer and seller)</span></label>
+                <textarea id="decision-note" name="Message" rows="4" maxlength="@DisputeLimits.MaxText" required data-count-target="decision-count">@decisionForm?.Message</textarea>
+                <p class="field-help review-count"><span id="decision-count">@(decisionForm?.Message?.Length ?? 0)</span> / @DisputeLimits.MaxText</p>
+                <button type="submit" class="button primary purchase-button">Confirm decision</button>
+                <p class="field-help">Refunds are simulated: the payment record doesn't change and no money moves.</p>
+            </form>
+        }
+        else { <p>@(d.Status == DisputeStatus.Closed ? "This request is closed." : "eBay can decide once the request is escalated.")</p> }
+        @if (canMessage)
+        {
+            <form asp-action="DisputeAct" method="post" class="dispute-form dispute-reply">
+                <h2 class="dispute-section-title">Message both parties</h2>
+                <input type="hidden" name="DisputeId" value="@d.Id" />
+                <input type="hidden" name="Action" value="@DisputeAction.Message" />
+                <label for="admin-message" class="dispute-label">Message</label>
+                <textarea id="admin-message" name="Message" rows="3" maxlength="@DisputeLimits.MaxText" required data-count-target="admin-message-count">@messageForm?.Message</textarea>
+                <p class="field-help review-count"><span id="admin-message-count">@(messageForm?.Message?.Length ?? 0)</span> / @DisputeLimits.MaxText</p>
+                <button type="submit" class="button outline purchase-button">Send message</button>
+            </form>
+        }
+    </aside>
+</div>
+@section Scripts { <script type="module" src="~/js/dispute-request.js" asp-append-version="true"></script> }

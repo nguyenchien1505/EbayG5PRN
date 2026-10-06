@@ -33,7 +33,7 @@ Trạng thái ở đây là đầu mối theo dõi. Planned = cần kiểm tra d
 | [E02](E02.md) | Form khiếu nại và lưu nháp | E01, B03 | Done |
 | [E03](E03.md) | Buyer/seller dashboard và trao đổi | E02 | Done |
 | [E04](E04.md) | Phản hồi tự động và chuyển quá hạn | E03 | Done |
-| [E05](E05.md) | Admin xử lý và kết quả mô phỏng | E04, B02 | Planned |
+| [E05](E05.md) | Admin xử lý và kết quả mô phỏng | E04, B02 | Done |
 | [F01](F01.md) | Docker image ứng dụng và Nginx HTTPS | C05, D05, E05 | Planned |
 | [F02](F02.md) | Nhiều instance, key dùng chung, rate limit | F01 | Planned |
 | [F03](F03.md) | Test tích hợp và hành trình trình duyệt | F02 | Planned |
