@@ -22,6 +22,7 @@ Hai cổng mặc định chỉ bind loopback: SQL `127.0.0.1,14335`, Redis `127.
 ```powershell
 . ./scripts/Use-LocalDotnet.ps1
 . ./scripts/Use-LocalInfrastructure.ps1
+$env:ASPNETCORE_ENVIRONMENT = 'Development'
 dotnet run --project src/EbayGroup5.Web -c Release --no-build --no-launch-profile -- --urls http://127.0.0.1:5085
 ```
 
@@ -47,3 +48,11 @@ Không dùng `down -v`, Docker prune hoặc xóa volume để sửa lỗi. Đổ
 Volumes được scope bởi project `ebaygroup5-local`: `sqlserver-data`, `redis-data`. SQL chứa toàn bộ `/var/opt/mssql`; Redis bật AOF trong `/data`. Đổi project name sẽ tạo bộ volume khác; phải xác minh volume trước khi thao tác. Khi nâng image, sao lưu dữ liệu trước, kiểm tra compatibility, review tag+digest trong compose và chạy lại health/persistence.
 
 Thiết kế và nguồn: [contract LOCAL_INFRA](../architecture/LOCAL_INFRA.md). Không coi stack local single-instance là HA hoặc nghiệm thu OPS.
+
+## C03 chat transport
+
+Web hiện yêu cầu ConnectionStrings:Redis từ Use-LocalInfrastructure; schema0006 đã apply theo checkpoint C01, Web không tự migrate. Local HTTP cookie dùng Development như lệnh trên; Production cần HTTPS (F01). Default Chat:AllowedOrigins đúng http://127.0.0.1:5085/http://localhost:5085; nếu đổi port phải đặt lại allowlist explicit, không wildcard. Chat:RedisChannelPrefix default EbayGroup5.Chat.v1, cùng app/DB replicas dùng cùng prefix, DB/app khác phải khác prefix. Không ghi Redis password vào appsettings/output.
+
+Hub `/hubs/chat` cookie Buyer/Seller, WebSocket-only/SkipNegotiation, exact Origin mandatory; no negotiate/SSE/query token. JoinConversation lấy owned ID từ REST inbox/open, group server-only. Receive/app frame32768 bytes; client sequence/read cursors giữ string. REST JSON dùng token `/api/v1/chat/antiforgery`/X-CSRF-TOKEN, cả REST/Hub publish sau SQL commit. Retry không event mới, Advanced=false không read event. Redis outage giữ receipt SQL, client cần REST catch-up; reliable outbox/reconnect/UI C04/C05 còn lại.
+
+Kiểm tra `. ./scripts/Use-LocalDotnet.ps1; ./scripts/Test-CI.ps1`: tự tạo SQL+Redis pinned/password ngẫu nhiên cô lập, two Kestrel hosts/real WS,134 tests pass theo [C03 evidence](../evidence/C03.md). Test-Database yêu cầu SQL+Redis local healthy và chỉ tạo DB test riêng. Containers stopped/retained, không user-volume reset. DataProtection ephemeral shared provider chỉ dùng test; deployment persistent shared keys F02, TLS/proxy/perf chưa nghiệm thu. Liveness không phải readiness.

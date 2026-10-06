@@ -12,6 +12,9 @@ using Xunit;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR.StackExchangeRedis;
+using StackExchange.Redis;
+using Microsoft.Data.SqlClient;
 
 namespace EbayGroup5.Database.Tests;
 
@@ -24,6 +27,8 @@ public sealed class AccountHttpTests
             builder.UseEnvironment("Production");
             builder.ConfigureServices(services =>
             {
+                services.Configure<RedisOptions>(options => options.Configuration.ChannelPrefix = RedisChannel.Literal(
+                    "EbayGroup5.Tests." + new SqlConnectionStringBuilder(target).InitialCatalog));
                 services.RemoveAll<DbContextOptions<EbayDbContext>>();
                 services.RemoveAll<EbayDbContext>();
                 services.AddDbContext<EbayDbContext>(options => options.UseSqlServer(target));

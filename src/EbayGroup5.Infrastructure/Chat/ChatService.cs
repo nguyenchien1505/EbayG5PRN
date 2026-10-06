@@ -54,6 +54,15 @@ public sealed class ChatService(EbayDbContext db, ILogger<ChatService> logger) :
         if (!Active(peer, actor == c.BuyerId ? "Seller" : "Buyer")) throw Error(ChatError.Conflict);
     }
 
+    public async Task<ChatConversationDto> ConversationAsync(int actorId, int conversationId, CancellationToken cancellationToken = default)
+    {
+        await using var transaction = await db.Database.BeginTransactionAsync(cancellationToken);
+        var c = await Owned(actorId, conversationId, false, cancellationToken);
+        var dto = await ConversationDto(c, actorId, cancellationToken);
+        await transaction.CommitAsync(cancellationToken);
+        return dto;
+    }
+
     private sealed record Resolved(int SellerId, ChatContext Context);
     private async Task<Resolved> Resolve(int buyer, int? productId, int? orderItemId, CancellationToken ct, bool forSend = false)
     {
@@ -224,12 +233,13 @@ public sealed class ChatService(EbayDbContext db, ILogger<ChatService> logger) :
         {
             var c = await Owned(actorId, conversationId, true, ct);
             if (!ChatCursor.TryParse(throughSequence, out var through) || through > c.LastSequence) throw Error(ChatError.Invalid);
+            var previous = actorId == c.BuyerId ? c.BuyerReadSequence : c.SellerReadSequence;
             if (actorId == c.BuyerId) c.BuyerReadSequence = Math.Max(c.BuyerReadSequence, through);
             else c.SellerReadSequence = Math.Max(c.SellerReadSequence, through);
             await db.Set<ChatConversation>().Where(x => x.Id == c.Id).ExecuteUpdateAsync(x => x
                 .SetProperty(row => row.BuyerReadSequence, c.BuyerReadSequence).SetProperty(row => row.SellerReadSequence, c.SellerReadSequence), ct);
             await transaction.CommitAsync(ct);
-            return new(c.Id, actorId, ChatCursor.Format(actorId == c.BuyerId ? c.BuyerReadSequence : c.SellerReadSequence));
+            return new(c.Id, actorId, ChatCursor.Format(actorId == c.BuyerId ? c.BuyerReadSequence : c.SellerReadSequence), through > previous);
         }
         catch { await transaction.RollbackAsync(CancellationToken.None); throw; }
         finally { db.ChangeTracker.Clear(); }

@@ -84,3 +84,5 @@ Ledger chưa sync sau C01: **B05+B06 → KAN-11/TV1 Tran Van Dat; C01 → KAN-13
 C01 ready for next batch: schema c53b9d8/wire06d4ce2, [CI37403524947](https://github.com/Twiash/EbayGroup5/actions/runs/37403524947) pass91tests. C01/KAN-13/TV2 complete locally; G5 chat requirements còn Pending tới C02–C05/F. Chưa thay live Jira status/evidence, ledger giữ B05+B06 và C01 theo quy ước sync từng đợt.
 
 C02 ready for next batch: runtimefb23013 SQL service/owned REST, [evidence](../evidence/C02.md)116tests pass và [CI37405713773](https://github.com/Twiash/EbayGroup5/actions/runs/37405713773) success, no Hub/Redis/UI. **Ledger chưa sync: B05+B06 → KAN-11/TV1; C01 → KAN-13/TV2; C02 → KAN-14/TV2 Đoàn Công Huy**. Không thay live status/evidence/worklog/review; user chưa chốt số task/mốc gom đợt. Không tạo duplicate issue.
+
+C03 [evidence](../evidence/C03.md)134tests WS/Redis/two-host guards complete locally, **partial KAN-15/TV2 Đoàn Công Huy** (còn C04 UI nên chưa issueDone). Ledger chưa sync giữ B05+B06/KAN-11, C01/KAN-13, C02/KAN-14 và C03 partialKAN-15. Chờ batch user, ngưỡng chưa ấn định; không live status/evidence/worklog/review/duplicate.

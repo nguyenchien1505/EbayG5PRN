@@ -26,7 +26,7 @@ public sealed class AccessCookieEvents(EbayDbContext db) : CookieAuthenticationE
 {
     public override Task RedirectToLogin(RedirectContext<CookieAuthenticationOptions> context)
     {
-        if (context.Request.Path.StartsWithSegments("/api/v1/chat"))
+        if (context.Request.Path.StartsWithSegments("/api/v1/chat") || context.Request.Path.StartsWithSegments("/hubs/chat"))
         {
             context.Response.StatusCode = StatusCodes.Status401Unauthorized;
             return Task.CompletedTask;

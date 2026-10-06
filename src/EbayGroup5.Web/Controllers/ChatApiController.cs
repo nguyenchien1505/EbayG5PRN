@@ -1,5 +1,6 @@
 using System.Security.Claims;
 using EbayGroup5.Application.Chat;
+using EbayGroup5.Web.Chat;
 using EbayGroup5.Web.Security;
 using Microsoft.AspNetCore.Antiforgery;
 using Microsoft.AspNetCore.Authorization;
@@ -8,7 +9,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace EbayGroup5.Web.Controllers;
 
 [ApiController, Authorize, Route("api/v1/chat"), ServiceFilter(typeof(ChatApiFilter))]
-public sealed class ChatApiController(IChatService chat, IAntiforgery antiforgery) : ControllerBase
+public sealed class ChatApiController(IChatService chat, ChatRealtime realtime, IAntiforgery antiforgery) : ControllerBase
 {
     private int ActorId => int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
     public sealed record OpenRequest(int? ProductId, int? OrderItemId);
@@ -38,8 +39,8 @@ public sealed class ChatApiController(IChatService chat, IAntiforgery antiforger
         Ok(await chat.HistoryAsync(ActorId, id, new(before, after, limit), ct));
 
     [HttpPost("conversations/{id:int}/messages"), RequestSizeLimit(ChatLimits.MaxBodyBytes)]
-    public async Task<IActionResult> Send(int id, ChatSendCommand command, CancellationToken ct) => Ok(await chat.SendAsync(ActorId, id, command, ct));
+    public async Task<IActionResult> Send(int id, ChatSendCommand command, CancellationToken ct) => Ok(await realtime.SendAsync(ActorId, id, command, ct));
 
     [HttpPost("conversations/{id:int}/read"), RequestSizeLimit(ChatLimits.MaxBodyBytes)]
-    public async Task<IActionResult> Read(int id, ReadRequest request, CancellationToken ct) => Ok(await chat.MarkReadAsync(ActorId, id, request.ThroughSequence, ct));
+    public async Task<IActionResult> Read(int id, ReadRequest request, CancellationToken ct) => Ok(await realtime.ReadAsync(ActorId, id, request.ThroughSequence, ct));
 }
