@@ -23,7 +23,7 @@ public static class ChatCursor
 }
 
 public sealed record ChatContext(int ProductId, int? OrderItemId, string Title, decimal UnitPrice);
-public sealed record ChatConversationDto(int Id, int BuyerId, int SellerId, string LastSequence, string OwnReadSequence,
+public sealed record ChatConversationDto(int Id, int BuyerId, int SellerId, string LastSequence, string OwnReadSequence, string PeerReadSequence,
     DateTimeOffset UpdatedAtUtc, ChatContext? InitialContext);
 public sealed record ChatOpenResult(ChatConversationDto Conversation, ChatContext RequestedContext);
 public sealed record ChatInboxCursor(DateTimeOffset UpdatedAtUtc, int ConversationId);
@@ -34,7 +34,7 @@ public sealed record ChatMessageDto(int Id, int ConversationId, string Sequence,
     string Content, DateTimeOffset SentAtUtc, string TraceId, ChatContext? Context);
 public sealed record ChatHistoryPage(IReadOnlyList<ChatMessageDto> Messages, string? OldestCursor, string? NewestCursor, bool HasMore, string HighWatermark);
 public sealed record ChatSendReceipt(ChatMessageDto Message, bool Replayed);
-public sealed record ChatReadReceipt(int ConversationId, string ThroughSequence);
+public sealed record ChatReadReceipt(int ConversationId, int ReaderId, string ThroughSequence);
 
 // actorId is supplied by the authenticated Web adapter, never bound from client request data.
 // C02 implements authorization, normalization and persistence; C01 provides no runtime endpoints.
