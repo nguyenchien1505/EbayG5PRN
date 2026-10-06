@@ -44,7 +44,7 @@
 
 ## Câu hỏi / giả định
 
-- **Q-UI-009 (Open, không chặn):**
+- **Q-UI-009 (Answered 06/10/2026: giữ cả ba mặc định dưới đây):**
   - Nhãn lý do Ask eBay to step in / Close your request do clone tự soạn.
   - D2 ghi "one chance to offer", nhưng luật E01 cho seller offer lại sau khi buyer từ chối.
 - Tên trang "Returns and requests" là giả định của clone, vì clone không có hủy đơn.
