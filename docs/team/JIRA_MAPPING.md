@@ -80,3 +80,5 @@ Quy ước mới user06/10/2026: gom một đợt task/evidence để phân chia
 B06 evidence ready for next batch: runtimec2cf9e5, [CI37400491344](https://github.com/Twiash/EbayGroup5/actions/runs/37400491344) pass70tests; B05+B06/KAN-11 complete locally, Jira chưa ghi theo quy ước user mới. Không tạo worklog hoặc giả review của thành viên.
 
 Ledger chưa sync sau C01: **B05+B06 → KAN-11/TV1 Tran Van Dat; C01 → KAN-13/TV2 Đoàn Công Huy**. [C01 evidence](../evidence/C01.md) có schema/contract +91tests, chưa service/realtime. Giữ sync theo đợt user yêu cầu; số task/mốc chưa ấn định, không ghi live Jira/worklog/review trong C01.
+
+C01 ready for next batch: schema c53b9d8/wire06d4ce2, [CI37403524947](https://github.com/Twiash/EbayGroup5/actions/runs/37403524947) pass91tests. C01/KAN-13/TV2 complete locally; G5 chat requirements còn Pending tới C02–C05/F. Chưa thay live Jira status/evidence, ledger giữ B05+B06 và C01 theo quy ước sync từng đợt.
