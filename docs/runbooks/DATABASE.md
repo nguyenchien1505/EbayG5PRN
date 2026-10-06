@@ -57,4 +57,4 @@ Buyer/seller/admin dùng email tương ứng `buyer.a06@example.invalid`, `selle
 
 Rerun không update/repair những row đã sửa hoặc xóa. Nếu email bị chiếm trước lần đầu, toàn transaction thất bại: kiểm tra dữ liệu bằng công cụ SQL có quyền, không xóa/đổi user hay journal để ép seed. Lỗi giữa batch rollback mọi data/journal; xử lý nguyên nhân rồi chạy lại. Không sửa seed v1 đã áp dụng; thêm version mới khi có nhu cầu được chốt. Không có reset/unseed tự động.
 
-Test mới kiểm tra seed concurrent/rerun, dữ liệu cũ/đã sửa, collision, fault rollback/retry, uninitialized DB và target guard. Metadata/permissions tests nền tiếp tục chạy với migration mới. DB test vẫn giữ để chẩn đoán.
+Test mới kiểm tra seed concurrent/rerun, dữ liệu cũ/đã sửa, collision, fault rollback/retry, uninitialized DB và target guard. Metadata/permissions tests nền tiếp tục chạy với migration mới. DB test bị xóa sau khi `Test-Database.ps1` pass và được giữ lại khi fail để chẩn đoán (xem [LOCAL_INFRA](LOCAL_INFRA.md#vòng-đời-docker-và-dọn-dữ-liệu-test-từ-06102026)).

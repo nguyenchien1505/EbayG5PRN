@@ -1,4 +1,7 @@
 # Requires PowerShell 7, Docker Linux engine and SDK from global.json on PATH.
+# Isolated SQL/Redis containers are removed after a passing run; a failing run (or -KeepContainers) keeps them for diagnosis.
+# Remove kept ones later with scripts/Clear-TestArtifacts.ps1 -Apply (runbook LOCAL_INFRA).
+param([switch]$KeepContainers)
 $ErrorActionPreference = 'Stop'
 $repoRoot = Split-Path $PSScriptRoot -Parent
 $containerName = 'ebaygroup5-ci-' + [Guid]::NewGuid().ToString('N')
@@ -10,6 +13,7 @@ $previousTestSql = $env:EBAY_TEST_SQL
 $previousRedisPassword = $env:REDIS_PASSWORD
 $previousTestRedis = $env:EBAY_TEST_REDIS
 $previousRedisConnection = $env:ConnectionStrings__Redis
+$succeeded = $false
 Push-Location $repoRoot
 try {
     pwsh -NoProfile -File "$PSScriptRoot/Verify-Planning.ps1"
@@ -70,19 +74,24 @@ try {
         --logger 'trx;LogFileName=database.trx' --results-directory artifacts/ci/test-results
     if ($LASTEXITCODE -ne 0) { throw 'SQL integration tests failed.' }
     Write-Output 'PASS: local CI SQL/HTTP/WebSocket/Redis checks (not evidence of a GitHub Actions run).'
+    $succeeded = $true
 } finally {
     $env:MSSQL_SA_PASSWORD = $previousPassword
     $env:EBAY_TEST_SQL = $previousTestSql
     $env:REDIS_PASSWORD = $previousRedisPassword
     $env:EBAY_TEST_REDIS = $previousTestRedis
     $env:ConnectionStrings__Redis = $previousRedisConnection
-    if ($redisCreated) {
-        docker stop --time 10 $redisContainer | Out-Null
-        if ($LASTEXITCODE -ne 0) { Write-Warning "Could not stop $redisContainer; inspect manually." }
-    }
-    if ($created) {
-        docker stop --time 20 $containerName | Out-Null
-        if ($LASTEXITCODE -ne 0) { Write-Warning "Could not stop $containerName; inspect manually." }
+    $remove = $succeeded -and -not $KeepContainers
+    foreach ($item in @(@{ Made = $redisCreated; Name = $redisContainer }, @{ Made = $created; Name = $containerName })) {
+        if (-not $item.Made) { continue }
+        if ($remove) {
+            # Each container holds every test database of this run; removing it stops disk growth (see runbook LOCAL_INFRA).
+            docker rm -f -v $item.Name | Out-Null
+            if ($LASTEXITCODE -ne 0) { Write-Warning "Could not remove $($item.Name); run scripts/Clear-TestArtifacts.ps1 -Apply." }
+        } else {
+            docker stop --time 20 $item.Name | Out-Null
+            Write-Warning "Kept $($item.Name) for diagnosis; remove it with scripts/Clear-TestArtifacts.ps1 -Apply."
+        }
     }
     Pop-Location
 }
