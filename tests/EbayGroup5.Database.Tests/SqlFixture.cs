@@ -52,6 +52,25 @@ internal static class SqlFixture
         return rows;
     }
 
+    // Applies the baseline plus every DbUp script ordered before `version` (later scripts may depend on it); returns how many remain.
+    public static int MigrateBefore(string connectionString, string version)
+    {
+        CreateEmpty(connectionString);
+        var scripts = new List<DbUp.Engine.SqlScript> { new("0001_Baseline.sql", Baseline.ReadTableDdl()) };
+        var assembly = typeof(MigrationRunner).Assembly;
+        var names = assembly.GetManifestResourceNames().Where(x => x.Contains(".Scripts.") && x.EndsWith(".sql")).Order(StringComparer.Ordinal).ToList();
+        var remaining = 0;
+        foreach (var resource in names)
+        {
+            var name = resource[(resource.IndexOf(".Scripts.", StringComparison.Ordinal) + 9)..];
+            if (string.CompareOrdinal(name, version) >= 0) { remaining++; continue; }
+            using var reader = new StreamReader(assembly.GetManifestResourceStream(resource)!);
+            scripts.Add(new(name, reader.ReadToEnd()));
+        }
+        if (!MigrationRunner.BuildEngine(connectionString, scripts).PerformUpgrade().Successful) throw new InvalidOperationException("Partial upgrade failed.");
+        return remaining;
+    }
+
     // Compare structural metadata, not SQL-generated constraint names or object IDs.
     public const string Metadata = """
         SELECT CONCAT('C|',SCHEMA_NAME(t.schema_id),'|',t.name,'|',c.name,'|',ty.name,'|',c.max_length,'|',c.precision,'|',c.scale,'|',c.is_nullable,'|',c.is_identity,'|',CONVERT(nvarchar(30),ic.seed_value),'|',CONVERT(nvarchar(30),ic.increment_value),'|',c.collation_name)

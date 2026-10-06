@@ -1,5 +1,4 @@
 using System.Net;
-using DbUp.Engine;
 using EbayGroup5.Application.Feedback;
 using EbayGroup5.Infrastructure.Reputation;
 using Microsoft.Data.SqlClient;
@@ -145,15 +144,7 @@ public sealed class SellerProfileTests
     public void Migration_adds_reply_columns_without_changing_existing_feedback()
     {
         var target = SqlFixture.NewTarget();
-        SqlFixture.CreateEmpty(target);
-        var scripts = new List<SqlScript> { new("0001_Baseline.sql", Baseline.ReadTableDdl()) };
-        var assembly = typeof(MigrationRunner).Assembly;
-        foreach (var resource in assembly.GetManifestResourceNames().Where(x => x.Contains(".Scripts.") && !x.EndsWith("0009_SellerFeedbackReply.sql")).Order())
-        {
-            using var reader = new StreamReader(assembly.GetManifestResourceStream(resource)!);
-            scripts.Add(new(resource[(resource.IndexOf(".Scripts.", StringComparison.Ordinal) + 9)..], reader.ReadToEnd()));
-        }
-        Assert.True(MigrationRunner.BuildEngine(target, scripts).PerformUpgrade().Successful);
+        var remaining = SqlFixture.MigrateBefore(target, "0009");
         DemoSeedRunner.Run(target);
         SqlFixture.Execute(target, """
             INSERT dbo.SellerFeedback(OrderItemId,BuyerId,SellerId,Sentiment,Comment,CreatedAtUtc)
@@ -164,7 +155,7 @@ public sealed class SellerProfileTests
         const string rows = "SELECT CONCAT(Id,'|',OrderItemId,'|',BuyerId,'|',SellerId,'|',Sentiment,'|',Comment,'|',CONVERT(varchar(27),CreatedAtUtc,126)) FROM dbo.SellerFeedback";
         var before = SqlFixture.Rows(target, rows);
         Assert.Equal(2, before.Count);
-        Assert.Equal(1, MigrationRunner.Run(target));
+        Assert.Equal(remaining, MigrationRunner.Run(target));
         Assert.True(metadata.IsSubsetOf(SqlFixture.Rows(target, SqlFixture.Metadata)));
         Assert.True(before.SetEquals(SqlFixture.Rows(target, rows)));
         Assert.Equal("2", SqlFixture.Scalar(target, "SELECT COUNT(*) FROM dbo.SellerFeedback WHERE ReplyText IS NULL AND RepliedAtUtc IS NULL"));

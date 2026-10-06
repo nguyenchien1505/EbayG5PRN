@@ -6,6 +6,8 @@
     ViewData["Title"] = "Feedback profile: " + Model.Seller;
     var rep = Model.Reputation;
     var isOwner = User.IsInRole("Seller") && User.FindFirstValue(ClaimTypes.NameIdentifier) == Model.SellerId.ToString(CultureInfo.InvariantCulture);
+    var canReport = User.IsInRole("Buyer") || User.IsInRole("Seller");
+    var me = User.FindFirstValue(ClaimTypes.NameIdentifier);
     var filter = Model.Filter?.ToString().ToLowerInvariant();
     string When(FeedbackRecency r) => r switch { FeedbackRecency.PastMonth => "Past month", FeedbackRecency.Past6Months => "Past 6 months", FeedbackRecency.PastYear => "Past year", _ => "More than a year ago" };
     string Icon(FeedbackSentiment s) => s switch { FeedbackSentiment.Positive => "+", FeedbackSentiment.Neutral => "•", _ => "−" };
@@ -84,7 +86,7 @@
                         }
                     </div>
                     <div role="cell" class="feedback-from"><span>Buyer: @entry.Buyer</span>@if (entry.UnitPrice is decimal price) { <span>US $@price.ToString("N2", CultureInfo.InvariantCulture)</span> }<span>Verified purchase</span></div>
-                    <div role="cell" class="feedback-when">@When(entry.Recency)</div>
+                    <div role="cell" class="feedback-when">@When(entry.Recency)@if (canReport && me != entry.BuyerId.ToString(CultureInfo.InvariantCulture)) { <a class="report-link" asp-controller="Reports" asp-action="Create" asp-route-kind="feedback" asp-route-id="@entry.Id">Report</a> }</div>
                 </div>
             }
         </div>

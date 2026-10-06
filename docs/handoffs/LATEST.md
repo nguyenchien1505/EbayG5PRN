@@ -1,57 +1,56 @@
-# Handoff — D04 trang uy tín và seller reply
+# Handoff — D05 kiểm duyệt và audit review/feedback
 
 06/10/2026. Repo D:/WINDOWS/PRN3/EbayGroup5.
 
-- Baseline main `baa8a8a`; runtime `83d6c25` trên `task/D04-reputation-reply`, fast-forward vào main sau khi [CI37428908236](https://github.com/Twiash/EbayGroup5/actions/runs/37428908236) pass.
-- Checkpoint: `git log --oneline --grep=D04`.
-- Handoff D03 lưu ở [D03](D03.md).
+- Baseline main `249bce7`; nhánh `task/D05-moderation`.
+- Checkpoint: `git log --oneline --grep=D05`.
+- Handoff D04 lưu ở [D04](D04.md).
 
 ## Hoàn tất
 
-- Đầu vào đã chốt:
-  - Q-UI-007: F1 giản lược, theo trang eBay Feedback profile thật xem ngày 06/10/2026.
-  - Q-BIZ-004: tỷ lệ 12 tháng, điểm tích luỹ, reply một lần, không sửa.
-  - Contract: [FEEDBACK](../architecture/FEEDBACK.md#chi-tiết-triển-khai-d04).
-- DbUp `0009_SellerFeedbackReply.sql`: thêm `ReplyText` và `RepliedAtUtc` kèm CHECK; trigger `TR_SellerFeedback_Immutable`; `GRANT UPDATE` cho hai cột reply. Manifest có 10 assets. EF khai báo `HasTrigger`.
-- Application:
-  - `FeedbackCounts` chứa công thức của D03.
-  - `SellerReputation` gồm Lifetime/Month1/Month6/Month12 (dùng `AddMonths` theo TimeProvider).
-  - Thêm `SellerFeedbackPage`, `FeedbackEntry`, `ReplyResult`.
-- `FeedbackService` thêm:
-  - `ReputationAsync` theo các mốc thời gian, chạy bằng một query group.
-  - `ProfileAsync`: 25 dòng/trang, lọc theo sentiment, che tên buyer, recency.
-  - `ReplyAsync`: một câu UPDATE có điều kiện, atomic.
+- Q-BIZ-005: làm theo eBay. Nội dung bị gỡ biến mất, không có placeholder. Hai mức gỡ: Hide (ẩn cả mục) và RemoveComment (giữ rating). Thêm Restore/Dismiss có audit. Contract: [MODERATION](../architecture/MODERATION.md).
+- DbUp `0010_Moderation.sql`:
+  - Review và SellerFeedback thêm `HiddenAtUtc` và `CommentRemovedAtUtc`.
+  - Bảng mới `ContentReport` và `ModerationAudit`.
+  - Trigger `TR_Review_NoDelete` và `TR_ModerationAudit_AppendOnly`.
+  - Grant theo từng cột. Manifest có 11 assets.
+- Application/Infrastructure:
+  - `IModerationService` / `ModerationService`: report, queue, detail, act trong một transaction; lock nội dung bằng UPDLOCK; mỗi thao tác ghi đúng một dòng audit.
+  - `ReviewService.Visible` và `FeedbackService.Visible` lọc nội dung đã ẩn.
+  - Hồ sơ feedback ẩn comment và reply đã bị gỡ; reply bị chặn khi nội dung đã ẩn hoặc đã gỡ comment.
 - Web:
-  - `SellersController`: `GET /Sellers/Feedback/{id}` (public) và `POST /Sellers/Reply` (policy Seller).
-  - Views `Sellers/Feedback`, `InvalidFeedbackFilters`.
-  - Badge `_SellerReputation` hiện tỷ lệ 12 tháng và link hồ sơ trên product.
-  - Menu My eBay: "Feedback profile" cho Seller. Thêm CSS.
-- Tests: `SellerProfileTests.cs` (6 case lớn). Test D03 cập nhật theo kiểu `FeedbackCounts`. Test migration loại thêm 0009. Số migration 8→9.
+  - `ReportsController` (Buyer/Seller) và `AdminController` (`AdminDemo`).
+  - Views `Reports/Create`, `Admin/Moderation`, `Admin/ModerationItem`.
+  - Link Report trong `_ReviewList` và `Sellers/Feedback`.
+  - `TempData["SiteNotice"]` hiển thị trong layout; menu "Moderation" cho Admin.
+- Tests:
+  - `ModerationTests.cs` (7 case).
+  - Thêm `SqlFixture.MigrateBefore` dùng chung cho các test migration.
+  - Số migration 9→10.
 
 ## Verification
 
-- [Evidence](../evidence/D04.md):
-  - Test-CI local: **183/183 .NET + 14/14 Node**.
-  - Mutation bỏ kiểm tra chủ sở hữu khi reply → 2 test bắt được.
-  - Browser desktop + 320px, có xem reply thật.
+- [Evidence](../evidence/D05.md):
+  - Test-CI local: **190/190 .NET + 14/14 Node**.
+  - Mutation bỏ lọc ẩn bị bắt.
+  - Browser: report → moderator Hide → tổng hợp public đổi 14→13 ratings, 4.0→4.2; kiểm tra thêm ở 320px.
 - Trạng thái requirement:
-  - **G5-05 Done.** G5-03 Done.
-  - G5-04 Pending D05; SUP-05 Pending D05/E05; UI-01 Pending.
-- **[CI37428908236](https://github.com/Twiash/EbayGroup5/actions/runs/37428908236) exact runtime 83d6c25 success**: job 4m18s, 183 .NET + 14 Node, build 0 warnings, TRX upload. Docs-only [skip ci] sau CI.
+  - **G5-04 Done**; G5-03 và G5-05 Done.
+  - SUP-05 Pending: phần dispute thuộc E05.
+- GitHub CI: ghi bên dưới sau khi push.
 - `launchSettings.json` (untracked) không bị đụng.
 
-## Lưu ý cho D05
+## Lưu ý
 
-- Thêm trạng thái ẩn cho Review và SellerFeedback bằng migration mới. Trigger D04 không chặn các cột mới.
-- Lọc ẩn trong `ReviewService.Visible` và `FeedbackService.Visible`; summary và uy tín phải đổi theo.
-- Report + Admin ẩn mềm có audit; không xóa vật lý (SUP-05). Admin chỉ dùng được trong mạng demo (`AdminNetwork`).
-- Feedback/reply đã ẩn không được hiển thị. Cần quyết định có hiện placeholder kiểu "Removed by eBay" hay không; nếu chưa rõ thì trình người dùng chọn.
+- Dùng Admin demo: seed `admin.a06` chưa có mật khẩu. Chạy `scripts/Enable-DemoAuth.ps1` (B01), rồi truy cập từ loopback.
+- **E05:** dùng lại mẫu `AdminDemo` + kiểm tra role DB + audit append-only của `ModerationService`. Chưa có bảng audit dùng chung cho dispute.
+- Nhóm D đã xong toàn bộ (D01–D05). Có thể làm KAN-20 (nghiệm thu reputation) khi gom đợt.
 
 ## Tiếp theo / Jira
 
-- D04 xong. Chờ người dùng chọn task tiếp, không tự làm D05/E/F.
+- D05 xong. Chờ người dùng chọn task tiếp, không tự làm E/F.
 - Ledger chờ gom đợt sync:
-  - B05+B06 → KAN-11; C01–C05 → KAN-13..16; D01+D02 → KAN-17.
-  - **D03+D04 → KAN-18/TV3 Pham Van Cuong: hoàn tất local.**
-  - KAN-19 (D05) và KAN-20 chưa làm.
+  - B05+B06 → KAN-11; C01–C05 → KAN-13..16; D01+D02 → KAN-17; D03+D04 → KAN-18.
+  - **D05 → KAN-19/TV3 Pham Van Cuong: hoàn tất local.**
+  - KAN-20 chưa làm.
 - Chưa sync live; không tạo worklog/review/issue.

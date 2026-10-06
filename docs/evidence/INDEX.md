@@ -28,3 +28,5 @@ Review UI D02: [EV-D02-01](D02.md), 161 .NET +14 Node, browser desktop/320px; G5
 Seller feedback D03: [EV-D03-01](D03.md), 177 .NET +14 Node, browser desktop/320px; G5-05 Pending D04.
 
 Reputation page D04: [EV-D04-01](D04.md), 183 .NET +14 Node, browser desktop/320px; G5-05 Done.
+
+Moderation D05: [EV-D05-01](D05.md), 190 .NET +14 Node, browser; G5-04 Done, SUP-05 phần review/feedback (dispute E05).

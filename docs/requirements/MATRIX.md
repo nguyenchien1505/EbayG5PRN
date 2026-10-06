@@ -9,7 +9,7 @@ Status `Pending` nghĩa là chưa triển khai/chưa nghiệm thu. Task tài li�
 | G5-01 | Giao diện chat buyer–seller qua WebSocket | C01–C04 | Hai tài khoản trao đổi realtime; user thứ ba không truy cập | Done |
 | G5-02 | Lưu lịch sử chat theo thời gian/người gửi | C01–C02, C05 | Restart/reconnect đọc lại đúng thứ tự, có phân trang | Done |
 | G5-03 | Rating và comment sau mỗi đơn đã nhận | D01–D02 | Chỉ owner đơn Delivered, một review mỗi OrderItem; mua lại được review | Done |
-| G5-04 | Trung bình đánh giá trên sản phẩm | D02, D05 | Trung bình/số lượt đúng, đổi theo kiểm duyệt, không chia cho zero | Pending |
+| G5-04 | Trung bình đánh giá trên sản phẩm | D02, D05 | Trung bình/số lượt đúng, đổi theo kiểm duyệt, không chia cho zero | Done |
 | G5-05 | Điểm uy tín seller từ feedback tích cực | D03–D04 | Sentiment riêng, công thức đã chốt, seller reply đúng quyền | Done |
 | G5-06 | Gửi khiếu nại có nội dung và lý do | E01–E02 | Đúng dòng hàng/owner; không tạo trùng khi gửi lại | Pending |
 | G5-07 | Buyer quản lý đã gửi, seller quản lý đã nhận | E03 | Danh sách/chi tiết/timeline đúng quyền và phân trang | Pending |
@@ -105,3 +105,5 @@ D02: [review UI evidence](../evidence/D02.md), 161 .NET +14 Node, form R1/Orders
 D03: [seller feedback evidence](../evidence/D03.md), 177 .NET +14 Node; sentiment tách review, công thức Score=P−N / P/(P+N) unit-tested, 60 ngày/chờ 7 ngày, gửi gộp atomic, seller snapshot, constraint/permission/migration, HTTP và browser. **G5-05 vẫn Pending**: trang uy tín và seller reply đúng quyền thuộc D04. G5-04 Pending D05; SUP-05 Pending D05/E05.
 
 D04: [reputation page/reply evidence](../evidence/D04.md), 183 .NET +14 Node; điểm P−N tích luỹ và % 12 tháng (Q-BIZ-004 thay quy tắc "toàn bộ" của PLAN cho tỷ lệ), cửa sổ 1/6/12 tháng, hồ sơ F1 public che tên buyer, reply chỉ seller nhận feedback, một lần, bất biến ở service+trigger+grant; HTTP và browser. **G5-05 Done** (D03 sentiment/công thức + D04 trang/reply). G5-04 Pending D05; SUP-05 Pending D05/E05; UI-01 project-wide Pending.
+
+D05: [moderation evidence](../evidence/D05.md), 190 .NET +14 Node; Report/queue/Hide/RemoveComment/Restore/Dismiss, audit append-only, không xóa vật lý (trigger), tổng hợp review/uy tín đổi theo kiểm duyệt; Admin role + AdminNetwork, user thường 403. **G5-04 Done** (D02 tổng hợp + D05 kiểm duyệt). SUP-05 vẫn Pending: phần review/feedback đạt, phần admin dispute thuộc E05. UI-01 project-wide Pending.

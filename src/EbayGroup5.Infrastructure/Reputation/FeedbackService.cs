@@ -16,8 +16,8 @@ public sealed class FeedbackService(EbayDbContext db, TimeProvider clock) : IFee
     private const string AlreadyLeft = "You already left feedback for this seller.";
     private sealed record WindowRow(string Sentiment, int All, int M1, int M6, int M12);
 
-    // Single visibility rule for reputation; D05 adds moderation here.
-    private IQueryable<SellerFeedback> Visible() => db.Set<SellerFeedback>().AsNoTracking();
+    // Single visibility rule for reputation and the public profile: not hidden by moderation (D05).
+    private IQueryable<SellerFeedback> Visible() => db.Set<SellerFeedback>().AsNoTracking().Where(x => x.HiddenAtUtc == null);
 
     public async Task<SellerReputation> ReputationAsync(int sellerId, CancellationToken cancellationToken = default)
     {
@@ -47,14 +47,18 @@ public sealed class FeedbackService(EbayDbContext db, TimeProvider clock) : IFee
         var rows = await query.OrderByDescending(x => x.Id).Skip((page - 1) * SellerFeedbackPage.PageSize).Take(SellerFeedbackPage.PageSize)
             .Select(x => new
             {
-                x.Id, x.Sentiment, x.Comment, x.CreatedAtUtc, x.ReplyText, x.RepliedAtUtc,
+                x.Id, x.Sentiment, x.CreatedAtUtc, x.BuyerId,
+                // A removed comment also removes the seller reply attached to it (eBay: no reply to removed content).
+                Comment = x.CommentRemovedAtUtc == null ? x.Comment : null,
+                ReplyText = x.CommentRemovedAtUtc == null ? x.ReplyText : null,
+                RepliedAtUtc = x.CommentRemovedAtUtc == null ? x.RepliedAtUtc : null,
                 Buyer = db.Set<User>().Where(u => u.Id == x.BuyerId).Select(u => u.Username).FirstOrDefault(),
                 Item = db.Set<OrderItem>().Where(i => i.Id == x.OrderItemId)
                     .Select(i => new { i.UnitPrice, Title = db.Set<Product>().Where(p => p.Id == i.ProductId).Select(p => p.Title).FirstOrDefault() }).FirstOrDefault()
             }).ToListAsync(cancellationToken);
         var now = clock.GetUtcNow().UtcDateTime;
         var entries = rows.Select(x => new FeedbackEntry(x.Id, Enum.Parse<FeedbackSentiment>(x.Sentiment), x.Comment, x.Item?.Title ?? "Item unavailable",
-            Mask(x.Buyer), x.Item?.UnitPrice, x.CreatedAtUtc, Recency(x.CreatedAtUtc, now), x.ReplyText, x.RepliedAtUtc)).ToList();
+            Mask(x.Buyer), x.Item?.UnitPrice, x.CreatedAtUtc, Recency(x.CreatedAtUtc, now), x.ReplyText, x.RepliedAtUtc, x.BuyerId)).ToList();
         return new(sellerId, string.IsNullOrWhiteSpace(seller.Username) ? "eBay seller" : seller.Username, reputation, entries, total, page, filter);
     }
 
@@ -79,11 +83,13 @@ public sealed class FeedbackService(EbayDbContext db, TimeProvider clock) : IFee
         if (!await db.Set<User>().AnyAsync(x => x.Id == sellerId && x.Role == "Seller", cancellationToken)) return new(ReplyOutcome.Forbidden);
         var now = clock.GetUtcNow().UtcDateTime;
         // Single conditional UPDATE: ownership and "only once" are checked atomically by SQL.
-        var updated = await db.Set<SellerFeedback>().Where(x => x.Id == feedbackId && x.SellerId == sellerId && x.ReplyText == null)
+        var updated = await db.Set<SellerFeedback>().Where(x => x.Id == feedbackId && x.SellerId == sellerId && x.ReplyText == null && x.HiddenAtUtc == null && x.CommentRemovedAtUtc == null)
             .ExecuteUpdateAsync(x => x.SetProperty(f => f.ReplyText, text).SetProperty(f => f.RepliedAtUtc, now), cancellationToken);
         if (updated == 1) return new(ReplyOutcome.Success);
-        return await Visible().AnyAsync(x => x.Id == feedbackId && x.SellerId == sellerId, cancellationToken)
-            ? new(ReplyOutcome.Conflict, "You already replied to this feedback.") : new(ReplyOutcome.NotFound);
+        var state = await Visible().Where(x => x.Id == feedbackId && x.SellerId == sellerId).Select(x => new { x.CommentRemovedAtUtc }).SingleOrDefaultAsync(cancellationToken);
+        return state == null ? new(ReplyOutcome.NotFound)
+            : state.CommentRemovedAtUtc != null ? new(ReplyOutcome.Conflict, "Replies are closed because this feedback comment was removed.")
+            : new(ReplyOutcome.Conflict, "You already replied to this feedback.");
     }
 
     public async Task<FeedbackLineEligibility?> FindItemAsync(int buyerId, int orderItemId, CancellationToken cancellationToken = default)

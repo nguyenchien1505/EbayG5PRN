@@ -40,3 +40,5 @@ Q-BIZ-004 (D04, **Answered 06/10/2026**):
 - Badge D03 phải đổi sang tỷ lệ 12 tháng khi triển khai D04.
 - Seller reply: mỗi feedback chỉ reply một lần, không sửa và không rút lại (theo eBay Help).
 - Chi tiết [FEEDBACK](../architecture/FEEDBACK.md#quyết-định-d04).
+
+Q-BIZ-005 (D05, **Answered 06/10/2026**): người dùng yêu cầu "Tìm cách ebay xử lý rồi thực hiện D05". Đã đối chiếu [Feedback policy](https://www.ebay.com/help/policies/feedback-policies/feedback-policies?id=4208) ("may remove the comment, ratings and/or images", gỡ trong 24 giờ), [Product reviews](https://www.ebay.com/help/selling/listings/product-reviews?id=5186) (Report + chọn lý do) và Community (feedback bị gỡ "no longer there"). Áp dụng: nội dung bị gỡ biến mất, không placeholder; hai mức Hide (cả mục) / RemoveComment (giữ rating); Restore/Dismiss có audit là quyết định thiết kế của agent. Chi tiết [MODERATION](../architecture/MODERATION.md).

@@ -1,6 +1,5 @@
 using System.Net;
 using System.Text.RegularExpressions;
-using DbUp.Engine;
 using EbayGroup5.Application.Orders;
 using EbayGroup5.Application.Reviews;
 using EbayGroup5.Core.Entities;
@@ -254,15 +253,7 @@ public sealed class ReviewTests
     public void Migration_adds_the_link_to_populated_database_without_touching_legacy_reviews()
     {
         var target = SqlFixture.NewTarget();
-        SqlFixture.CreateEmpty(target);
-        var scripts = new List<SqlScript> { new("0001_Baseline.sql", Baseline.ReadTableDdl()) };
-        var assembly = typeof(MigrationRunner).Assembly;
-        foreach (var resource in assembly.GetManifestResourceNames().Where(x => x.Contains(".Scripts.") && !x.EndsWith("0007_ReviewOrderLink.sql")).Order())
-        {
-            using var reader = new StreamReader(assembly.GetManifestResourceStream(resource)!);
-            scripts.Add(new(resource[(resource.IndexOf(".Scripts.", StringComparison.Ordinal) + 9)..], reader.ReadToEnd()));
-        }
-        Assert.True(MigrationRunner.BuildEngine(target, scripts).PerformUpgrade().Successful);
+        var remaining = SqlFixture.MigrateBefore(target, "0007");
         DemoSeedRunner.Run(target);
         SqlFixture.Execute(target, "INSERT dbo.Review(productId,reviewerId,rating,comment,createdAt) SELECT TOP(1) id,sellerId,9,N'legacy out of range','20260901' FROM dbo.Product; " +
             "INSERT dbo.Review(productId,reviewerId,rating,comment,createdAt) SELECT TOP(1) id,sellerId,3,NULL,NULL FROM dbo.Product; INSERT dbo.Review(comment) VALUES(N'orphan legacy')");
@@ -270,7 +261,7 @@ public sealed class ReviewTests
         const string reviewRows = "SELECT CONCAT(id,'|',productId,'|',reviewerId,'|',rating,'|',comment,'|',CONVERT(nvarchar(30),createdAt,126)) FROM dbo.Review";
         var legacy = SqlFixture.Rows(target, reviewRows);
         Assert.Equal(3, legacy.Count);
-        Assert.Equal(1, MigrationRunner.Run(target));
+        Assert.Equal(remaining, MigrationRunner.Run(target));
         Assert.True(metadata.IsSubsetOf(SqlFixture.Rows(target, SqlFixture.Metadata)));
         Assert.True(legacy.SetEquals(SqlFixture.Rows(target, reviewRows)));
         Assert.Equal("3", SqlFixture.Scalar(target, "SELECT COUNT(*) FROM dbo.Review WHERE OrderItemId IS NULL"));

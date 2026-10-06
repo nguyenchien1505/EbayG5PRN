@@ -141,3 +141,5 @@ Phần này soạn trước khi sửa source, trên baseline main `baa8a8a`. Dep
 - Không hiện email, order ID hay buyer ID.
 - Seller chủ hồ sơ thấy form Reply (tối đa 500 ký tự) cho từng dòng chưa có reply. Gửi xong redirect về trang kèm thông báo; nếu lỗi thì render lại trang 1 kèm thông báo lỗi và đúng status.
 - Menu My eBay của Seller có thêm mục "Feedback profile".
+
+**Cập nhật D05:** `Visible()` loại feedback đã Hide khỏi uy tín và hồ sơ; RemoveComment ẩn comment và reply nhưng giữ sentiment; không reply vào nội dung đã Hide (404) hoặc đã gỡ comment (409). Xem [MODERATION](MODERATION.md).

@@ -19,7 +19,8 @@ public sealed record RatingSummary(int Ratings, int Reviews, decimal? Average, I
 {
     public static RatingSummary Empty { get; } = new(0, 0, null, [0, 0, 0, 0, 0]);
 }
-public sealed record ProductReview(int Id, string Reviewer, int Rating, string Comment, DateTime CreatedAt);
+/// <summary>ReviewerId is for server-side checks (e.g. hiding Report on own content) and is never rendered.</summary>
+public sealed record ProductReview(int Id, string Reviewer, int Rating, string Comment, DateTime CreatedAt, int ReviewerId);
 public sealed record ProductReviewPage(RatingSummary Summary, IReadOnlyList<ProductReview> Reviews, int Page, ReviewSort Sort)
 {
     public const int PageSize = 10;
