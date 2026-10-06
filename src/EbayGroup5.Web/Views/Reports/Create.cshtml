@@ -1,0 +1,36 @@
+@model EbayGroup5.Application.Moderation.ReportContext
+@using EbayGroup5.Application.Moderation
+@{
+    ViewData["Title"] = "Report content";
+    var kind = Model.Kind == ContentKind.Review ? "review" : "feedback";
+    string Label(ReportReason r) => r switch
+    {
+        ReportReason.Offensive => "Offensive, hateful, violent or profane",
+        ReportReason.PersonalInfo => "Contains personal information",
+        ReportReason.Spam => "Spam, links or not about this item or transaction",
+        _ => "Something else"
+    };
+}
+<a class="back-to-catalog" href="@Model.ReturnPath">← Back</a>
+<h1>Report this @(Model.Kind == ContentKind.Review ? "review" : "feedback")</h1>
+@if (ViewData["ReportError"] is string error) { <div class="validation-errors" role="alert">@error</div> }
+<section class="review-card" aria-label="Reported content">
+    <p class="field-help">@Model.Title</p>
+    <p><strong>@Model.Rating</strong></p>
+    @if (Model.Comment != null) { <p class="review-comment">@Model.Comment</p> }
+    <form asp-action="Create" method="post" class="report-form">
+        <input type="hidden" name="kind" value="@kind" />
+        <input type="hidden" name="id" value="@Model.Id" />
+        <fieldset>
+            <legend>Why are you reporting this?</legend>
+            @foreach (var reason in Enum.GetValues<ReportReason>())
+            {
+                <label class="address-choice"><input type="radio" name="reason" value="@reason" required /> @Label(reason)</label>
+            }
+        </fieldset>
+        <label for="report-details">Details (optional)</label>
+        <textarea id="report-details" name="details" maxlength="@ModerationLimits.MaxTextLength" rows="4">@ViewData["ReportDetails"]</textarea>
+        <p class="field-help">eBay Clone reviews reports against the community content rules. The author won't see who reported it.</p>
+        <button class="button primary" type="submit">Send report</button>
+    </form>
+</section>

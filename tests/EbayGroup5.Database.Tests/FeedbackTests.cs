@@ -1,6 +1,5 @@
 using System.Globalization;
 using System.Net;
-using DbUp.Engine;
 using EbayGroup5.Application.Feedback;
 using EbayGroup5.Infrastructure.Reputation;
 using EbayGroup5.Infrastructure.Reviews;
@@ -209,21 +208,13 @@ public sealed class FeedbackTests
     public void Migration_adds_feedback_table_and_leaves_source_feedback_rows_untouched()
     {
         var target = SqlFixture.NewTarget();
-        SqlFixture.CreateEmpty(target);
-        var scripts = new List<SqlScript> { new("0001_Baseline.sql", Baseline.ReadTableDdl()) };
-        var assembly = typeof(MigrationRunner).Assembly;
-        foreach (var resource in assembly.GetManifestResourceNames().Where(x => x.Contains(".Scripts.") && !x.EndsWith("0008_SellerFeedback.sql") && !x.EndsWith("0009_SellerFeedbackReply.sql")).Order())
-        {
-            using var reader = new StreamReader(assembly.GetManifestResourceStream(resource)!);
-            scripts.Add(new(resource[(resource.IndexOf(".Scripts.", StringComparison.Ordinal) + 9)..], reader.ReadToEnd()));
-        }
-        Assert.True(MigrationRunner.BuildEngine(target, scripts).PerformUpgrade().Successful);
+        var remaining = SqlFixture.MigrateBefore(target, "0008");
         DemoSeedRunner.Run(target);
         SqlFixture.Execute(target, "INSERT dbo.Feedback(sellerId,averageRating,totalReviews,positiveRate) SELECT id,4.50,10,90.00 FROM dbo.[User] WHERE role=N'Seller'; INSERT dbo.Feedback(sellerId) VALUES(NULL)");
         var metadata = SqlFixture.Rows(target, SqlFixture.Metadata);
         const string legacy = "SELECT CONCAT(id,'|',sellerId,'|',averageRating,'|',totalReviews,'|',positiveRate) FROM dbo.Feedback";
         var before = SqlFixture.Rows(target, legacy);
-        Assert.Equal(2, MigrationRunner.Run(target));
+        Assert.Equal(remaining, MigrationRunner.Run(target));
         Assert.True(metadata.IsSubsetOf(SqlFixture.Rows(target, SqlFixture.Metadata)));
         Assert.True(before.SetEquals(SqlFixture.Rows(target, legacy)));
         Assert.Equal("0", SqlFixture.Scalar(target, "SELECT COUNT(*) FROM dbo.SellerFeedback"));

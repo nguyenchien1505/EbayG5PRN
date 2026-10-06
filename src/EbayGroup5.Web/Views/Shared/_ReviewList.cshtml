@@ -1,5 +1,7 @@
 @model IReadOnlyList<EbayGroup5.Application.Reviews.ProductReview>
 @using System.Globalization
+@using System.Security.Claims
+@{ var canReport = User.IsInRole("Buyer") || User.IsInRole("Seller"); var me = User.FindFirstValue(ClaimTypes.NameIdentifier); }
 <ol class="review-list">
     @foreach (var review in Model)
     {
@@ -7,6 +9,7 @@
             <div class="review-meta"><partial name="_Stars" model="(decimal)review.Rating" /><strong>@review.Reviewer</strong><span class="verified-badge">Verified purchase</span></div>
             <p class="field-help">@review.CreatedAt.ToString("MMM dd, yyyy", CultureInfo.InvariantCulture)</p>
             <p class="review-comment">@review.Comment</p>
+            @if (canReport && me != review.ReviewerId.ToString(CultureInfo.InvariantCulture)) { <a class="report-link" asp-controller="Reports" asp-action="Create" asp-route-kind="review" asp-route-id="@review.Id">Report</a> }
         </li>
     }
 </ol>

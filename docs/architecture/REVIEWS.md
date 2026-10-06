@@ -105,3 +105,5 @@ Contract soạn trước khi sửa source 06/10/2026, baseline main `ae10f9d`. D
 **Kiểm tra bắt buộc:** tổng hợp/làm tròn/phân bố đúng, legacy và product khác bị loại, không có review → null; phân trang không trùng/thiếu, sort, page/sort sai 400, product ngoài catalog 404; HTML encode; Orders/Details hiện đúng nút/trạng thái theo eligibility; GET/POST form theo owner/role, render lại khi lỗi; browser desktop + mobile 320px.
 
 **Cập nhật D03:** `GET/POST /Reviews/Create` thành trang gộp "Leave feedback" (R1): phần seller feedback của [FEEDBACK](FEEDBACK.md) ở trên, phần review ở dưới, ghi trong một transaction. Quy tắc review D01/D02 không đổi; thông báo lỗi review và các mã 400/403/404/409 giữ nguyên. Nút trên Orders/Details đổi thành "Leave feedback".
+
+**Cập nhật D05:** `Visible()` loại review đã Hide; "Reviews"/danh sách loại comment đã RemoveComment; Report link dưới mỗi review. Xem [MODERATION](MODERATION.md).

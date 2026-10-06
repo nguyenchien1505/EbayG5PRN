@@ -31,7 +31,7 @@ public sealed record SellerReputation(FeedbackCounts Lifetime, FeedbackCounts Mo
 
 public enum FeedbackRecency { PastMonth, Past6Months, PastYear, OlderThanYear }
 public sealed record FeedbackEntry(int Id, FeedbackSentiment Sentiment, string? Comment, string ItemTitle, string Buyer, decimal? UnitPrice,
-    DateTime CreatedAtUtc, FeedbackRecency Recency, string? Reply, DateTime? RepliedAtUtc);
+    DateTime CreatedAtUtc, FeedbackRecency Recency, string? Reply, DateTime? RepliedAtUtc, int BuyerId);
 public sealed record SellerFeedbackPage(int SellerId, string Seller, SellerReputation Reputation, IReadOnlyList<FeedbackEntry> Entries,
     int Total, int Page, FeedbackSentiment? Filter)
 {

@@ -153,6 +153,9 @@ public sealed class EbayDbContext(DbContextOptions<EbayDbContext> options) : DbC
             entity.Property(x => x.Rating).HasColumnName("rating").HasColumnType("int");
             entity.Property(x => x.Comment).HasColumnName("comment").HasColumnType("nvarchar(max)");
             entity.Property(x => x.CreatedAt).HasColumnName("createdAt").HasColumnType("datetime");
+            entity.Property(x => x.HiddenAtUtc).HasColumnType("datetime2(7)");
+            entity.Property(x => x.CommentRemovedAtUtc).HasColumnType("datetime2(7)");
+            entity.ToTable(t => t.HasTrigger("TR_Review_NoDelete"));
         });
         modelBuilder.Entity<SellerFeedback>(entity =>
         {
@@ -171,8 +174,39 @@ public sealed class EbayDbContext(DbContextOptions<EbayDbContext> options) : DbC
             entity.Property(x => x.CreatedAtUtc).HasColumnType("datetime2(7)").HasDefaultValueSql("SYSUTCDATETIME()");
             entity.Property(x => x.ReplyText).HasColumnType("nvarchar(500)").HasMaxLength(500);
             entity.Property(x => x.RepliedAtUtc).HasColumnType("datetime2(7)");
+            entity.Property(x => x.HiddenAtUtc).HasColumnType("datetime2(7)");
+            entity.Property(x => x.CommentRemovedAtUtc).HasColumnType("datetime2(7)");
             entity.HasIndex(x => new { x.SellerId, x.Id }).IsDescending(false, true).HasDatabaseName("IX_SellerFeedback_Seller");
             entity.ToTable(t => t.HasTrigger("TR_SellerFeedback_Immutable"));
+        });
+        modelBuilder.Entity<ContentReport>(entity =>
+        {
+            entity.ToTable("ContentReport", "dbo");
+            entity.HasKey(x => x.Id);
+            entity.Property(x => x.Id).HasColumnType("int").UseIdentityColumn();
+            entity.HasOne<Review>().WithMany().HasForeignKey(x => x.ReviewId).OnDelete(DeleteBehavior.ClientNoAction);
+            entity.HasOne<SellerFeedback>().WithMany().HasForeignKey(x => x.SellerFeedbackId).OnDelete(DeleteBehavior.ClientNoAction);
+            entity.HasOne<User>().WithMany().HasForeignKey(x => x.ReporterId).OnDelete(DeleteBehavior.ClientNoAction);
+            entity.HasOne<User>().WithMany().HasForeignKey(x => x.ResolvedById).OnDelete(DeleteBehavior.ClientNoAction);
+            entity.Property(x => x.Reason).HasColumnType("varchar(12)").HasMaxLength(12).IsUnicode(false);
+            entity.Property(x => x.Details).HasColumnType("nvarchar(500)").HasMaxLength(500);
+            entity.Property(x => x.Status).HasColumnType("varchar(10)").HasMaxLength(10).IsUnicode(false).HasDefaultValue("Open");
+            entity.Property(x => x.CreatedAtUtc).HasColumnType("datetime2(7)").HasDefaultValueSql("SYSUTCDATETIME()");
+            entity.Property(x => x.ResolvedAtUtc).HasColumnType("datetime2(7)");
+            entity.HasIndex(x => new { x.ReviewId, x.ReporterId }).IsUnique().HasFilter("[ReviewId] IS NOT NULL").HasDatabaseName("UX_ContentReport_Review_Reporter");
+            entity.HasIndex(x => new { x.SellerFeedbackId, x.ReporterId }).IsUnique().HasFilter("[SellerFeedbackId] IS NOT NULL").HasDatabaseName("UX_ContentReport_Feedback_Reporter");
+        });
+        modelBuilder.Entity<ModerationAudit>(entity =>
+        {
+            entity.ToTable("ModerationAudit", "dbo", t => t.HasTrigger("TR_ModerationAudit_AppendOnly"));
+            entity.HasKey(x => x.Id);
+            entity.Property(x => x.Id).HasColumnType("int").UseIdentityColumn();
+            entity.HasOne<Review>().WithMany().HasForeignKey(x => x.ReviewId).OnDelete(DeleteBehavior.ClientNoAction);
+            entity.HasOne<SellerFeedback>().WithMany().HasForeignKey(x => x.SellerFeedbackId).OnDelete(DeleteBehavior.ClientNoAction);
+            entity.HasOne<User>().WithMany().HasForeignKey(x => x.AdminId).OnDelete(DeleteBehavior.ClientNoAction);
+            entity.Property(x => x.Action).HasColumnType("varchar(14)").HasMaxLength(14).IsUnicode(false);
+            entity.Property(x => x.Note).HasColumnType("nvarchar(500)").HasMaxLength(500);
+            entity.Property(x => x.CreatedAtUtc).HasColumnType("datetime2(7)").HasDefaultValueSql("SYSUTCDATETIME()");
         });
         modelBuilder.Entity<ChatConversation>(entity =>
         {

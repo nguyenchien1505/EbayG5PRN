@@ -11,9 +11,10 @@ public sealed class ReviewService(EbayDbContext db) : IReviewService
 {
     private const string Delivered = "Delivered";
 
-    // Single visibility rule for public reads: order-linked reviews only (Q-BIZ-002). D05 adds moderation here.
+    // Single visibility rule for public reads: order-linked (Q-BIZ-002) and not hidden by moderation (D05).
     private IQueryable<Review> Visible(int productId) =>
-        db.Set<Review>().AsNoTracking().Where(x => x.ProductId == productId && x.OrderItemId != null && x.Rating >= ReviewLimits.MinRating && x.Rating <= ReviewLimits.MaxRating);
+        db.Set<Review>().AsNoTracking().Where(x => x.ProductId == productId && x.OrderItemId != null && x.HiddenAtUtc == null
+            && x.Rating >= ReviewLimits.MinRating && x.Rating <= ReviewLimits.MaxRating);
 
     public async Task<IReadOnlyList<ReviewLineEligibility>?> ListForOrderAsync(int buyerId, int orderId, CancellationToken cancellationToken = default)
     {
@@ -59,12 +60,12 @@ public sealed class ReviewService(EbayDbContext db) : IReviewService
     {
         if (page < 1 || page > int.MaxValue / ProductReviewPage.PageSize || !Enum.IsDefined(sort)) throw new ArgumentException("Invalid review filters.");
         var groups = await Visible(productId).GroupBy(x => x.Rating!.Value)
-            .Select(g => new { Rating = g.Key, Count = g.Count(), Reviews = g.Count(x => x.Comment != null) }).ToListAsync(cancellationToken);
+            .Select(g => new { Rating = g.Key, Count = g.Count(), Reviews = g.Count(x => x.Comment != null && x.CommentRemovedAtUtc == null) }).ToListAsync(cancellationToken);
         var ratings = groups.Sum(x => x.Count);
         var summary = ratings == 0 ? RatingSummary.Empty : new RatingSummary(ratings, groups.Sum(x => x.Reviews),
             Math.Round(groups.Sum(x => (decimal)x.Rating * x.Count) / ratings, 1, MidpointRounding.AwayFromZero),
             Enumerable.Range(1, 5).Reverse().Select(star => groups.Where(x => x.Rating == star).Sum(x => x.Count)).ToList());
-        var withComment = Visible(productId).Where(x => x.Comment != null);
+        var withComment = Visible(productId).Where(x => x.Comment != null && x.CommentRemovedAtUtc == null);
         var ordered = sort switch
         {
             ReviewSort.Highest => withComment.OrderByDescending(x => x.Rating).ThenByDescending(x => x.Id),
@@ -73,7 +74,7 @@ public sealed class ReviewService(EbayDbContext db) : IReviewService
         };
         var reviews = await ordered.Skip((page - 1) * ProductReviewPage.PageSize).Take(ProductReviewPage.PageSize)
             .Select(x => new ProductReview(x.Id, db.Set<User>().Where(u => u.Id == x.ReviewerId).Select(u => u.Username).FirstOrDefault() ?? "eBay user",
-                x.Rating!.Value, x.Comment!, x.CreatedAt!.Value)).ToListAsync(cancellationToken);
+                x.Rating!.Value, x.Comment!, x.CreatedAt!.Value, x.ReviewerId!.Value)).ToListAsync(cancellationToken);
         return new(summary, reviews, page, sort);
     }
 

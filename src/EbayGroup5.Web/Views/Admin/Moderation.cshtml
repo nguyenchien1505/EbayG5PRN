@@ -1,0 +1,25 @@
+@model IReadOnlyList<EbayGroup5.Application.Moderation.QueueItem>
+@using EbayGroup5.Application.Moderation
+@using System.Globalization
+@{ ViewData["Title"] = "Moderation queue"; }
+<h1>Moderation queue</h1>
+<p class="field-help">Open reports on product reviews and seller feedback, newest first (up to @ModerationLimits.QueueSize items). Actions hide content without deleting it and are recorded in the audit log.</p>
+@if (Model.Count == 0) { <p class="rating-empty">No open reports.</p> }
+else
+{
+    <div class="feedback-table" role="table" aria-label="Open reports">
+        <div class="feedback-row feedback-head" role="row"><span role="columnheader">Content</span><span role="columnheader">Reports</span><span role="columnheader">State</span></div>
+        @foreach (var item in Model)
+        {
+            var kind = item.Kind == ContentKind.Review ? "review" : "feedback";
+            <div class="feedback-row" role="row">
+                <div role="cell" class="feedback-main">
+                    <p><a asp-action="ModerationItem" asp-route-kind="@kind" asp-route-id="@item.Id">@(item.Kind == ContentKind.Review ? "Review" : "Seller feedback") #@item.Id</a> · @item.Title</p>
+                    @if (item.Excerpt != null) { <p class="field-help moderation-excerpt">@item.Excerpt</p> }
+                </div>
+                <div role="cell" class="feedback-from"><span>@item.OpenReports open</span><span>@string.Join(", ", item.Reasons)</span><span>Latest @item.LatestReportUtc.ToString("MMM dd, yyyy HH:mm", CultureInfo.InvariantCulture) UTC</span></div>
+                <div role="cell" class="feedback-when">@(item.Hidden ? "Hidden" : item.CommentRemoved ? "Comment removed" : "Visible")</div>
+            </div>
+        }
+    </div>
+}

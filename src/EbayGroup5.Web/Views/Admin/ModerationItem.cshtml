@@ -1,0 +1,54 @@
+@model EbayGroup5.Application.Moderation.ModerationDetail
+@using EbayGroup5.Application.Moderation
+@using System.Globalization
+@{
+    ViewData["Title"] = "Moderate content";
+    var kind = Model.Kind == ContentKind.Review ? "review" : "feedback";
+    var state = Model.HiddenAtUtc != null ? "Hidden" : Model.CommentRemovedAtUtc != null ? "Comment removed" : "Visible";
+    var open = Model.Reports.Count(x => x.Status == "Open");
+    string Utc(DateTime? d) => d?.ToString("MMM dd, yyyy HH:mm", CultureInfo.InvariantCulture) + " UTC";
+}
+<a class="back-to-catalog" asp-action="Moderation">← Back to moderation queue</a>
+<h1>@(Model.Kind == ContentKind.Review ? "Review" : "Seller feedback") #@Model.Id</h1>
+@if (ViewData["ModerationError"] is string error) { <div class="validation-errors" role="alert">@error</div> }
+<div class="checkout-grid">
+    <div class="checkout-sections">
+        <section class="checkout-card">
+            <h2>Content</h2>
+            <p class="field-help">@Model.Title · by @Model.Author · @Utc(Model.CreatedAtUtc)</p>
+            <p><strong>@Model.Rating</strong> <span class="order-status-pill">@state</span></p>
+            @if (Model.Comment != null) { <p class="review-comment@(Model.CommentRemovedAtUtc != null ? " removed-comment" : "")">@Model.Comment</p> }
+            @if (Model.Reply != null) { <div class="feedback-reply"><strong>Seller reply</strong><p>@Model.Reply</p></div> }
+            @if (Model.HiddenAtUtc == null) { <p><a href="@Model.PublicPath">View public page</a></p> }
+        </section>
+        <section class="checkout-card">
+            <h2>Reports (@Model.Reports.Count, @open open)</h2>
+            @if (Model.Reports.Count == 0) { <p class="rating-empty">No reports.</p> }
+            @foreach (var r in Model.Reports)
+            {
+                <div class="order-line"><p><strong>@r.Reason</strong> · @r.Status · @r.Reporter · @Utc(r.CreatedAtUtc)</p>@if (r.Details != null) { <p class="review-comment">@r.Details</p> }</div>
+            }
+        </section>
+        <section class="checkout-card">
+            <h2>Audit log</h2>
+            @if (Model.Audit.Count == 0) { <p class="rating-empty">No moderation actions yet.</p> }
+            @foreach (var a in Model.Audit)
+            {
+                <div class="order-line"><p><strong>@a.Action</strong> · @a.Admin · @Utc(a.CreatedAtUtc)</p>@if (a.Note != null) { <p class="review-comment">@a.Note</p> }</div>
+            }
+        </section>
+    </div>
+    <aside class="checkout-card checkout-summary">
+        <h2>Actions</h2>
+        <form asp-action="Moderate" method="post" class="moderation-form">
+            <input type="hidden" name="kind" value="@kind" />
+            <input type="hidden" name="id" value="@Model.Id" />
+            <label for="moderation-note">Note for the audit log (optional)</label>
+            <textarea id="moderation-note" name="note" maxlength="@ModerationLimits.MaxTextLength" rows="3"></textarea>
+            @if (Model.HiddenAtUtc == null) { <button class="button primary purchase-button" name="action" value="Hide" type="submit">Hide content</button><p class="field-help">Removes the rating and comment from public pages and totals.</p> }
+            @if (Model.HiddenAtUtc == null && Model.Comment != null && Model.CommentRemovedAtUtc == null) { <button class="button outline purchase-button" name="action" value="RemoveComment" type="submit">Remove comment only</button><p class="field-help">Keeps the rating in totals; hides the comment@(Model.Kind == ContentKind.SellerFeedback ? " and any seller reply" : "").</p> }
+            @if (Model.HiddenAtUtc != null || Model.CommentRemovedAtUtc != null) { <button class="button outline purchase-button" name="action" value="Restore" type="submit">Restore</button> }
+            @if (open > 0) { <button class="button outline purchase-button" name="action" value="Dismiss" type="submit">Dismiss reports</button> }
+        </form>
+    </aside>
+</div>

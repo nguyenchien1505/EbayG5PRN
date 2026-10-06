@@ -11,4 +11,6 @@ public sealed class SellerFeedback
     public DateTime CreatedAtUtc { get; set; }
     public string? ReplyText { get; set; }
     public DateTime? RepliedAtUtc { get; set; }
+    public DateTime? HiddenAtUtc { get; set; }
+    public DateTime? CommentRemovedAtUtc { get; set; }
 }

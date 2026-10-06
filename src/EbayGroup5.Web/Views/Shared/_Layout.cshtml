@@ -29,6 +29,7 @@
                     @if (User.IsInRole("Buyer")) { <a asp-controller="Orders" asp-action="Purchases">Purchase history</a> }
                     @if (User.IsInRole("Seller")) { <a asp-controller="Orders" asp-action="Sales">Sales history</a><a asp-controller="Sellers" asp-action="Feedback" asp-route-id="@User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value">Feedback profile</a> }
                     @if (User.IsInRole("Buyer") || User.IsInRole("Seller")) { <a asp-controller="Messages" asp-action="Index">Messages</a> }
+                    @if (User.IsInRole("Admin")) { <a asp-controller="Admin" asp-action="Moderation">Moderation</a> }
                     @if (User.Identity?.IsAuthenticated != true)
                     {
                         <a asp-controller="Account" asp-action="Register">Create an account</a>
@@ -49,7 +50,7 @@
             }
         </div>
     </header>
-    <main id="main-content" class="shell-width" tabindex="-1">@RenderBody()</main>
+    <main id="main-content" class="shell-width" tabindex="-1">@if (TempData["SiteNotice"] is string siteNotice) { <p class="account-notice" role="status">@siteNotice</p> }@RenderBody()</main>
     <footer class="site-footer"><div class="shell-width">eBay Clone · Group 5 <span>Educational demo. Not affiliated with eBay.</span></div></footer>
     @await RenderSectionAsync("Scripts", required: false)
 </body>
