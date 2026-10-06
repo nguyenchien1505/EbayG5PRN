@@ -147,6 +147,9 @@ public sealed class EbayDbContext(DbContextOptions<EbayDbContext> options) : DbC
             entity.HasOne<Product>().WithMany().HasForeignKey(x => x.ProductId).OnDelete(DeleteBehavior.ClientNoAction);
             entity.Property(x => x.ReviewerId).HasColumnName("reviewerId").HasColumnType("int");
             entity.HasOne<User>().WithMany().HasForeignKey(x => x.ReviewerId).OnDelete(DeleteBehavior.ClientNoAction);
+            entity.Property(x => x.OrderItemId).HasColumnType("int");
+            entity.HasOne<OrderItem>().WithMany().HasForeignKey(x => x.OrderItemId).OnDelete(DeleteBehavior.ClientNoAction);
+            entity.HasIndex(x => x.OrderItemId).IsUnique().HasFilter("[OrderItemId] IS NOT NULL").HasDatabaseName("UX_Review_OrderItem");
             entity.Property(x => x.Rating).HasColumnName("rating").HasColumnType("int");
             entity.Property(x => x.Comment).HasColumnName("comment").HasColumnType("nvarchar(max)");
             entity.Property(x => x.CreatedAt).HasColumnName("createdAt").HasColumnType("datetime");
