@@ -33,3 +33,5 @@ CI A07: `.github/workflows/ci.yml`, `scripts/Test-CI.ps1`, `scripts/Verify-Migra
 B01: Infrastructure/Authentication/AccountService; Web/Controllers/AccountController, Models/AccountForms, Views/Account (Register/Login/Me); Database/DemoCredentials; scripts/Enable-DemoAuth.ps1; AccountServiceTests/AccountHttpTests. [AUTH](AUTH.md).
 
 B04: Application/Catalog DTO + ICatalogService; Infrastructure/Catalog EF queries; Web CatalogApiController/CatalogController + Views/Catalog; CatalogTests và HTTP tests. Q-UI-005 answered ảnh người dùng; Home redirect catalog. [So sánh project cũ/mới](PROJECT_COMPARISON.md).
+
+D01: Database/Scripts/0007_ReviewOrderLink.sql; Core/Entities/Review (OrderItemId) + EbayDbContext map; Application/Reviews/IReviewService; Infrastructure/Reviews/ReviewService; Web/Controllers/ReviewsController + Models/ReviewForms; tests ReviewTests.cs. [REVIEWS](REVIEWS.md).

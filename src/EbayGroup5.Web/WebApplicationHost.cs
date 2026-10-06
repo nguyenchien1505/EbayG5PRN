@@ -58,6 +58,7 @@ public static class WebApplicationHost
                 : defaultFactory(context);
         });
         builder.Services.AddScoped<EbayGroup5.Application.Orders.IOrderService, EbayGroup5.Infrastructure.Orders.OrderService>();
+        builder.Services.AddScoped<EbayGroup5.Application.Reviews.IReviewService, EbayGroup5.Infrastructure.Reviews.ReviewService>();
         builder.Services.AddScoped<EbayGroup5.Application.Checkout.ICheckoutService, EbayGroup5.Infrastructure.Checkout.CheckoutService>();
         builder.Services.AddScoped<EbayGroup5.Application.Catalog.ICatalogService, EbayGroup5.Infrastructure.Catalog.CatalogService>();
         builder.Services.AddScoped<AccessCookieEvents>();
