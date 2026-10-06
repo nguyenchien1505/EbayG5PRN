@@ -4,7 +4,7 @@
 
 1. Đọc [quy định agent](../AGENTS.md) và [handoff mới nhất](handoffs/LATEST.md).
 2. Xem [task index](tasks/INDEX.md), chọn đúng task được yêu cầu.
-3. Chat C01–C05 đã xong; [C05 evidence](evidence/C05.md)/[recovery runbook](runbooks/CHAT_RECOVERY.md)/[CHAT](architecture/CHAT.md) dẫn scope và giới hạn. SQL durable, không outbox, pending/draft memory-only; chưa deployed TLS/shared keys/latency/dataset/log collection acceptance. Chờ task người dùng chọn; không tự chuyển D04/E/F. Contract [REVIEWS](architecture/REVIEWS.md), [FEEDBACK](architecture/FEEDBACK.md).
+3. Chat C01–C05 đã xong; [C05 evidence](evidence/C05.md)/[recovery runbook](runbooks/CHAT_RECOVERY.md)/[CHAT](architecture/CHAT.md) dẫn scope và giới hạn. SQL durable, không outbox, pending/draft memory-only; chưa deployed TLS/shared keys/latency/dataset/log collection acceptance. Chờ task người dùng chọn; không tự chuyển D04/E/F; đầu vào D04 (F1, tỷ lệ 12 tháng, reply một lần) đã chốt. Contract [REVIEWS](architecture/REVIEWS.md), [FEEDBACK](architecture/FEEDBACK.md).
 
 Các quyết định cố định: .NET 8 MVC/Razor; SQL Server; schema chỉ mở rộng; viết mới; UI tiếng Anh; repo riêng; GitHub private; Jira KAN; demo local Docker/K8s. Xem [ADR-001](decisions/ADR-001-foundation.md) khi cần lý do.
 
