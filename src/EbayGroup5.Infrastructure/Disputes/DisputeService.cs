@@ -190,22 +190,92 @@ public sealed class DisputeService(EbayDbContext db, TimeProvider clock, Dispute
         }
     }
 
-    public async Task<DisputeDetail?> FindAsync(int actorId, int disputeId, CancellationToken cancellationToken = default)
+    public Task<DisputeDetail?> FindAsync(int actorId, int disputeId, CancellationToken cancellationToken = default) =>
+        FindAsync(actorId, disputeId, 1, cancellationToken);
+
+    public async Task<DisputeDetail?> FindAsync(int actorId, int disputeId, int timelinePage, CancellationToken cancellationToken = default)
     {
+        if (timelinePage < 1 || timelinePage > int.MaxValue / DisputeLimits.TimelinePageSize) throw new ArgumentOutOfRangeException(nameof(timelinePage));
         var row = await db.Set<Dispute>().AsNoTracking().SingleOrDefaultAsync(x => x.Id == disputeId && x.OrderItemId != null, cancellationToken);
         if (row == null || await ViewerRole(actorId, row, cancellationToken) is not { } viewer) return null;
         var snapshot = await Snapshot(row, cancellationToken);
         var title = await db.Set<OrderItem>().Where(i => i.Id == row.OrderItemId)
             .Select(i => db.Set<Product>().Where(p => p.Id == i.ProductId).Select(p => p.Title).FirstOrDefault()).FirstOrDefaultAsync(cancellationToken);
-        var events = await db.Set<DisputeEvent>().AsNoTracking().Where(x => x.DisputeId == disputeId).OrderBy(x => x.Id).Take(DisputeLimits.MaxEvents)
+        var names = await db.Set<User>().AsNoTracking().Where(x => x.Id == row.RaisedBy || x.Id == row.SellerId).Select(x => new { x.Id, x.Username }).ToListAsync(cancellationToken);
+        var buyerName = names.FirstOrDefault(x => x.Id == row.RaisedBy)?.Username;
+        var sellerName = names.FirstOrDefault(x => x.Id == row.SellerId)?.Username;
+        var allEvents = db.Set<DisputeEvent>().AsNoTracking().Where(x => x.DisputeId == disputeId);
+        var total = await allEvents.CountAsync(cancellationToken);
+        // Newest first: the latest activity is what a participant acts on; older pages follow.
+        var events = await allEvents.OrderByDescending(x => x.Id).Skip((timelinePage - 1) * DisputeLimits.TimelinePageSize).Take(DisputeLimits.TimelinePageSize)
             .ToListAsync(cancellationToken);
-        return new(row.Id, row.OrderId!.Value, row.OrderItemId!.Value, title ?? "Item unavailable", snapshot.Kind, snapshot.Reason,
+        return new DisputeDetail(row.Id, row.OrderId!.Value, row.OrderItemId!.Value, title ?? "Item unavailable", snapshot.Kind, snapshot.Reason,
             row.Preference == null ? null : Enum.Parse<DisputePreference>(row.Preference), snapshot.Status,
-            row.Outcome == null ? null : Enum.Parse<DisputeOutcome>(row.Outcome), row.Description, row.CreatedAtUtc!.Value, row.DueAtUtc, row.EscalatedAtUtc, row.ClosedAtUtc,
-            snapshot.LineTotal, row.OfferAmount, row.RefundAmount, row.ReturnTracking, viewer, DisputeRules.AvailableActions(snapshot, viewer, Now, timing),
+            row.Outcome == null ? null : Enum.Parse<DisputeOutcome>(row.Outcome), row.Description, Utc(row.CreatedAtUtc)!.Value, Utc(row.DueAtUtc), Utc(row.EscalatedAtUtc),
+            Utc(row.ClosedAtUtc), snapshot.LineTotal, row.OfferAmount, row.RefundAmount, row.ReturnTracking, viewer, DisputeRules.AvailableActions(snapshot, viewer, Now, timing),
             events.Select(x => new DisputeEventView(x.Id, Enum.Parse<DisputeActor>(x.ActorRole), Enum.Parse<DisputeEventType>(x.Type), x.Message, x.Amount, x.Tracking,
-                DateTime.SpecifyKind(x.CreatedAtUtc, DateTimeKind.Utc))).ToList(), timing.IsDemo);
+                DateTime.SpecifyKind(x.CreatedAtUtc, DateTimeKind.Utc))).ToList(), timing.IsDemo)
+        {
+            BuyerName = buyerName, SellerName = sellerName,
+            Counterpart = viewer == DisputeActor.Buyer ? sellerName : viewer == DisputeActor.Seller ? buyerName : null,
+            EventPage = timelinePage, EventTotal = total
+        };
     }
+
+    public async Task<DisputeList?> ListAsync(int actorId, DisputeListQuery query, CancellationToken cancellationToken = default)
+    {
+        if (query.Page < 1 || query.Page > int.MaxValue / DisputeLimits.ListPageSize || query.Kind is { } k && !Enum.IsDefined(k) || query.State is { } st && !Enum.IsDefined(st))
+            throw new ArgumentOutOfRangeException(nameof(query));
+        var viewer = await ListRole(actorId, cancellationToken);
+        if (viewer == null) return null;
+        var rows = Participating(actorId, viewer.Value);
+        if (query.Kind is { } kind) { var name = kind.ToString(); rows = rows.Where(x => x.Kind == name); }
+        if (query.State == DisputeListState.Open) rows = rows.Where(x => x.ClosedAtUtc == null);
+        else if (query.State == DisputeListState.Closed) rows = rows.Where(x => x.ClosedAtUtc != null);
+        var total = await rows.CountAsync(cancellationToken);
+        var buyerView = viewer == DisputeActor.Buyer;
+        var page = await (from d in rows
+                          join i in db.Set<OrderItem>() on d.OrderItemId equals i.Id
+                          orderby d.Id descending
+                          select new
+                          {
+                              d.Id, OrderId = d.OrderId!.Value, OrderItemId = d.OrderItemId!.Value, d.Kind, d.Reason, d.Status, d.Outcome, d.CreatedAtUtc, d.DueAtUtc, d.OfferAmount,
+                              i.Quantity, i.UnitPrice,
+                              Title = db.Set<Product>().Where(p => p.Id == i.ProductId).Select(p => p.Title).FirstOrDefault(),
+                              Counterpart = db.Set<User>().Where(u => u.Id == (buyerView ? d.SellerId : d.RaisedBy)).Select(u => u.Username).FirstOrDefault()
+                          }).Skip((query.Page - 1) * DisputeLimits.ListPageSize).Take(DisputeLimits.ListPageSize).ToListAsync(cancellationToken);
+        return new(viewer.Value, query, page.Select(x => new DisputeListItem(x.Id, x.OrderId, x.OrderItemId, x.Title ?? "Item unavailable", Enum.Parse<DisputeKind>(x.Kind!),
+            Enum.Parse<DisputeReason>(x.Reason!), Enum.Parse<DisputeStatus>(x.Status!), x.Outcome == null ? null : Enum.Parse<DisputeOutcome>(x.Outcome), Utc(x.CreatedAtUtc)!.Value,
+            Utc(x.DueAtUtc), (x.Quantity ?? 0) * (x.UnitPrice ?? 0), x.OfferAmount, x.Counterpart)).ToList(), total);
+    }
+
+    public async Task<IReadOnlyDictionary<int, IReadOnlyList<DisputeSummary>>> RequestsForOrderAsync(int actorId, int orderId, CancellationToken cancellationToken = default)
+    {
+        if (await ListRole(actorId, cancellationToken) is not { } viewer) return new Dictionary<int, IReadOnlyList<DisputeSummary>>();
+        var found = await Participating(actorId, viewer).Where(x => x.OrderId == orderId).OrderByDescending(x => x.Id)
+            .Select(x => new Existing(x.Id, x.OrderItemId!.Value, x.Kind, x.Status, x.Outcome, x.DueAtUtc, x.ClosedAtUtc)).ToListAsync(cancellationToken);
+        return found.GroupBy(x => x.OrderItemId).ToDictionary(g => g.Key, g => (IReadOnlyList<DisputeSummary>)g.Select(Summary).ToList());
+    }
+
+    // E03 lists: the Buyer sees requests they raised, the Seller the requests they received; any other role sees none.
+    private async Task<DisputeActor?> ListRole(int actorId, CancellationToken ct) =>
+        await db.Set<User>().Where(x => x.Id == actorId).Select(x => x.Role).SingleOrDefaultAsync(ct) switch
+        {
+            "Buyer" => DisputeActor.Buyer,
+            "Seller" => DisputeActor.Seller,
+            _ => null
+        };
+
+    private IQueryable<Dispute> Participating(int actorId, DisputeActor viewer)
+    {
+        var rows = db.Set<Dispute>().AsNoTracking().Where(x => x.OrderItemId != null);
+        return viewer == DisputeActor.Buyer ? rows.Where(x => x.RaisedBy == actorId) : rows.Where(x => x.SellerId == actorId);
+    }
+
+    private static DisputeSummary Summary(Existing d) => new(d.Id, Enum.Parse<DisputeKind>(d.Kind!), Enum.Parse<DisputeStatus>(d.Status!),
+        d.Outcome == null ? null : Enum.Parse<DisputeOutcome>(d.Outcome), Utc(d.DueAtUtc));
+
+    private static DateTime? Utc(DateTime? value) => value is { } v ? DateTime.SpecifyKind(v, DateTimeKind.Utc) : null;
 
     private Task<bool> IsRole(int userId, string role, CancellationToken ct) => db.Set<User>().AnyAsync(x => x.Id == userId && x.Role == role, ct);
 
@@ -248,8 +318,7 @@ public sealed class DisputeService(EbayDbContext db, TimeProvider clock, Dispute
             {
                 ItemTitle = x.Title ?? "Item unavailable",
                 LineTotal = total,
-                Requests = mine.Select(d => new DisputeSummary(d.Id, Enum.Parse<DisputeKind>(d.Kind!), Enum.Parse<DisputeStatus>(d.Status!),
-                    d.Outcome == null ? null : Enum.Parse<DisputeOutcome>(d.Outcome), d.DueAtUtc is { } due ? DateTime.SpecifyKind(due, DateTimeKind.Utc) : null)).ToList()
+                Requests = mine.Select(Summary).ToList()
             };
         });
     }
@@ -287,7 +356,6 @@ public sealed class DisputeService(EbayDbContext db, TimeProvider clock, Dispute
     private static async Task<DisputeSnapshot> Snapshot(EbayDbContext db, Dispute row, CancellationToken ct)
     {
         var line = await db.Set<OrderItem>().AsNoTracking().Where(x => x.Id == row.OrderItemId).Select(x => new { x.Quantity, x.UnitPrice }).SingleAsync(ct);
-        static DateTime? Utc(DateTime? value) => value is { } v ? DateTime.SpecifyKind(v, DateTimeKind.Utc) : null;
         return new(Enum.Parse<DisputeKind>(row.Kind!), Enum.Parse<DisputeReason>(row.Reason!), Enum.Parse<DisputeStatus>(row.Status!), Utc(row.CreatedAtUtc)!.Value,
             Utc(row.DueAtUtc), row.SellerRespondedAtUtc != null, (line.Quantity ?? 0) * (line.UnitPrice ?? 0), row.OfferAmount);
     }

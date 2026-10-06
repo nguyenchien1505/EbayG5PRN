@@ -1,0 +1,52 @@
+@model EbayGroup5.Web.Models.DisputeListPage
+@using EbayGroup5.Application.Disputes
+@using EbayGroup5.Web.Models
+@using System.Globalization
+@{ ViewData["Title"] = "Returns and requests"; var list = Model.List; var q = list.Query; var seller = list.Viewer == DisputeActor.Seller;
+    var demo = DisputeText.DemoNotice(Model.Timing);
+    // DISPUTE_DETAILS.md: Seller Hub style tabs (Returns / Requests and disputes) for sellers; open/closed chips for both.
+    DisputeKind?[] kinds = [null, DisputeKind.Return, DisputeKind.ItemNotReceived];
+    DisputeListState?[] states = [null, DisputeListState.Open, DisputeListState.Closed]; }
+<h1>Returns and requests</h1>
+<p class="field-help">@(seller ? "Requests buyers sent you" : "Requests you sent to sellers") · @list.Total results. Refunds are simulated; no money moves.</p>
+@if (demo != null) { <p class="dispute-demo" role="note">@demo</p> }
+@if (seller)
+{
+    <nav class="dispute-tabs" aria-label="Request type">
+        @foreach (var kind in kinds)
+        {
+            var active = q.Kind == kind;
+            <a class="dispute-tab@(active ? " active" : "")" asp-action="Index" asp-route-kind="@kind" asp-route-state="@q.State" aria-current="@(active ? "page" : null)">@DisputeRequestText.KindTab(kind)</a>
+        }
+    </nav>
+}
+<nav class="order-chips" aria-label="Filter requests">
+    @foreach (var state in states)
+    {
+        var active = q.State == state;
+        <a class="order-chip@(active ? " active" : "")" asp-action="Index" asp-route-kind="@q.Kind" asp-route-state="@state" aria-current="@(active ? "page" : null)">@(state?.ToString() ?? "All")</a>
+    }
+</nav>
+@if (list.Items.Count == 0)
+{
+    <section class="checkout-card"><h2>No requests here</h2><p>@(list.Total == 0 && q == new DisputeListQuery() ? (seller ? "Buyers haven't sent you any requests." : "You haven't opened any returns or requests.") : "No requests match this page or filter.")</p>
+        <a asp-controller="Orders" asp-action="@(seller ? "Sales" : "Purchases")">@(seller ? "Go to sales history" : "Go to purchase history")</a></section>
+}
+@foreach (var item in list.Items)
+{
+    <article class="order-card dispute-row">
+        <div class="order-card-heading"><strong>@DisputeText.Status(item.Status, item.Outcome, item.DueAtUtc, item.OfferAmount, Model.Timing, list.Viewer)</strong>
+            <span>@DisputeText.Kind(item.Kind) · Opened @DisputeText.Date(item.CreatedAtUtc, Model.Timing)</span></div>
+        <div class="order-card-content"><div class="order-item-icon product-placeholder" aria-hidden="true"><svg viewBox="0 0 64 64"><path d="M12 20 32 10 52 20 32 30Z M12 20v24l20 10 20-10V20 M32 30v24" /></svg></div>
+            <div class="order-item-text"><h2><a asp-action="Details" asp-route-id="@item.Id">@item.ItemTitle</a></h2>
+                <p>@DisputeText.Reason(item.Reason) · Order #@item.OrderId · @DisputeRequestText.Money(item.LineTotal)</p>
+                @if (item.Counterpart != null) { <p class="field-help">@(seller ? "Buyer" : "Seller"): @item.Counterpart</p> }</div>
+            <div class="order-card-actions"><a class="button outline" asp-action="Details" asp-route-id="@item.Id">@(seller ? "See details" : "See request details")</a></div>
+        </div>
+    </article>
+}
+<nav class="pagination" aria-label="Request pages">
+    @if (q.Page > 1) { <a asp-action="Index" asp-route-kind="@q.Kind" asp-route-state="@q.State" asp-route-page="@(q.Page - 1)">← Previous</a> }
+    <span>Page @q.Page of @list.TotalPages</span>
+    @if (q.Page < list.TotalPages) { <a asp-action="Index" asp-route-kind="@q.Kind" asp-route-state="@q.State" asp-route-page="@(q.Page + 1)">Next →</a> }
+</nav>

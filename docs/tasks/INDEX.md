@@ -31,7 +31,7 @@ Trạng thái ở đây là đầu mối theo dõi. Planned = cần kiểm tra d
 | [D06](D06.md) | Đồng bộ điểm vào nhóm 5 theo eBay (A1–A5) | D05, C04, B06 | Done |
 | [E01](E01.md) | Schema và state machine dispute | B06 | Done |
 | [E02](E02.md) | Form khiếu nại và lưu nháp | E01, B03 | Done |
-| [E03](E03.md) | Buyer/seller dashboard và trao đổi | E02 | Planned |
+| [E03](E03.md) | Buyer/seller dashboard và trao đổi | E02 | Done |
 | [E04](E04.md) | Phản hồi tự động và chuyển quá hạn | E03 | Planned |
 | [E05](E05.md) | Admin xử lý và kết quả mô phỏng | E04, B02 | Planned |
 | [F01](F01.md) | Docker image ứng dụng và Nginx HTTPS | C05, D05, E05 | Planned |

@@ -207,10 +207,10 @@ public sealed class DisputeFormTests
         Assert.Equal("0", Drafts(s));
         var details = WebUtility.HtmlDecode(await buyer.GetStringAsync($"/Orders/Details/{s.Order}"));
         Assert.Contains("This request was already sent.", details); // Notice of the second (resubmitted) post.
-        Assert.Contains("Item not received request</strong> · Waiting for the seller to respond by", details);
+        Assert.Contains("Item not received request</strong></a> · Waiting for the seller to respond by", details);
         Assert.DoesNotContain("I didn't receive it</a>", details);
         purchases = WebUtility.HtmlDecode(await buyer.GetStringAsync("/Orders/Purchases"));
-        Assert.Contains($"href=\"/Orders/Details/{s.Order}#line-{s.Item}\">See request details</a>", purchases);
+        Assert.Contains($"href=\"/Disputes/Details/{SqlFixture.Scalar(s.Target, "SELECT id FROM dbo.Dispute")}\">See request details</a>", purchases);
         Assert.DoesNotContain("I didn't receive it</a>", purchases);
         var again = await buyer.GetAsync(url);
         Assert.Equal(HttpStatusCode.Conflict, again.StatusCode);
@@ -250,7 +250,7 @@ public sealed class DisputeFormTests
         Assert.Equal(HttpStatusCode.Redirect, opened.StatusCode);
         var details = WebUtility.HtmlDecode(await buyer.GetStringAsync(opened.Headers.Location!.OriginalString));
         Assert.Contains("Your request was sent. The seller has until", details);
-        Assert.Contains("Return request</strong> · Waiting for the seller to respond by", details);
+        Assert.Contains("Return request</strong></a> · Waiting for the seller to respond by", details);
         Assert.Equal("Return|Damaged|Screen cracked on arrival|0", SqlFixture.Scalar(s.Target, "SELECT CONCAT(Kind COLLATE DATABASE_DEFAULT,'|',Reason COLLATE DATABASE_DEFAULT,'|',description,'|',(SELECT COUNT(*) FROM dbo.DisputeDraft)) FROM dbo.Dispute"));
     }
 }

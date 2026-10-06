@@ -26,6 +26,8 @@ public static class DisputeLimits
     public const int MaxTracking = 100;
     public const int MaxEvents = 200;
     public const int MaxBatchLines = 50;
+    public const int ListPageSize = 10;
+    public const int TimelinePageSize = 20;
 }
 
 public sealed record OpenDisputeRequest(int OrderItemId, DisputeKind Kind, DisputeReason Reason, DisputePreference? Preference, string? Details);
@@ -52,7 +54,26 @@ public sealed record DisputeEventView(int Id, DisputeActor ActorRole, DisputeEve
 public sealed record DisputeDetail(int Id, int OrderId, int OrderItemId, string ItemTitle, DisputeKind Kind, DisputeReason Reason, DisputePreference? Preference,
     DisputeStatus Status, DisputeOutcome? Outcome, string? Details, DateTime CreatedAtUtc, DateTime? DueAtUtc, DateTime? EscalatedAtUtc, DateTime? ClosedAtUtc,
     decimal LineTotal, decimal? OfferAmount, decimal? RefundAmount, string? ReturnTracking, DisputeActor Viewer, IReadOnlyList<DisputeAction> Actions,
-    IReadOnlyList<DisputeEventView> Events, bool DemoTiming);
+    IReadOnlyList<DisputeEventView> Events, bool DemoTiming)
+{
+    /// <summary>Username of the other party: the seller for the buyer, the buyer for the seller (E03).</summary>
+    public string? Counterpart { get; init; }
+    public string? BuyerName { get; init; }
+    public string? SellerName { get; init; }
+    /// <summary>Timeline page (newest first, TimelinePageSize events) and the request's total event count.</summary>
+    public int EventPage { get; init; } = 1;
+    public int EventTotal { get; init; }
+    public int EventPages => Math.Max(1, (int)Math.Ceiling(EventTotal / (double)DisputeLimits.TimelinePageSize));
+}
+
+public enum DisputeListState { Open, Closed }
+public sealed record DisputeListQuery(DisputeKind? Kind = null, DisputeListState? State = null, int Page = 1);
+public sealed record DisputeListItem(int Id, int OrderId, int OrderItemId, string ItemTitle, DisputeKind Kind, DisputeReason Reason, DisputeStatus Status,
+    DisputeOutcome? Outcome, DateTime CreatedAtUtc, DateTime? DueAtUtc, decimal LineTotal, decimal? OfferAmount, string? Counterpart);
+public sealed record DisputeList(DisputeActor Viewer, DisputeListQuery Query, IReadOnlyList<DisputeListItem> Items, int Total)
+{
+    public int TotalPages => Math.Max(1, (int)Math.Ceiling(Total / (double)DisputeLimits.ListPageSize));
+}
 
 public interface IDisputeService
 {
@@ -71,4 +92,10 @@ public interface IDisputeService
     Task<DisputeResult> ActAsSystemAsync(int disputeId, DisputeAction action, CancellationToken cancellationToken = default);
     /// <summary>Visible to the request's buyer and seller, and to Admin users; null otherwise.</summary>
     Task<DisputeDetail?> FindAsync(int actorId, int disputeId, CancellationToken cancellationToken = default);
+    /// <summary>Same as FindAsync with the timeline page (newest first) for the request details page (E03).</summary>
+    Task<DisputeDetail?> FindAsync(int actorId, int disputeId, int timelinePage, CancellationToken cancellationToken = default);
+    /// <summary>Requests the Buyer raised or the Seller received (E03, G5-07); null for any other role.</summary>
+    Task<DisputeList?> ListAsync(int actorId, DisputeListQuery query, CancellationToken cancellationToken = default);
+    /// <summary>Requests per order line (newest first) for the order's buyer or seller; empty for anyone else.</summary>
+    Task<IReadOnlyDictionary<int, IReadOnlyList<DisputeSummary>>> RequestsForOrderAsync(int actorId, int orderId, CancellationToken cancellationToken = default);
 }
