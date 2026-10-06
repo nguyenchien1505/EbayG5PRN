@@ -29,7 +29,7 @@
                     @if (User.IsInRole("Buyer")) { <a asp-controller="Orders" asp-action="Purchases">Purchase history</a> }
                     @if (User.IsInRole("Seller")) { <a asp-controller="Orders" asp-action="Sales">Sales history</a><a asp-controller="Sellers" asp-action="Feedback" asp-route-id="@User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value">Feedback profile</a> }
                     @if (User.IsInRole("Buyer") || User.IsInRole("Seller")) { <a asp-controller="Messages" asp-action="Index">Messages</a><a asp-controller="Disputes" asp-action="Index">Returns and requests</a> }
-                    @if (User.IsInRole("Admin")) { <a asp-controller="Admin" asp-action="Moderation">Moderation</a> }
+                    @if (User.IsInRole("Admin")) { <a asp-controller="Admin" asp-action="Moderation">Moderation</a><a asp-controller="Admin" asp-action="Disputes">Request reviews</a> }
                     @if (User.Identity?.IsAuthenticated != true)
                     {
                         <a asp-controller="Account" asp-action="Register">Create an account</a>

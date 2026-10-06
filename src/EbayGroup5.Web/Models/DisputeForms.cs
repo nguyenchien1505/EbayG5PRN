@@ -49,11 +49,25 @@ public static class DisputeText
     public static string Status(DisputeSummary request, DisputeTiming timing, DisputeActor viewer = DisputeActor.Buyer) =>
         Status(request.Status, request.Outcome, request.DueAtUtc, null, timing, viewer);
 
-    /// <summary>Buyer labels from DISPUTE_FORMS.md; seller labels from DISPUTE_DETAILS.md (E03).</summary>
+    /// <summary>Buyer labels from DISPUTE_FORMS.md; seller labels from DISPUTE_DETAILS.md (E03); admin labels from DISPUTE_ADMIN.md (E05).</summary>
     public static string Status(DisputeStatus status, DisputeOutcome? outcome, DateTime? dueAtUtc, decimal? offerAmount, DisputeTiming timing, DisputeActor viewer)
     {
         string Due() => dueAtUtc is { } due ? Date(due, timing) : "the deadline";
         var seller = viewer == DisputeActor.Seller;
+        if (viewer is DisputeActor.Admin or DisputeActor.System)
+            return (status, outcome) switch
+            {
+                (DisputeStatus.Escalated, _) => "Waiting for an eBay decision",
+                (DisputeStatus.Closed, DisputeOutcome.DecidedForBuyer) => "Closed — decided for the buyer",
+                (DisputeStatus.Closed, DisputeOutcome.DecidedForSeller) => "Closed — decided for the seller",
+                (DisputeStatus.Closed, DisputeOutcome.BuyerClosed) => "Buyer closed this request",
+                (DisputeStatus.Closed, DisputeOutcome.SellerDeclined) => "Closed — seller declined the return",
+                (DisputeStatus.Closed, DisputeOutcome.ItemReceived) => "Closed — buyer confirmed the item arrived",
+                (DisputeStatus.Open, _) => $"Waiting for the seller to respond by {Due()}",
+                (DisputeStatus.ReturnAccepted, _) => $"Return accepted — buyer ships by {Due()}",
+                (DisputeStatus.ReturnShipped, _) => $"Item shipped back — seller refunds by {Due()}",
+                _ => Status(status, outcome, dueAtUtc, offerAmount, timing, DisputeActor.Buyer)
+            };
         return status switch
         {
             DisputeStatus.Open when offerAmount != null => seller ? "Partial refund offered — waiting for the buyer" : "The seller offered a partial refund",

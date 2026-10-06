@@ -1,57 +1,49 @@
-# Handoff — E04: phản hồi tự động và chuyển quá hạn
+# Handoff — E05: admin xử lý request và kết quả mô phỏng
 
-06/10/2026. Repo D:/WINDOWS/PRN3/EbayGroup5.
+07/10/2026. Repo D:/WINDOWS/PRN3/EbayGroup5.
 
-- Baseline main `fb9521f`. Commit docs Q-UI-009 `2728473`, sau đó là runtime `4eb2a71` trên `task/E04-dispute-automation`, fast-forward vào main sau khi [CI37499272875](https://github.com/Twiash/EbayGroup5/actions/runs/37499272875) pass. Checkpoint `git log --oneline --grep=E04`.
-- Handoff trước: [E03](E03.md).
-- Q-UI-009 Answered: giữ nhãn clone, tạm giữ luật offer của E01, đồng ý tên "Returns and requests".
+- Baseline main `029674b`. Runtime trên `task/E05-dispute-admin`; checkpoint `git log --oneline --grep=E05`. GitHub CI: xem mục Verification.
+- Handoff trước: [E04](E04.md). **Nhóm E (khiếu nại) đã xong E01–E05.**
 
 ## Hoàn tất
 
-- Contract: [DISPUTE_AUTOMATION](../architecture/DISPUTE_AUTOMATION.md).
-- **DbUp `0013_DisputeNotice.sql`:**
-  - Thêm cột `DisputeEvent.NoticeKey` (varchar(20) BIN2).
-  - CHECK: có khóa ⇔ `AutoNotice` + System + có message + khóa thuộc 6 giá trị.
-  - Thêm `UX_DisputeEvent_Notice (DisputeId, NoticeKey)` có lọc.
-  - Manifest có 14 assets.
-- **Application** (`DisputeAutomation.cs`):
-  - `DisputeAutomationOptions` (`Disputes:Automation`: Enabled / IntervalSeconds 60 / BatchSize 100).
-  - `IDisputeAutomation`: `RunOnceAsync` và `NotifyAsync`.
-  - `DisputeNotices.Expected`: hàm thuần, chỉ trả thông báo của trạng thái hiện tại; dùng chung `Date` với Web.
-- **Infrastructure** (`DisputeAutomationService`):
-  - Chuyển quá hạn bằng `ActAsSystemAsync` (seller im lặng → Escalate; return không gửi → ExpireReturn).
-  - Tìm request còn thiếu thông báo; query chỉ so với hằng số, vì collation của `status` và `NoticeKey` khác nhau.
-  - `NotifyAsync`: khóa dòng UPDLOCK/HOLDLOCK, ghi các khóa còn thiếu, unique violation coi như replica khác đã ghi.
+- Contract: [DISPUTE_ADMIN](../architecture/DISPUTE_ADMIN.md). **Không có migration** (vẫn 0001–0013); luật E01 giữ nguyên.
+- **Application/Infrastructure:**
+  - `QueueAsync(admin, DisputeQueueQuery(State, Page))`:
+    - Waiting = `Escalated`, sắp theo hạn 48 giờ.
+    - Closed = đã từng escalate và đã đóng, sắp theo thời điểm đóng.
+    - 20 dòng/trang.
+  - `DisputeEventView.ActorName`: chỉ có khi người xem là Admin.
+  - **Siết `ViewerRole`:** Admin phải có credential (như D05). Áp dụng cho `FindAsync`/`ActAsync`.
 - **Web:**
-  - `Disputes/DisputeAutomationWorker`: BackgroundService chạy một lần lúc khởi động, sau đó theo chu kỳ; chỉ log số lượng.
-  - `DisputesController` gọi `NotifyAsync` sau khi Open/Act thành công; lỗi chỉ log cảnh báo.
-  - Trang chi tiết bỏ câu "eBay is reviewing" bị lặp.
+  - `AdminController` thêm `Disputes`, `Dispute/{id}`, `DisputeAct` (chỉ nhận Decide/Message).
+  - `Models/AdminDisputes.cs`; Views `Admin/Disputes`, `Admin/Dispute`.
+  - `DisputeText.Status` có nhãn cho admin. `DisputeRequestText.Verb`/`AuditActor` tách khỏi `Event`.
+  - Menu admin có thêm "Request reviews". CSS `.dispute-overdue`, `.dispute-summary-plain`.
 - **Tests:**
-  - `DisputeAutomationTests`: 5 test (pure, service, song song/batch, constraint, HTTP + worker thật).
-  - `AccountHttpTests.Factory(…, automation: false)` mặc định tắt worker; `ChatSocketHost` cũng tắt.
-  - Số migration trong `DatabaseTests`/`CheckoutTests` tăng lên 13/10.
+  - `DisputeAdminTests`: 3 test (hàng đợi/quyền, quyết định song song/audit, HTTP đầu cuối).
+  - `DisputeTests`/`DisputeDetailsTests` có wrapper `Setup` cấp credential cho seed admin.
+- [SECURITY](../architecture/SECURITY.md) có thêm dòng E05.
 
 ## Verification
 
-- [Evidence](../evidence/E04.md):
-  - Test tập trung 63/63.
-  - 4 replica song song không nhân đôi.
+- [Evidence](../evidence/E05.md):
+  - Test tập trung 46/46.
+  - Hai admin song song → chỉ 1 quyết định.
   - Mutation 2/2 bị bắt.
-  - Browser có worker thật.
-- **Test-CI local pass: 239/239 .NET + 20/20 Node**, build 0 warnings, container CI tự xóa.
-- **GitHub [CI37499272875](https://github.com/Twiash/EbayGroup5/actions/runs/37499272875) exact runtime `4eb2a71` success**: build-test 5m14s, **239/239 .NET + 20/20 Node**, build 0 warnings. Docs-only `[skip ci]` sau CI.
-- Fixture E04 nằm trong `artifacts/d02/preview/Program.cs` (bị ignore). DB preview đã lên 0013.
-- **DB `EbayGroup5` của người dùng phải được áp 0013 trước khi chạy app**, vì EF đã map cột `NoticeKey`. Lệnh: `pwsh -NoProfile -File scripts/Initialize-Database.ps1`.
+  - Browser: admin Decide, buyer thấy kết quả; desktop/390/320px.
+- **Test-CI local pass: 242/242 .NET + 20/20 Node**, build 0 warnings, container CI tự xóa.
+- GitHub CI cho runtime E05: ghi bằng commit docs-only `[skip ci]` sau khi pass.
+- Fixture preview (bị ignore) có moderator `d02admin@example.invalid`. Request #3 của preview đã được quyết cho buyer.
 - Không đụng `launchSettings.json`.
 
-## Cho task sau (E05)
+## Trạng thái requirement
 
-- Hàng đợi admin: request `Escalated` (`EscalatedAtUtc`, `DueAtUtc` = hạn 48 giờ).
-- Admin đọc qua `FindAsync` (Viewer = Admin); route riêng dưới AdminNetwork, vì `/Disputes/*` trả 403 cho Admin.
-- `Decide` (ForBuyer, note) và Message của admin đi qua `ActAsync`. Audit có sẵn trong timeline: actor/thời điểm/kết quả, `resolution`.
-- Sau `Decide`: request Closed, nên không có thông báo tự động mới. Nếu muốn thông báo kết quả thì thêm khóa bằng migration mới (0014), không sửa 0013 sau khi phát hành.
-- SUP-05 và G5-08 Done sau E05.
+- **G5-01…G5-08, G5-N03, SUP-05: Done.**
+- Còn Pending, đều thuộc nhóm F: G5-N01 (TLS/WSS), G5-N02/N04 (đo hiệu năng), G5-N05 (log/trace), UI-01 project-wide (G01).
 
-## Tiếp theo / Jira
+## Tiếp theo
 
-- E04 → **KAN-23 / TV4 Nguyên Nguyễn: hoàn tất local**. Chưa sync live; không tạo worklog/review/issue.
+- Nhóm F theo [task index](../tasks/INDEX.md), bắt đầu từ F01 (Docker image + Nginx HTTPS; dependency C05, D05, E05 đã đủ).
+- Không tự chuyển sang F khi người dùng chưa giao.
+- E01–E05 → KAN-21…KAN-24 / TV4 Nguyên Nguyễn: hoàn tất local. Chưa sync Jira live; không tạo worklog/review/issue.

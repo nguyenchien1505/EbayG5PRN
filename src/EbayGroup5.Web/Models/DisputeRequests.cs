@@ -189,7 +189,17 @@ public static class DisputeRequestText
     };
 
     /// <summary>One sentence per event; amounts are simulated refunds (no money moves).</summary>
-    public static string Event(DisputeEventView e, DisputeDetail d)
+    public static string Event(DisputeEventView e, DisputeDetail d) => $"{Actor(e.ActorRole, d.Viewer)} {Verb(e, d)}.";
+
+    /// <summary>E05 audit trail: role and username of whoever acted (System is the automation job).</summary>
+    public static string AuditActor(DisputeEventView e) => e.ActorRole switch
+    {
+        DisputeActor.System => "eBay (automatic)",
+        DisputeActor.Admin => "Admin " + (e.ActorName ?? "(unknown)"),
+        _ => e.ActorRole + " " + (e.ActorName ?? "(unknown)")
+    };
+
+    public static string Verb(DisputeEventView e, DisputeDetail d)
     {
         var amount = e.Amount is { } a ? Money(a) : null;
         string Favor(string party) => (d.Viewer == DisputeActor.Buyer && party == "buyer") || (d.Viewer == DisputeActor.Seller && party == "seller") ? "your" : $"the {party}'s";
@@ -213,7 +223,7 @@ public static class DisputeRequestText
             DisputeEventType.AutoNotice => "sent an automatic update",
             _ => "updated the request"
         };
-        return $"{Actor(e.ActorRole, d.Viewer)} {verb}.";
+        return verb;
     }
 
     public static string KindTab(DisputeKind? kind) => kind switch

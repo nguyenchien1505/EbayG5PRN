@@ -15,6 +15,14 @@ namespace EbayGroup5.Database.Tests;
 public sealed class DisputeTests
 {
     private static readonly DisputeTiming Timing = new();
+
+    // E05: the service treats a user as Admin only with a credential (like moderation); the seeded admin has none.
+    private static async Task<SetupData> Setup()
+    {
+        var s = await ReviewTests.Setup();
+        SqlFixture.Execute(s.Target, $"UPDATE dbo.[User] SET password=N'e05-admin-credential' WHERE id={s.Admin}");
+        return s;
+    }
     private static readonly DateTime T0 = new(2026, 10, 7, 9, 0, 0, DateTimeKind.Utc); // Wednesday
 
     private static DisputeSnapshot Snap(DisputeKind kind, DisputeStatus status, DateTime? due = null, bool responded = false, decimal? offer = null,

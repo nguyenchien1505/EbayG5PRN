@@ -13,7 +13,7 @@ Status `Pending` nghĩa là chưa triển khai/chưa nghiệm thu. Task tài li�
 | G5-05 | Điểm uy tín seller từ feedback tích cực | D03–D04 | Sentiment riêng, công thức đã chốt, seller reply đúng quyền | Done |
 | G5-06 | Gửi khiếu nại có nội dung và lý do | E01–E02 | Đúng dòng hàng/owner; không tạo trùng khi gửi lại | Done |
 | G5-07 | Buyer quản lý đã gửi, seller quản lý đã nhận | E03 | Danh sách/chi tiết/timeline đúng quyền và phân trang | Done |
-| G5-08 | Phản hồi tự động kết nối hệ thống admin | E04–E05 | Tiếp nhận, hướng dẫn, chuyển quá hạn, admin phân xử có audit | Pending |
+| G5-08 | Phản hồi tự động kết nối hệ thống admin | E04–E05 | Tiếp nhận, hướng dẫn, chuyển quá hạn, admin phân xử có audit | Done |
 
 ## Nhóm 5 — Yêu cầu phi chức năng gốc
 
@@ -44,7 +44,7 @@ Status `Pending` nghĩa là chưa triển khai/chưa nghiệm thu. Task tài li�
 | SUP-02 | Catalog/detail/search/filter/pagination | B03–B04 | UI tiếng Anh, seller/contact link, dữ liệu seed | Done |
 | SUP-03 | Buy Now/address/COD/inventory | B05 | Tiền server, transaction nhất quán, không bán quá tồn kho | Done |
 | SUP-04 | Lịch sử mua/bán, giao và nhận hàng | B06 | Owner/seller đúng quyền, trạng thái hợp lệ tới Delivered | Done |
-| SUP-05 | Admin dispute và kiểm duyệt review/feedback | B02, D05, E05 | Chặn user thường; mạng demo cho phép; audit và không xóa vật lý | Pending |
+| SUP-05 | Admin dispute và kiểm duyệt review/feedback | B02, D05, E05 | Chặn user thường; mạng demo cho phép; audit và không xóa vật lý | Done |
 
 ## Ràng buộc và quyết định của dự án
 
@@ -117,3 +117,5 @@ E02: [dispute form/draft evidence](../evidence/E02.md); DbUp 0012 nháp server, 
 E03: [request list/details evidence](../evidence/E03.md), 234 .NET +20 Node; danh sách buyer đã gửi / seller đã nhận (lọc, phân trang 10), trang request D2/H1 với trả lời, Ask eBay to step in và Close có lý do, timeline mới nhất trước phân trang 20; quyền theo owner (người lạ 404, admin 403 chờ E05), CSRF, overposting, gửi lại không ghi thêm, encode; browser desktop/390/320px. **G5-07 Done**. G5-08 Pending E04–E05, SUP-05 Pending E05; UI-01 project-wide Pending.
 
 E04: [automation evidence](../evidence/E04.md); DbUp 0013 khóa thông báo duy nhất, job trên mỗi replica chạy System Escalate/ExpireReturn và ghi thông báo tiếp nhận/hướng dẫn/quá hạn/eBay xem xét theo trạng thái hiện tại; chạy lại và 4 replica song song không nhân đôi; HTTP ghi ngay sau thao tác, worker thật escalate request quá hạn; browser. **G5-08 vẫn Pending**: tiếp nhận/hướng dẫn/chuyển quá hạn đã đạt, admin phân xử có audit thuộc E05. SUP-05 Pending E05.
+
+E05: [admin decision evidence](../evidence/E05.md); hàng đợi admin theo hạn 48 giờ, trang review có audit trail đủ actor/thời điểm/kết quả, Decide buyer/seller kèm note và hoàn tiền mô phỏng (Payment không đổi), Message hai bên; Admin cần credential (như D05), Buyer/Seller 403, ngoài mạng demo 403, CSRF, hai admin song song chỉ một quyết định, request không xóa/không mở lại; buyer/seller thấy kết quả, không thấy tên admin; browser. **G5-08 Done** (E04 tự động + E05 phân xử), **SUP-05 Done** (D05 kiểm duyệt + E05 dispute). UI-01 project-wide Pending.
