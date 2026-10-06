@@ -1,6 +1,15 @@
-# Chat contract — C01/C02/C03/C04
+# Chat contract — C01/C02/C03/C04/C05
 
-Chốt C01 06/10/2026 tại baseline236637e; C02 service/REST trên schema0006, C03 Hub/Redis tại baseline060036d, C04 UI tại baseline403e52a. C05 reconnect/log/outbox và F deployment/TLS/perf còn riêng; loopback WS không phải WSS deployment.
+Chốt C01 06/10/2026 tại baseline236637e; C02 service/REST trên schema0006, C03 Hub/Redis tại baseline060036d, C04 UI tại baseline403e52a, C05 recovery/trace tại baselineccf1264. Không outbox; F deployment/TLS/perf/operational log collection còn riêng; loopback WS không phải WSS deployment. Các phần Runtime C02–C04 dưới đây ghi hành vi checkpoint gốc; recovery C05 ở mục đầu thay giới hạn Refresh thủ công của C04.
+
+## C05 — recovery contract (chốt trước code, baseline ccf1264)
+
+- Không thêm outbox: SQL receipt là xác nhận bền vững; SignalR/Redis chỉ thông báo best effort. Không bảo đảm mọi event được giao. Khi event mất dù socket còn Connected, foreground reconciliation mỗi15s đọc SQL. Reconnect/restart join lại groups trước after-cursor catch-up; đọc lại owned summary để phục hồi read/unread và peer-read event bị mất.
+- Một recovery loop/page, một start và subscription sync tại một thời điểm. Lỗi dùng backoff1/2/4/8/16/30s với jitter75–100%, cap30s, tiếp tục khi trang mở/visible/online; online/focus/visibility/manual Refresh đánh thức. Page hidden/offline hoặc panel đóng tạm dừng; session401 dừng và xóa memory. Không phát UUID mới khi retry. Không log body/transport error từ browser.
+- Mỗi catch-up batch tối đa10x100, còn hasMore/live-gap thì continuation250ms, read bị chặn đến khi toàn bộ watermark được tải. Response selection cũ/panel đóng không được render/mark read. History lỗi không được coi là caught-up. REST vẫn tải bù/gửi được khi live transport lỗi.
+- Pending/draft chỉ memory của trang, **không localStorage/sessionStorage/IndexedDB/service-worker queue**. Transport/5xx/429 failure giữ exact UUID/payload và tự retry sau reconciliation;400/403/404/409 cần người dùng Retry. Own echo/receipt/history reconcile cùng conversation+sender+UUID; một replay trả record gốc, không row/event mới. Reload mất pending chưa xác nhận/draft; tin đã commit được đọc lại SQL. UI nhắc rõ giới hạn này, không tuyên bố offline durable composer.
+- Log structured metadata receipt/replay, history-after và publish result: conversation/message/sequence/UTC/record trace + request Activity trace; không body/token/cookie/credential hoặc raw exception. Record trace giữ nguyên khi replay; request trace mới liên kết lần retry. F03 chịu triển khai thu gom/correlation log, F01/F02 TLS/shared persistent keys, F05 latency/dataset acceptance.
+- Files dự kiến: js/chat-recovery.mjs, chat.js/chat-state.mjs, ChatService/ChatRealtime metadata, tests/chat-client.test.mjs và ChatRecoveryTests, runbook/evidence/task/index/matrix/handoff. Không migration/schema/seed/vendor change.
 
 ## Membership và context
 

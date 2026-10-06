@@ -169,6 +169,10 @@ public sealed class ChatService(EbayDbContext db, ILogger<ChatService> logger) :
         if (query.After == null) page.Reverse();
         var messages = page.Select(MessageDto).ToArray();
         await transaction.CommitAsync(ct);
+        if (query.After != null) logger.LogInformation(
+            "Chat catch-up conversation={ConversationId} after={After} newest={Newest} watermark={HighWatermark} count={Count} more={HasMore} utc={Utc} requestTrace={RequestTraceId}",
+            conversationId, query.After, messages.LastOrDefault()?.Sequence, ChatCursor.Format(c.LastSequence), messages.Length, hasMore,
+            DateTimeOffset.UtcNow, Activity.Current?.TraceId.ToString());
         return new(messages, messages.FirstOrDefault()?.Sequence, messages.LastOrDefault()?.Sequence, hasMore, ChatCursor.Format(c.LastSequence));
     }
 
@@ -230,8 +234,8 @@ public sealed class ChatService(EbayDbContext db, ILogger<ChatService> logger) :
         finally { db.ChangeTracker.Clear(); }
     }
     private void Log(Message message, bool replayed) => logger.LogInformation(
-        "Chat receipt conversation={ConversationId} message={MessageId} sequence={Sequence} utc={SentAtUtc} trace={TraceId} replayed={Replayed}",
-        message.ConversationId, message.Id, message.Sequence, message.SentAtUtc, message.TraceId, replayed);
+        "Chat receipt conversation={ConversationId} message={MessageId} sequence={Sequence} utc={SentAtUtc} trace={TraceId} replayed={Replayed} requestTrace={RequestTraceId}",
+        message.ConversationId, message.Id, message.Sequence, message.SentAtUtc, message.TraceId, replayed, Activity.Current?.TraceId.ToString());
 
     public async Task<ChatReadReceipt> MarkReadAsync(int actorId, int conversationId, string throughSequence, CancellationToken cancellationToken = default)
     {
