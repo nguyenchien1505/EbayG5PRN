@@ -154,6 +154,23 @@ public sealed class EbayDbContext(DbContextOptions<EbayDbContext> options) : DbC
             entity.Property(x => x.Comment).HasColumnName("comment").HasColumnType("nvarchar(max)");
             entity.Property(x => x.CreatedAt).HasColumnName("createdAt").HasColumnType("datetime");
         });
+        modelBuilder.Entity<SellerFeedback>(entity =>
+        {
+            entity.ToTable("SellerFeedback", "dbo");
+            entity.HasKey(x => x.Id);
+            entity.Property(x => x.Id).HasColumnType("int").UseIdentityColumn();
+            entity.Property(x => x.OrderItemId).HasColumnType("int");
+            entity.HasOne<OrderItem>().WithMany().HasForeignKey(x => x.OrderItemId).OnDelete(DeleteBehavior.ClientNoAction);
+            entity.HasIndex(x => x.OrderItemId).IsUnique().HasDatabaseName("UQ_SellerFeedback_OrderItem");
+            entity.Property(x => x.BuyerId).HasColumnType("int");
+            entity.Property(x => x.SellerId).HasColumnType("int");
+            entity.HasOne<User>().WithMany().HasForeignKey(x => x.BuyerId).OnDelete(DeleteBehavior.ClientNoAction);
+            entity.HasOne<User>().WithMany().HasForeignKey(x => x.SellerId).OnDelete(DeleteBehavior.ClientNoAction);
+            entity.Property(x => x.Sentiment).HasColumnType("varchar(8)").HasMaxLength(8).IsUnicode(false);
+            entity.Property(x => x.Comment).HasColumnType("nvarchar(500)").HasMaxLength(500);
+            entity.Property(x => x.CreatedAtUtc).HasColumnType("datetime2(7)").HasDefaultValueSql("SYSUTCDATETIME()");
+            entity.HasIndex(x => new { x.SellerId, x.Id }).IsDescending(false, true).HasDatabaseName("IX_SellerFeedback_Seller");
+        });
         modelBuilder.Entity<ChatConversation>(entity =>
         {
             entity.ToTable("ChatConversation", "dbo");

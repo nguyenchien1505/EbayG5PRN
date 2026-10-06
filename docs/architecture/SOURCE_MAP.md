@@ -37,3 +37,5 @@ B04: Application/Catalog DTO + ICatalogService; Infrastructure/Catalog EF querie
 D01: Database/Scripts/0007_ReviewOrderLink.sql; Core/Entities/Review (OrderItemId) + EbayDbContext map; Application/Reviews/IReviewService; Infrastructure/Reviews/ReviewService; Web/Controllers/ReviewsController + Models/ReviewForms; tests ReviewTests.cs. [REVIEWS](REVIEWS.md).
 
 D02: ReviewService ProductReviewsAsync/FindItemAsync; Web ReviewsController GET/POST + Views/Reviews/Create, CatalogController Details/Reviews + Views/Catalog/Reviews/InvalidReviewFilters, Shared/_Stars/_RatingSummary/_ReviewList, Orders/Details review actions, site.css review styles; tests `ReviewDisplayTests.cs`.
+
+D03: Database/Scripts/0008_SellerFeedback.sql; Core/Entities/SellerFeedback + EbayDbContext map; Application/Feedback/IFeedbackService (SellerReputation formula); Infrastructure/Reputation/FeedbackService (namespace tránh trùng entity `Feedback` nguồn); ReviewService internal Validate/Submit dùng chung; Web ReviewsController gộp, Views/Reviews/Create, Shared/_SellerReputation, Orders/Details, Catalog/Details; TimeProvider.System DI; tests `FeedbackTests.cs`.

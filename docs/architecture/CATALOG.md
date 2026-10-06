@@ -9,3 +9,5 @@
 - Home and header lead to live catalog; legacy Home/Search redirects with query intact. Filters preserve query/category during pagination. Invalid MVC input returns 400 with correction guidance; missing listing 404.
 - Contact seller expands an accessible native panel with seller/item context and honest messaging-unavailable notice until C04. B05 enables Buy It Now for displayed in-stock items and links authenticated Buyer checkout; stock is rechecked by [CHECKOUT](CHECKOUT.md). Out-of-stock button remains disabled. No cart/watchlist/ads/rating/condition/shipping promises without data.
 - D02 (06/10/2026): Catalog detail hiển thị rating/review từ review gắn đơn đã giao ([REVIEWS](REVIEWS.md)); đây là nguồn dữ liệu thật nên không còn thuộc "rating claims without source data". Lưới catalog vẫn không hiển thị rating.
+
+- D03 (06/10/2026): cạnh tên seller hiện `(score) x% positive feedback` hoặc "No feedback yet" từ [FEEDBACK](FEEDBACK.md); chưa có link hồ sơ (D04).

@@ -10,6 +10,7 @@ using EbayGroup5.Web.Chat;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.AspNetCore.Http.Connections;
 using StackExchange.Redis;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace EbayGroup5.Web;
 
@@ -59,6 +60,8 @@ public static class WebApplicationHost
         });
         builder.Services.AddScoped<EbayGroup5.Application.Orders.IOrderService, EbayGroup5.Infrastructure.Orders.OrderService>();
         builder.Services.AddScoped<EbayGroup5.Application.Reviews.IReviewService, EbayGroup5.Infrastructure.Reviews.ReviewService>();
+        builder.Services.TryAddSingleton(TimeProvider.System);
+        builder.Services.AddScoped<EbayGroup5.Application.Feedback.IFeedbackService, EbayGroup5.Infrastructure.Reputation.FeedbackService>();
         builder.Services.AddScoped<EbayGroup5.Application.Checkout.ICheckoutService, EbayGroup5.Infrastructure.Checkout.CheckoutService>();
         builder.Services.AddScoped<EbayGroup5.Application.Catalog.ICatalogService, EbayGroup5.Infrastructure.Catalog.CatalogService>();
         builder.Services.AddScoped<AccessCookieEvents>();

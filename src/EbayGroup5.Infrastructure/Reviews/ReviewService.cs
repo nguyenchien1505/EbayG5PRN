@@ -79,12 +79,7 @@ public sealed class ReviewService(EbayDbContext db) : IReviewService
 
     public async Task<ReviewResult> SubmitAsync(int buyerId, int orderItemId, int rating, string? comment, CancellationToken cancellationToken = default)
     {
-        if (rating is < ReviewLimits.MinRating or > ReviewLimits.MaxRating) return new(ReviewOutcome.Invalid, Error: "Rating must be from 1 to 5.");
-        var text = comment?.Trim();
-        if (string.IsNullOrEmpty(text)) text = null;
-        if (text != null && (text.Length > ReviewLimits.MaxCommentLength || text.Any(c => char.IsControl(c) && c is not ('\t' or '\r' or '\n'))))
-            return new(ReviewOutcome.Invalid, Error: $"Comment must be at most {ReviewLimits.MaxCommentLength} characters without control characters.");
-
+        if (Validate(rating, comment, out var text) is { } invalid) return invalid;
         await using var transaction = await db.Database.BeginTransactionAsync(IsolationLevel.ReadCommitted, cancellationToken);
         try
         {
@@ -113,7 +108,18 @@ public sealed class ReviewService(EbayDbContext db) : IReviewService
         }
     }
 
-    private async Task<ReviewResult> Submit(int buyerId, int orderItemId, int rating, string? comment, CancellationToken ct)
+    internal static ReviewResult? Validate(int rating, string? comment, out string? text)
+    {
+        text = comment?.Trim();
+        if (string.IsNullOrEmpty(text)) text = null;
+        if (rating is < ReviewLimits.MinRating or > ReviewLimits.MaxRating) return new(ReviewOutcome.Invalid, Error: "Rating must be from 1 to 5.");
+        if (text != null && (text.Length > ReviewLimits.MaxCommentLength || text.Any(c => char.IsControl(c) && c is not ('\t' or '\r' or '\n'))))
+            return new(ReviewOutcome.Invalid, Error: $"Comment must be at most {ReviewLimits.MaxCommentLength} characters without control characters.");
+        return null;
+    }
+
+    // Caller owns the transaction; input must already pass Validate. Also used by the combined R1 submission in FeedbackService.
+    internal async Task<ReviewResult> Submit(int buyerId, int orderItemId, int rating, string? comment, CancellationToken ct)
     {
         // Same lock order as B06 (User -> OrderTable -> OrderItem); shared HOLDLOCK keeps the order status stable until commit.
         var orderId = await db.Set<OrderItem>().AsNoTracking().Where(x => x.Id == orderItemId).Select(x => x.OrderId).SingleOrDefaultAsync(ct);

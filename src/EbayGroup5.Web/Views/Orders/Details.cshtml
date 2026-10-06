@@ -2,7 +2,8 @@
 @using EbayGroup5.Application.Orders
 @using System.Globalization
 @{ ViewData["Title"] = "Order #" + Model.Id; var history = Model.Audience == OrderAudience.Buyer ? "Purchases" : "Sales";
-    var reviewLines = (ViewData["ReviewLines"] as IReadOnlyList<EbayGroup5.Application.Reviews.ReviewLineEligibility>)?.ToDictionary(x => x.OrderItemId); }
+    var reviewLines = (ViewData["ReviewLines"] as IReadOnlyList<EbayGroup5.Application.Reviews.ReviewLineEligibility>)?.ToDictionary(x => x.OrderItemId);
+    var feedbackLines = (ViewData["FeedbackLines"] as IReadOnlyList<EbayGroup5.Application.Feedback.FeedbackLineEligibility>)?.ToDictionary(x => x.OrderItemId); }
 <a class="back-to-catalog" asp-action="@history">← Back to @(Model.Audience == OrderAudience.Buyer ? "purchase history" : "sales history")</a>
 <h1>Order #@Model.Id</h1><p class="order-status">@Model.Status</p>
 <p class="field-help">Placed: @(Model.Date?.ToString("MMM dd, yyyy", CultureInfo.InvariantCulture) ?? "Date unavailable"). Shipping and COD payments are simulated.</p>
@@ -12,9 +13,11 @@
 <div class="checkout-grid"><div class="checkout-sections"><section class="checkout-card"><h2>Items</h2>
     @foreach(var item in Model.Lines) { <div class="order-line"><strong>@item.Title</strong><p>Quantity: @(item.Quantity?.ToString() ?? "Unavailable") · Unit price: @(item.UnitPrice is decimal price ? "US $" + price.ToString("N2", CultureInfo.InvariantCulture) : "Unavailable")</p><div class="order-line-actions">@if(Model.Audience == OrderAudience.Buyer && item.ProductId != null) { <button type="button" class="chat-contact" data-chat-order-item-id="@item.Id">Contact seller</button> }
         @if(reviewLines != null && reviewLines.TryGetValue(item.Id, out var review)) {
-            if(review.CanReview) { <a class="button outline review-action" asp-controller="Reviews" asp-action="Create" asp-route-orderItemId="@item.Id">Leave a review</a> }
-            else if(review.Reviewed && review.Rating is int rated) { <p class="review-done"><partial name="_Stars" model="(decimal)rated" /> You rated this item @rated out of 5.</p> }
-            else if(Model.Status != "Cancelled") { <p class="field-help">@review.Reason</p> }
+            var sellerFeedback = feedbackLines?.GetValueOrDefault(item.Id);
+            if(review.CanReview || sellerFeedback?.CanLeave == true) { <a class="button outline review-action" asp-controller="Reviews" asp-action="Create" asp-route-orderItemId="@item.Id">Leave feedback</a> }
+            if(sellerFeedback is { Left: true, Sentiment: { } sentiment }) { <p class="review-done">You left @sentiment feedback for the seller.</p> }
+            if(review.Reviewed && review.Rating is int rated) { <p class="review-done"><partial name="_Stars" model="(decimal)rated" /> You rated this item @rated out of 5.</p> }
+            else if(!review.CanReview && sellerFeedback?.CanLeave != true && sellerFeedback?.Left != true && Model.Status != "Cancelled") { <p class="field-help">@(sellerFeedback?.Reason ?? review.Reason)</p> }
         }</div></div> }
     @if(Model.ItemCount > Model.Lines.Count) { <p class="field-help">Showing the first @Model.Lines.Count of @Model.ItemCount order lines. This legacy order is read-only.</p> }
     @if(Model.Lines.Count == 0) { <p>Item details are unavailable.</p> }
