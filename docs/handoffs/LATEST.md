@@ -1,25 +1,25 @@
-# Handoff — B05 Buy Now/address/COD
+# Handoff — B06 history and simulated fulfillment
 
-06/10/2026. Repo D:/WINDOWS/PRN3/EbayGroup5; baseline06bb5f3; runtime6d14618; main fast-forward từ task/B05-buy-now-cod sau CI pass. Checkpoint `git log --oneline --grep=B05`. Handoff Jira cũ [JIRA-team-backlog](JIRA-team-backlog.md), runtime B04 [B04](B04.md).
+06/10/2026. Repo D:/WINDOWS/PRN3/EbayGroup5; baseline27d5399; branch task/B06-order-history-delivery. Checkpoint `git log --oneline --grep=B06`. Handoff B05 giữ tại [B05](B05.md).
 
 ## Hoàn tất
 
-- [CHECKOUT](../architecture/CHECKOUT.md): principal Buyer; một item quantity1–99; USD/giá server; owned address thêm mới/chọn; COD Pending/NULL PaidAt, order Pending. Không real payment/delivery, không history/state B06.
-- DbUp0004 nullable key/fingerprint OrderTable + filtered unique Buyer/key + Inventory index; giữ nguyên17 bảng nguồn/seedv1. Migration local applied1, runtime login verified. Không EF migration/reset/drop DB/volume.
-- Transaction khóa Buyer → Product → Seller/Address → Inventory; recheck listing/price/stock; total decimal10,2; snapshot unit price. Replay cùng payload trả order cũ, khác payload409, Buyer khác UUID scope riêng. Exception rollback all writes, retry key được.
-- MVC checkout/add-address/confirmation no-store; global antiforgery, Buyer policy, owned order404, overposting ignored. Detail Buy It Now links checkout; out-of-stock disabled. Giá/stock409 hiển thị lỗi và quote mới.
-- Q-UI-006 Answered: user “Chốt C1 và bố cục đề xuất”; Pay with card official GIF, không ghi năm ảnh; eBay Connect2023/Help hỗ trợ. Ship to/item/COD/summary; two-column desktop/one-column mobile; Add address giữ quantity/chọn address mới. Không hỏi lại C1/Q-UI-005/L1/S1/P1.
-- 51 SQL/HTTP tests pass19.9178s (32 regression +19 B05); locked restore pass/Release build0 warnings/errors. Browser DB preview cô lập: login-return checkout/new-address/quantity2=$99.80/order#5Pending. 390/320 không overflow; artifacts/b05/*.png/log ignored.
-- Migration upgrade từ B04 seeded bảo toàn metadata/orders/items/payments/stock; trigger Payment failure rollback và concurrency/replay hai connection đã kiểm chứng. [Evidence](../evidence/B05.md). SUP-03Done, SUP-04/UI-01Pending.
+- [ORDERS](../architecture/ORDERS.md), Application Orders DTO/service + Infrastructure EF transaction + OrdersController/Razor. Buyer Purchases/Seller Sales/detail owned; role/CSRF/no-store; foreign/missing404, state409. Filter status/page20 ID descending; detail50 lines max, invalid legacy readonly.
+- DbUp0005 additive OrderTable.SellerId snapshot/FK + history indexes, nullable backfill chỉ same-Seller all lines; mixed/missing NULL. B05 checkout capture SellerId trong existing transaction. Giá/owner historical không phụ thuộc current listing. Original17 schema/seedv1/script0002–4 giữ bytes.
+- Fresh seed runner ancillary snapshot chỉ Buyer seed mới trong transaction, skip schema cũ trước0005; rerun không repair user data. Migration local applied1/runtime login verified. Không EnsureDeleted/drop/reset DB/volume, không EF migration.
+- Seller Pending→Shipped tạo một Demo Carrier/DEMO-B06-ID/EstimatedArrival NULL; Buyer Shipped→Delivered + Shipping Delivered + COD Paid/PaidAt UTC atomic. Serialize order lock, validate owned address/items/total/single COD/shipping. Retry/concurrent idempotent, rollback faults. Không trừ inventory lần hai/cancel/refund/real payment/real delivery.
+- PLAN sửa persisted Pending (Placed semantic cũ), không sửa seed trạng thái. P1 đã duyệt, card history theo P1, detail reuse C1/shell; header My eBay/confirmation links. Không fake C/D/E actions. Mobile responsive từ cùng mẫu, không hỏi lại P1.
+- 70/70 SQL/HTTP tests pass23s (51 regression+19 B06) với Test-CI container riêng2048MB/3GB; locked restore/build0 warnings/errors. [Evidence](../evidence/B06.md), metadata/upgrades/seed/concurrency/rollback/ownership/HTTP đã kiểm chứng.
+- Browser DB preview riêng: Seller ship → Buyer receive Order#5Delivered/COD Paid, total99.80, filter/clear/menu keyboard; desktop +390/320 không overflow. artifacts/b06/*.png/log/preview creds ignored. Preview đã kết thúc, không ghi demo orders qua browser.
 
-## Kiểm tra/checkpoint
+## Vận hành/checkpoint
 
-- Verify-Planning (105 Markdown files), Verify-Migrations (5 immutable SQL assets) và diff --check pass. Test-CI.ps1 local container riêng cấu hình chuẩn2048MB/3GB: build0 warnings/errors, 51/51tests pass16s; stopped container retained. GitHub [CI37397925776](https://github.com/Twiash/EbayGroup5/actions/runs/37397925776) tại runtime6d14618 pass: job2m20s, build0 warnings/errors, 51/51tests pass37s và TRX upload thành công. Commit tài liệu sau CI dùng [skip ci], chỉ checks docs/source integrity.
-- Local lần đầu migration cần GO (đã sửa trước apply). SQL retained test DBs gây resource-pool memory trong một run; override ignored artifacts/b05/compose-memory.yaml tăng engine2048→4096MB/container3→6GB trong kiểm chứng. Cấu hình repo không đổi; không xóa DB. Đã khôi phục engine2048MB/container3GB, đúng named volume cũ và SQL healthy; preview đã dừng.
-- Preview riêng không ghi dữ liệu vào EbayGroup5 demo. User untracked src/EbayGroup5.Web/Properties/launchSettings.json giữ nguyên/không stage. .env/.env.database/.env.auth giữ ignored, không in secrets.
+- Verify-Planning108 Markdown/39 cards/source17 tables, Verify-Migrations6 immutable SQL assets và diff --check pass. GitHub CI đang chuẩn bị push; ghi run/headSha cuối khi pass.
+- SQL local retained DBs gây repeated prelogin reset trên cấu hình2048MB/3GB; override ignored artifacts/b06/compose-memory.yaml dùng4096MB/6GB cho kết nối/preview/migration, giữ named volume ebaygroup5-local_sqlserver-data. Cấu hình repo không đổi. Giữ override local4096MB/6GB hiện tại để các DB retained kết nối ổn định; container healthy và named volume cũ đã kiểm tra. Compose up không kèm override sẽ quay về2048MB/3GB và có thể tái hiện prelogin reset. Không xóa DB để giải quyết RAM.
+- User untracked src/EbayGroup5.Web/Properties/launchSettings.json giữ nguyên, không stage. .env/.env.database/.env.auth và generated preview secrets không in/commit. SDK/config via Use-LocalDotnet/Use-LocalInfrastructure.
 
-## Tiếp theo
+## Jira và bước tiếp
 
-- Chỉ B05 trong phiên này. Khi user yêu cầu B06: đọc task B06/CHECKOUT/SECURITY/P1; chốt state transitions/order ownership trước code. Đơn B05 Pending, COD Pending; không ShippingInfo cho đến B06.
-- Jira mapping KAN-11 parentKAN-4/owner Tran Van Dat chứa B05+B06; không chuyển Done. Không cập nhật Jira hay tạo worklog trong phiên B05; trạng thái mapping là lần đồng bộ Jira trước. Không tạo ticket trùng.
-- Private origin Twiash/EbayGroup5; commit/push/CI đã được user cho phép; main fast-forward/push sau CI pass, không force-push. SDK/config qua Use-LocalDotnet/Use-LocalInfrastructure. Không subagents.
+- User yêu cầu đồng bộ Jira theo đợt task để phân chia thành viên, không sync sau mỗi task; mốc/số task chưa ấn định. [OWNERSHIP](../team/OWNERSHIP.md) lưu quy ước. B05+B06 đã hoàn tất local/KAN-11 parentKAN-4/owner Tran Van Dat, chờ một đợt sync. Không ghi Jira hoặc worklog trong phiên; không tạo ticket mới.
+- SUP-04Done, UI-01/SUP-05 và các C/D/E/F còn Pending. Không tự bắt đầu task khác. Commerce dependency cho D01/E01 đã có Delivered/COD evidence; task tiếp theo tùy user (thứ tự PLAN là C01).
+- Commit/push/CI private origin được user cho phép; fast-forward main sau CI pass, không force-push. Không subagents.

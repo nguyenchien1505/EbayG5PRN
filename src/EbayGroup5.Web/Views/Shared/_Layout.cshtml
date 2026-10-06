@@ -25,6 +25,8 @@
                 <summary>My eBay</summary>
                 <div class="menu-panel">
                     <a asp-controller="Account" asp-action="Me">Your account</a>
+                    @if (User.IsInRole("Buyer")) { <a asp-controller="Orders" asp-action="Purchases">Purchase history</a> }
+                    @if (User.IsInRole("Seller")) { <a asp-controller="Orders" asp-action="Sales">Sales history</a> }
                     @if (User.Identity?.IsAuthenticated != true)
                     {
                         <a asp-controller="Account" asp-action="Register">Create an account</a>

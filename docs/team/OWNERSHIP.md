@@ -17,3 +17,5 @@ Khi đồng bộ Jira: đọc skill backlog phù hợp, kiểm tra issue có s�
 Done cần bằng chứng; không bịa giờ làm, ngày, review hay tên tác giả. Codex hỗ trợ coding; thành viên phụ trách kiểm tra, hiểu module và trình bày. Mỗi người chuẩn bị kịch bản và giải thích phần mình.
 
 Cập nhật 06/10/2026: user chốt tài khoản thật TV1 Tran Van Dat, TV2 Đoàn Công Huy, TV3 Pham Van Cuong, TV4 Nguyên Nguyễn, TV5 Hải Lê. Đã tạo/gán 5 Epic +20 ticket KAN-4–28 và26 Blocks links; [mapping](JIRA_MAPPING.md), [phạm vi](JIRA_BACKLOG_PLAN.md). Các đoạn Unassigned/chưa tạo ở trên là ghi nhận checkpoint trước.
+
+Quy ước user 06/10/2026 sau B05: gom công việc và evidence theo một đợt task để phân chia cho thành viên rồi mới đồng bộ Jira; không tự cập nhật sau mỗi task nhỏ. Số task/mốc mỗi đợt chưa ấn định, lưu các task hoàn tất chưa sync trong handoff/mapping. B06 chỉ triển khai và ghi evidence local; chưa ghi Jira hay worklog. Giữ account/issue mapping đã duyệt, không tạo ticket trùng.

@@ -74,3 +74,5 @@
 3 child tickets Done,17 child tickets To Do; Epics2 In Progress/3 To Do. Done comes from existing code/test evidence, new workflow transitions recorded now. Owner is responsible for review/handover. No deadline/worklog supplied. Workflow available: To Do → In Progress → In Review → Done. No retrospective hours/dates/review history created.
 
 B05 checkpoint06/10/2026: runtime6d14618, [CI37397925776](https://github.com/Twiash/EbayGroup5/actions/runs/37397925776) pass51tests. KAN-11 vẫn bao gồm B06 chưa triển khai; không chuyển Done, không tạo issue/worklog mới. Phiên B05 không ghi Jira; các status bảng trên là snapshot đồng bộ Jira trước, không phải status live. [Evidence](../evidence/B05.md).
+
+Quy ước mới user06/10/2026: gom một đợt task/evidence để phân chia thành viên rồi mới sync Jira, chưa có ngưỡng task cố định. Ledger chưa sync: **B05+B06 local Done → KAN-11/TV1 Tran Van Dat**, [B06 evidence](../evidence/B06.md). Chưa thay status/evidence live Jira trong B06; không coi bảng snapshot To Do là trạng thái code hiện tại.

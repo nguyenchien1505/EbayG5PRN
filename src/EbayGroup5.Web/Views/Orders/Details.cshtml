@@ -1,0 +1,27 @@
+@model EbayGroup5.Application.Orders.OrderDetail
+@using EbayGroup5.Application.Orders
+@using System.Globalization
+@{ ViewData["Title"] = "Order #" + Model.Id; var history = Model.Audience == OrderAudience.Buyer ? "Purchases" : "Sales"; }
+<a class="back-to-catalog" asp-action="@history">← Back to @(Model.Audience == OrderAudience.Buyer ? "purchase history" : "sales history")</a>
+<h1>Order #@Model.Id</h1><p class="order-status">@Model.Status</p>
+<p class="field-help">Placed: @(Model.Date?.ToString("MMM dd, yyyy", CultureInfo.InvariantCulture) ?? "Date unavailable"). Shipping and COD payments are simulated.</p>
+@if(ViewData["OrderError"] is string error) { <div class="validation-errors" role="alert">@error</div> }
+@if(Model.Notice != null) { <p class="order-notice">@Model.Notice</p> }
+<div class="checkout-grid"><div class="checkout-sections"><section class="checkout-card"><h2>Items</h2>
+    @foreach(var item in Model.Lines) { <div class="order-line"><strong>@item.Title</strong><p>Quantity: @(item.Quantity?.ToString() ?? "Unavailable") · Unit price: @(item.UnitPrice is decimal price ? "US $" + price.ToString("N2", CultureInfo.InvariantCulture) : "Unavailable")</p></div> }
+    @if(Model.ItemCount > Model.Lines.Count) { <p class="field-help">Showing the first @Model.Lines.Count of @Model.ItemCount order lines. This legacy order is read-only.</p> }
+    @if(Model.Lines.Count == 0) { <p>Item details are unavailable.</p> }
+</section><section class="checkout-card"><h2>Ship to</h2>
+    @if(Model.Address is {} address) { <p>@address.FullName<br/>@address.Street<br/>@address.City @address.State<br/>@address.Country<br/>@address.Phone</p> }
+    else { <p>Shipping address is unavailable.</p> }
+</section><section class="checkout-card"><h2>Delivery (demo)</h2>
+    @if(Model.Tracking != null) { <p>@Model.Carrier<br/>@Model.Tracking</p><p class="field-help">Demo tracking reference. No real parcel is tracked.</p> }
+    else { <p>No shipment details available.</p> }
+</section></div><aside class="checkout-card checkout-summary"><h2>Order summary</h2>
+    <p><span>Total</span><strong>@(Model.Total is decimal total ? "US $" + total.ToString("N2", CultureInfo.InvariantCulture) : "Unavailable")</strong></p>
+    <p>Payment: @(Model.PaymentMethod ?? "Unavailable") · @(Model.PaymentStatus ?? "Unavailable")</p>
+    @if(Model.PaidAt is {} paidAt) { <p class="field-help">Payment recorded (demo): @paidAt.ToString("yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture) UTC</p> }
+    @if(Model.CanShip) { <form asp-action="Ship" method="post"><input type="hidden" name="id" value="@Model.Id"/><button type="submit" class="button primary purchase-button">Mark as shipped</button></form><p class="field-help">Creates a simulated shipment for this order.</p> }
+    @if(Model.CanReceive) { <form asp-action="Receive" method="post"><input type="hidden" name="id" value="@Model.Id"/><button type="submit" class="button primary purchase-button">Confirm received</button></form><p class="field-help">Confirm only after receiving the item in this demo. Records COD as paid without collecting money.</p> }
+    @if(Model.Status == "Delivered" && Model.Notice == null) { <p>Delivery complete. No real payment was collected.</p> }
+</aside></div>
