@@ -10,7 +10,7 @@ Status `Pending` nghĩa là chưa triển khai/chưa nghiệm thu. Task tài li�
 | G5-02 | Lưu lịch sử chat theo thời gian/người gửi | C01–C02, C05 | Restart/reconnect đọc lại đúng thứ tự, có phân trang | Done |
 | G5-03 | Rating và comment sau mỗi đơn đã nhận | D01–D02 | Chỉ owner đơn Delivered, một review mỗi OrderItem; mua lại được review | Done |
 | G5-04 | Trung bình đánh giá trên sản phẩm | D02, D05 | Trung bình/số lượt đúng, đổi theo kiểm duyệt, không chia cho zero | Pending |
-| G5-05 | Điểm uy tín seller từ feedback tích cực | D03–D04 | Sentiment riêng, công thức đã chốt, seller reply đúng quyền | Pending |
+| G5-05 | Điểm uy tín seller từ feedback tích cực | D03–D04 | Sentiment riêng, công thức đã chốt, seller reply đúng quyền | Done |
 | G5-06 | Gửi khiếu nại có nội dung và lý do | E01–E02 | Đúng dòng hàng/owner; không tạo trùng khi gửi lại | Pending |
 | G5-07 | Buyer quản lý đã gửi, seller quản lý đã nhận | E03 | Danh sách/chi tiết/timeline đúng quyền và phân trang | Pending |
 | G5-08 | Phản hồi tự động kết nối hệ thống admin | E04–E05 | Tiếp nhận, hướng dẫn, chuyển quá hạn, admin phân xử có audit | Pending |
@@ -103,3 +103,5 @@ D01: [review-order link evidence](../evidence/D01.md), 157 .NET +14 Node tests (
 D02: [review UI evidence](../evidence/D02.md), 161 .NET +14 Node, form R1/Orders eligibility/public summary-distribution-list/paging/sort/encode/legacy exclusion và browser desktop+320px. **G5-03 Done** (D01 rule + D02 UI). G5-04 vẫn Pending: trung bình/số lượt/không chia 0 đã kiểm chứng, phần "đổi theo kiểm duyệt" chờ D05. G5-05 Pending D03–D04; SUP-05 Pending D05/E05; UI-01 project-wide Pending.
 
 D03: [seller feedback evidence](../evidence/D03.md), 177 .NET +14 Node; sentiment tách review, công thức Score=P−N / P/(P+N) unit-tested, 60 ngày/chờ 7 ngày, gửi gộp atomic, seller snapshot, constraint/permission/migration, HTTP và browser. **G5-05 vẫn Pending**: trang uy tín và seller reply đúng quyền thuộc D04. G5-04 Pending D05; SUP-05 Pending D05/E05.
+
+D04: [reputation page/reply evidence](../evidence/D04.md), 183 .NET +14 Node; điểm P−N tích luỹ và % 12 tháng (Q-BIZ-004 thay quy tắc "toàn bộ" của PLAN cho tỷ lệ), cửa sổ 1/6/12 tháng, hồ sơ F1 public che tên buyer, reply chỉ seller nhận feedback, một lần, bất biến ở service+trigger+grant; HTTP và browser. **G5-05 Done** (D03 sentiment/công thức + D04 trang/reply). G5-04 Pending D05; SUP-05 Pending D05/E05; UI-01 project-wide Pending.

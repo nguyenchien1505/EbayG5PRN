@@ -9,4 +9,6 @@ public sealed class SellerFeedback
     public string Sentiment { get; set; } = "";
     public string? Comment { get; set; }
     public DateTime CreatedAtUtc { get; set; }
+    public string? ReplyText { get; set; }
+    public DateTime? RepliedAtUtc { get; set; }
 }

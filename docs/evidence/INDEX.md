@@ -26,3 +26,5 @@ Review D01: [EV-D01-01](D01.md), 157 .NET +14 Node pass, review gắn OrderItem 
 Review UI D02: [EV-D02-01](D02.md), 161 .NET +14 Node, browser desktop/320px; G5-03 Done, G5-04 Pending D05.
 
 Seller feedback D03: [EV-D03-01](D03.md), 177 .NET +14 Node, browser desktop/320px; G5-05 Pending D04.
+
+Reputation page D04: [EV-D04-01](D04.md), 183 .NET +14 Node, browser desktop/320px; G5-05 Done.

@@ -11,3 +11,5 @@
 - D02 (06/10/2026): Catalog detail hiển thị rating/review từ review gắn đơn đã giao ([REVIEWS](REVIEWS.md)); đây là nguồn dữ liệu thật nên không còn thuộc "rating claims without source data". Lưới catalog vẫn không hiển thị rating.
 
 - D03 (06/10/2026): cạnh tên seller hiện `(score) x% positive feedback` hoặc "No feedback yet" từ [FEEDBACK](FEEDBACK.md); chưa có link hồ sơ (D04).
+
+- D04 (06/10/2026): badge seller hiện `(score)` tích luỹ + "x% positive feedback (12 months)" và link `/Sellers/Feedback/{sellerId}` ([FEEDBACK](FEEDBACK.md#chi-tiết-triển-khai-d04)).

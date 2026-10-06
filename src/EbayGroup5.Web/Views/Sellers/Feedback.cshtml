@@ -1,0 +1,100 @@
+@model EbayGroup5.Application.Feedback.SellerFeedbackPage
+@using EbayGroup5.Application.Feedback
+@using System.Globalization
+@using System.Security.Claims
+@{
+    ViewData["Title"] = "Feedback profile: " + Model.Seller;
+    var rep = Model.Reputation;
+    var isOwner = User.IsInRole("Seller") && User.FindFirstValue(ClaimTypes.NameIdentifier) == Model.SellerId.ToString(CultureInfo.InvariantCulture);
+    var filter = Model.Filter?.ToString().ToLowerInvariant();
+    string When(FeedbackRecency r) => r switch { FeedbackRecency.PastMonth => "Past month", FeedbackRecency.Past6Months => "Past 6 months", FeedbackRecency.PastYear => "Past year", _ => "More than a year ago" };
+    string Icon(FeedbackSentiment s) => s switch { FeedbackSentiment.Positive => "+", FeedbackSentiment.Neutral => "•", _ => "−" };
+}
+<h1>Feedback profile</h1>
+@if (TempData["FeedbackNotice"] is string notice) { <p class="account-notice" role="status">@notice</p> }
+@if (ViewData["ReplyError"] is string error) { <div class="validation-errors" role="alert">@error</div> }
+<section class="checkout-card profile-card" aria-label="Seller summary">
+    <span class="seller-avatar profile-avatar" aria-hidden="true">@Model.Seller[0]</span>
+    <div>
+        <p class="profile-name"><strong>@Model.Seller</strong> <span title="Feedback score: positive minus negative, all time">(@rep.Score.ToString(CultureInfo.InvariantCulture))</span></p>
+        <p><strong>Positive Feedback (last 12 months): @(rep.PositivePercent is decimal p ? p.ToString("0.#", CultureInfo.InvariantCulture) + "%" : "—")</strong></p>
+        <p class="field-help">Clone rule: score = positive − negative (all time); positive % = positive ÷ (positive + negative) in the last 12 months. Neutral is not counted.</p>
+    </div>
+</section>
+<section aria-labelledby="ratings-title">
+    <h2 id="ratings-title">Feedback ratings</h2>
+    @if (rep.Total == 0) { <p class="rating-empty">No feedback yet.</p> }
+    <div class="table-scroll">
+        <table class="ratings-table">
+            <thead><tr><th scope="col"><span class="sr-only">Rating</span></th><th scope="col">1 month</th><th scope="col">6 months</th><th scope="col">12 months</th><th scope="col">All time</th></tr></thead>
+            <tbody>
+                @foreach (var s in Enum.GetValues<FeedbackSentiment>())
+                {
+                    int Of(FeedbackCounts c) => s switch { FeedbackSentiment.Positive => c.Positive, FeedbackSentiment.Neutral => c.Neutral, _ => c.Negative };
+                    <tr><th scope="row"><span class="sentiment-icon sentiment-@s.ToString().ToLowerInvariant()" aria-hidden="true">@Icon(s)</span> @s</th>
+                        <td>@Of(rep.Month1)</td><td>@Of(rep.Month6)</td><td>@Of(rep.Month12)</td><td>@Of(rep.Lifetime)</td></tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</section>
+<section aria-labelledby="received-title" class="feedback-received">
+    <h2 id="received-title">All received feedback</h2>
+    <form class="order-filters" method="get" asp-action="Feedback" asp-route-id="@Model.SellerId">
+        <label for="feedback-filter">Show</label>
+        <select id="feedback-filter" name="sentiment">
+            <option value="" selected="@(filter == null)">All ratings</option>
+            <option value="positive" selected="@(filter == "positive")">Positive</option>
+            <option value="neutral" selected="@(filter == "neutral")">Neutral</option>
+            <option value="negative" selected="@(filter == "negative")">Negative</option>
+        </select>
+        <button class="button outline" type="submit">Apply</button>
+    </form>
+    <p class="field-help">@Model.Total feedback received@(Model.Entries.Count > 0 ? $" (viewing {(Model.Page - 1) * SellerFeedbackPage.PageSize + 1}–{(Model.Page - 1) * SellerFeedbackPage.PageSize + Model.Entries.Count})" : "")</p>
+    @if (Model.Entries.Count == 0)
+    {
+        <p class="rating-empty">@(Model.Total == 0 ? "No feedback to show." : "No feedback on this page.")</p>
+    }
+    else
+    {
+        <div class="feedback-table" role="table" aria-label="Received feedback">
+            <div class="feedback-row feedback-head" role="row"><span role="columnheader">Feedback</span><span role="columnheader">From</span><span role="columnheader">When</span></div>
+            @foreach (var entry in Model.Entries)
+            {
+                <div class="feedback-row" role="row">
+                    <div role="cell" class="feedback-main">
+                        <p class="feedback-comment"><span class="sentiment-icon sentiment-@entry.Sentiment.ToString().ToLowerInvariant()" title="@entry.Sentiment">@Icon(entry.Sentiment)</span><span class="sr-only">@entry.Sentiment:</span> @(entry.Comment ?? $"{entry.Sentiment} feedback")</p>
+                        <p class="field-help">@entry.ItemTitle</p>
+                        @if (entry.Reply != null)
+                        {
+                            <div class="feedback-reply"><strong>Reply by @Model.Seller</strong> <span class="field-help">@entry.RepliedAtUtc?.ToString("MMM dd, yyyy", CultureInfo.InvariantCulture)</span><p>@entry.Reply</p></div>
+                        }
+                        else if (isOwner)
+                        {
+                            var draft = (ViewData["ReplyDraftId"] as int?) == entry.Id ? ViewData["ReplyDraft"] as string : null;
+                            <details class="reply-box" open="@(draft != null)">
+                                <summary>Reply</summary>
+                                <form asp-action="Reply" method="post">
+                                    <input type="hidden" name="feedbackId" value="@entry.Id" />
+                                    <label class="sr-only" for="reply-@entry.Id">Reply to this feedback</label>
+                                    <textarea id="reply-@entry.Id" name="reply" maxlength="@FeedbackLimits.MaxReplyLength" rows="3" placeholder="Reply to this buyer. Replies can't be edited.">@draft</textarea>
+                                    <button class="button outline" type="submit">Post reply</button>
+                                </form>
+                            </details>
+                        }
+                    </div>
+                    <div role="cell" class="feedback-from"><span>Buyer: @entry.Buyer</span>@if (entry.UnitPrice is decimal price) { <span>US $@price.ToString("N2", CultureInfo.InvariantCulture)</span> }<span>Verified purchase</span></div>
+                    <div role="cell" class="feedback-when">@When(entry.Recency)</div>
+                </div>
+            }
+        </div>
+    }
+    @if (Model.TotalPages > 1 || Model.Page > 1)
+    {
+        <nav class="pagination" aria-label="Feedback pages">
+            @if (Model.Page > 1) { <a class="button outline" asp-action="Feedback" asp-route-id="@Model.SellerId" asp-route-sentiment="@filter" asp-route-page="@(Model.Page - 1)">Previous</a> }
+            <span>@(Model.Page <= Model.TotalPages ? $"Page {Model.Page} of {Model.TotalPages}" : $"Page {Model.Page} · {Model.TotalPages} pages available")</span>
+            @if (Model.Page < Model.TotalPages) { <a class="button outline" asp-action="Feedback" asp-route-id="@Model.SellerId" asp-route-sentiment="@filter" asp-route-page="@(Model.Page + 1)">Next</a> }
+        </nav>
+    }
+</section>

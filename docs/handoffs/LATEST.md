@@ -1,60 +1,57 @@
-# Handoff — D03 seller feedback và công thức uy tín
+# Handoff — D04 trang uy tín và seller reply
 
 06/10/2026. Repo D:/WINDOWS/PRN3/EbayGroup5.
 
-- Baseline main `7b96a97`; runtime `f8189df` trên `task/D03-seller-feedback`, fast-forward vào main sau khi [CI37425953453](https://github.com/Twiash/EbayGroup5/actions/runs/37425953453) pass.
-- Checkpoint: `git log --oneline --grep=D03`.
-- Handoff D02 lưu ở [D02](D02.md).
+- Baseline main `baa8a8a`; nhánh `task/D04-reputation-reply`.
+- Checkpoint: `git log --oneline --grep=D04`.
+- Handoff D03 lưu ở [D03](D03.md).
 
 ## Hoàn tất
 
-- Q-BIZ-003 **Answered**: Delivered + 60 ngày; comment tùy chọn, tối đa 500; áp dụng luật chờ 7 ngày cho Neutral/Negative; form gộp R1. Contract nằm ở [FEEDBACK](../architecture/FEEDBACK.md).
-- DbUp `0008_SellerFeedback.sql`: bảng mới, chỉ mở rộng. Manifest có 9 assets. Bảng nguồn `Feedback` giữ nguyên, không dùng.
-- `Application/Feedback/IFeedbackService.cs`:
-  - `SellerReputation`: Score = P−N; % = P/(P+N), làm tròn 1 chữ số thập phân; trả null khi P+N = 0.
-  - `LeaveFeedbackRequest`: dữ liệu của form gộp.
-- `Infrastructure/Reputation/FeedbackService.cs`:
-  - Eligibility theo `TimeProvider`; thời điểm giao lấy từ `Payment.paidAt`.
-  - Gửi gộp feedback + review trong một transaction, dùng lại `ReviewService` internal `Validate`/`Submit`.
-  - Bộ lọc `Visible()` dùng chung cho D05.
-  - Đăng ký DI dạng `TimeProvider.System`.
+- Đầu vào đã chốt:
+  - Q-UI-007: F1 giản lược, theo trang eBay Feedback profile thật xem ngày 06/10/2026.
+  - Q-BIZ-004: tỷ lệ 12 tháng, điểm tích luỹ, reply một lần, không sửa.
+  - Contract: [FEEDBACK](../architecture/FEEDBACK.md#chi-tiết-triển-khai-d04).
+- DbUp `0009_SellerFeedbackReply.sql`: thêm `ReplyText` và `RepliedAtUtc` kèm CHECK; trigger `TR_SellerFeedback_Immutable`; `GRANT UPDATE` cho hai cột reply. Manifest có 10 assets. EF khai báo `HasTrigger`.
+- Application:
+  - `FeedbackCounts` chứa công thức của D03.
+  - `SellerReputation` gồm Lifetime/Month1/Month6/Month12 (dùng `AddMonths` theo TimeProvider).
+  - Thêm `SellerFeedbackPage`, `FeedbackEntry`, `ReplyResult`.
+- `FeedbackService` thêm:
+  - `ReputationAsync` theo các mốc thời gian, chạy bằng một query group.
+  - `ProfileAsync`: 25 dòng/trang, lọc theo sentiment, che tên buyer, recency.
+  - `ReplyAsync`: một câu UPDATE có điều kiện, atomic.
 - Web:
-  - `/Reviews/Create` thành trang "Leave feedback".
-  - Orders/Details: nút "Leave feedback" kèm trạng thái của từng phần.
-  - Partial `_SellerReputation` trên Catalog/Details.
-  - CSS cho các nút pill chọn sentiment.
-- Tests: `FeedbackTests.cs` (16 case). `DatabaseTests`/`CheckoutTests` cập nhật số migration 7→8.
+  - `SellersController`: `GET /Sellers/Feedback/{id}` (public) và `POST /Sellers/Reply` (policy Seller).
+  - Views `Sellers/Feedback`, `InvalidFeedbackFilters`.
+  - Badge `_SellerReputation` hiện tỷ lệ 12 tháng và link hồ sơ trên product.
+  - Menu My eBay: "Feedback profile" cho Seller. Thêm CSS.
+- Tests: `SellerProfileTests.cs` (6 case lớn). Test D03 cập nhật theo kiểu `FeedbackCounts`. Test migration loại thêm 0009. Số migration 8→9.
 
 ## Verification
 
-- [Evidence](../evidence/D03.md):
-  - Test-CI local: **177/177 .NET + 14/14 Node**, build 0 warnings.
-  - Mutation bỏ luật chờ 7 ngày bị 2 test bắt.
-  - Browser desktop + 320px.
+- [Evidence](../evidence/D04.md):
+  - Test-CI local: **183/183 .NET + 14/14 Node**.
+  - Mutation bỏ kiểm tra chủ sở hữu khi reply → 2 test bắt được.
+  - Browser desktop + 320px, có xem reply thật.
 - Trạng thái requirement:
-  - G5-03 vẫn Done.
-  - **G5-05 Pending**: còn trang uy tín và seller reply (D04).
-  - G5-04 Pending D05; SUP-05 Pending.
-- **[CI37425953453](https://github.com/Twiash/EbayGroup5/actions/runs/37425953453) exact runtime f8189df success**: job 4m17s, 177 .NET + 14 Node, build 0 warnings, TRX upload. Docs-only [skip ci] sau CI.
-- `launchSettings.json` (untracked) không bị đụng. Artifacts nằm trong `artifacts/d02/preview`, `artifacts/d03`, đã ignore.
+  - **G5-05 Done.** G5-03 Done.
+  - G5-04 Pending D05; SUP-05 Pending D05/E05; UI-01 Pending.
+- GitHub CI: ghi bên dưới sau khi push.
+- `launchSettings.json` (untracked) không bị đụng.
 
-## Lưu ý cho task sau
+## Lưu ý cho D05
 
-- **D04:**
-  - Trang hồ sơ seller, ví dụ `/Sellers/{id}/Feedback`: điểm, tỷ lệ, số lượng theo sentiment, danh sách feedback có phân trang.
-  - Seller reply: chỉ seller nhận feedback được trả lời. Cần migration mới (cột reply hoặc bảng reply) và grant UPDATE/INSERT.
-  - Link từ badge trên product. Profile chưa có mẫu UI (Q-UI-002 Partial): cần tìm ảnh mẫu và trình người dùng chốt trước khi làm UI.
-- **D05:** thêm điều kiện ẩn vào `FeedbackService.Visible` và `ReviewService.Visible`; uy tín phải đổi khi nội dung bị ẩn.
+- Thêm trạng thái ẩn cho Review và SellerFeedback bằng migration mới. Trigger D04 không chặn các cột mới.
+- Lọc ẩn trong `ReviewService.Visible` và `FeedbackService.Visible`; summary và uy tín phải đổi theo.
+- Report + Admin ẩn mềm có audit; không xóa vật lý (SUP-05). Admin chỉ dùng được trong mạng demo (`AdminNetwork`).
+- Feedback/reply đã ẩn không được hiển thị. Cần quyết định có hiện placeholder kiểu "Removed by eBay" hay không; nếu chưa rõ thì trình người dùng chọn.
 
 ## Tiếp theo / Jira
 
-- D03 xong. Chờ người dùng chọn task tiếp, không tự làm D04/E/F.
+- D04 xong. Chờ người dùng chọn task tiếp, không tự làm D05/E/F.
 - Ledger chờ gom đợt sync:
   - B05+B06 → KAN-11; C01–C05 → KAN-13..16; D01+D02 → KAN-17.
-  - **D03 → KAN-18/TV3 Pham Van Cuong: hoàn tất local một phần, còn D04.**
+  - **D03+D04 → KAN-18/TV3 Pham Van Cuong: hoàn tất local.**
+  - KAN-19 (D05) và KAN-20 chưa làm.
 - Chưa sync live; không tạo worklog/review/issue.
-
-## Cập nhật sau D03 (06/10/2026, chỉ tài liệu)
-
-- Đã chốt đầu vào cho D04: UI **F1 giản lược** dựa trên trang eBay Feedback profile thật (Q-UI-007); tỷ lệ tích cực **12 tháng**, điểm P−N tích luỹ, badge D03 sẽ đổi sang 12 tháng (Q-BIZ-004); reply một lần, không sửa. Xem [FEEDBACK](../architecture/FEEDBACK.md#quyết-định-d04).
-- Chưa đổi runtime. Chờ người dùng giao D04.

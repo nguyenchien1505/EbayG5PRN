@@ -46,7 +46,7 @@ public sealed class FeedbackTests
     [InlineData(1, 0, 15, -14, "6.3")]
     public void Formula_is_positive_minus_negative_and_excludes_neutral_from_percentage(int positive, int neutral, int negative, int score, string? percent)
     {
-        var reputation = new SellerReputation(positive, neutral, negative);
+        var reputation = new FeedbackCounts(positive, neutral, negative);
         Assert.Equal(score, reputation.Score);
         Assert.Equal(positive + neutral + negative, reputation.Total);
         Assert.Equal(percent == null ? null : decimal.Parse(percent, CultureInfo.InvariantCulture), reputation.PositivePercent);
@@ -82,7 +82,7 @@ public sealed class FeedbackTests
         Assert.Equal("4", Count(s));
         Assert.Equal($"{s.Seller}|{s.Buyer}|Positive|Fast shipping", SqlFixture.Scalar(s.Target,
             $"SELECT CONCAT(SellerId,'|',BuyerId,'|',Sentiment,'|',Comment) FROM dbo.SellerFeedback WHERE OrderItemId={lines[0]}"));
-        Assert.Equal(new SellerReputation(2, 1, 1), await Service(s, early).ReputationAsync(s.Seller));
+        Assert.Equal(new FeedbackCounts(2, 1, 1), (await Service(s, early).ReputationAsync(s.Seller)).Lifetime);
         var left = (await Service(s, early).ListForOrderAsync(s.Buyer, s.Order))!;
         Assert.Equal(new FeedbackSentiment?[] { FeedbackSentiment.Positive, FeedbackSentiment.Negative, FeedbackSentiment.Neutral, FeedbackSentiment.Positive, null, null },
             left.Select(x => x.Sentiment).ToArray());
@@ -147,7 +147,7 @@ public sealed class FeedbackTests
         Assert.True(both.FeedbackPosted && both.ReviewPosted);
         Assert.Equal(s.Order, both.OrderId);
         Assert.Equal(LeaveFeedbackOutcome.Success, (await Service(s, now).SubmitAsync(s.Buyer, Seller(lines[0], FeedbackSentiment.Negative))).Outcome);
-        Assert.Equal(new SellerReputation(1, 0, 1), await Service(s, now).ReputationAsync(s.Seller));
+        Assert.Equal(new FeedbackCounts(1, 0, 1), (await Service(s, now).ReputationAsync(s.Seller)).Lifetime);
         Assert.Equal(SellerReputation.Empty, await Service(s, now).ReputationAsync(s.OtherSeller));
         Assert.Equal("2", SqlFixture.Scalar(s.Target, $"SELECT COUNT(*) FROM dbo.SellerFeedback WHERE SellerId={s.Seller}"));
         Assert.Equal("4|Nice item", SqlFixture.Scalar(s.Target, $"SELECT CONCAT(rating,'|',comment) FROM dbo.Review WHERE OrderItemId={lines[1]}"));
@@ -212,7 +212,7 @@ public sealed class FeedbackTests
         SqlFixture.CreateEmpty(target);
         var scripts = new List<SqlScript> { new("0001_Baseline.sql", Baseline.ReadTableDdl()) };
         var assembly = typeof(MigrationRunner).Assembly;
-        foreach (var resource in assembly.GetManifestResourceNames().Where(x => x.Contains(".Scripts.") && !x.EndsWith("0008_SellerFeedback.sql")).Order())
+        foreach (var resource in assembly.GetManifestResourceNames().Where(x => x.Contains(".Scripts.") && !x.EndsWith("0008_SellerFeedback.sql") && !x.EndsWith("0009_SellerFeedbackReply.sql")).Order())
         {
             using var reader = new StreamReader(assembly.GetManifestResourceStream(resource)!);
             scripts.Add(new(resource[(resource.IndexOf(".Scripts.", StringComparison.Ordinal) + 9)..], reader.ReadToEnd()));
@@ -223,7 +223,7 @@ public sealed class FeedbackTests
         var metadata = SqlFixture.Rows(target, SqlFixture.Metadata);
         const string legacy = "SELECT CONCAT(id,'|',sellerId,'|',averageRating,'|',totalReviews,'|',positiveRate) FROM dbo.Feedback";
         var before = SqlFixture.Rows(target, legacy);
-        Assert.Equal(1, MigrationRunner.Run(target));
+        Assert.Equal(2, MigrationRunner.Run(target));
         Assert.True(metadata.IsSubsetOf(SqlFixture.Rows(target, SqlFixture.Metadata)));
         Assert.True(before.SetEquals(SqlFixture.Rows(target, legacy)));
         Assert.Equal("0", SqlFixture.Scalar(target, "SELECT COUNT(*) FROM dbo.SellerFeedback"));

@@ -101,11 +101,43 @@ Bảng mới `dbo.SellerFeedback`:
 
 ## Quyết định D04
 
-Người dùng chốt 06/10/2026 ([Q-BIZ-004, Q-UI-007](../questions/INDEX.md)). Phần này viết trước khi triển khai D04; chưa có code.
+Người dùng chốt 06/10/2026 ([Q-BIZ-004, Q-UI-007](../questions/INDEX.md)). Phần này viết trước khi triển khai; D04 đã triển khai theo đúng nội dung này.
 
-- **Tỷ lệ tích cực = P/(P+N) của các feedback có `CreatedAtUtc` trong 12 tháng gần nhất** (now − 365 ngày, theo `TimeProvider`). Quyết định này thay quy tắc "toàn bộ feedback" của PLAN §3.2 đối với tỷ lệ.
+- **Tỷ lệ tích cực = P/(P+N) của các feedback có `CreatedAtUtc` trong 12 tháng gần nhất** (`CreatedAtUtc > now.AddMonths(-12)`, theo `TimeProvider`; 1 và 6 tháng tính tương tự với AddMonths). Quyết định này thay quy tắc "toàn bộ feedback" của PLAN §3.2 đối với tỷ lệ.
 - **Điểm uy tín (P−N) vẫn tính toàn thời gian**, giống feedback score tích luỹ của eBay. Đây là cách agent hiểu câu trả lời và được ghi rõ để có thể đổi lại nếu người dùng muốn.
-- Badge D03 trên product sẽ đổi sang tỷ lệ 12 tháng khi triển khai D04. Hiện tại runtime D03 vẫn dùng toàn thời gian.
+- Badge D03 trên product đổi sang tỷ lệ 12 tháng trong D04 (đã triển khai).
 - Không có P hoặc N trong 12 tháng thì tỷ lệ = null. Không có feedback nào thì hiển thị "No feedback yet".
 - **Seller reply:** chỉ seller nhận feedback (`SellerFeedback.SellerId` = actor có role Seller) mới được reply; mỗi feedback reply một lần, tối đa 500 ký tự, không sửa/rút. Cần migration mới cho reply và quyền tương ứng.
 - **Trang hồ sơ:** theo F1 giản lược trong [UI_CANDIDATES](UI_CANDIDATES.md#f1--seller-feedback-profile).
+
+### Chi tiết triển khai D04
+
+Phần này soạn trước khi sửa source, trên baseline main `baa8a8a`. Dependency D03 runtime `f8189df` có CI37425953453 pass và là ancestor của baseline.
+
+**Schema — DbUp 0009 (chỉ mở rộng):**
+
+- `SellerFeedback` thêm `ReplyText nvarchar(500) NULL` và `RepliedAtUtc datetime2(7) NULL`. CHECK: hai cột cùng NULL, hoặc cùng có giá trị và reply không chỉ toàn khoảng trắng.
+- Trigger `TR_SellerFeedback_Immutable` chặn mọi UPDATE làm đổi các cột gốc (item, buyer, seller, sentiment, comment, created), và chặn sửa reply khi reply đã có. Áp dụng cho mọi login. D05 thêm cột ẩn thì không bị trigger chặn.
+- `ebay_app` chỉ được `GRANT UPDATE (ReplyText, RepliedAtUtc)`, vẫn không có DELETE.
+
+**Gửi reply:**
+
+- Một câu lệnh `UPDATE … WHERE Id=@id AND SellerId=@actor AND ReplyText IS NULL`, atomic.
+- Kết quả: actor không có role Seller → 403; feedback thuộc seller khác hoặc không tồn tại → 404; đã có reply → 409; reply rỗng/>500 ký tự/có control char → 400.
+- Gửi trùng không coi là thành công idempotent.
+
+**Uy tín:**
+
+- `FeedbackCounts(P, Neu, Neg)` chứa công thức của D03.
+- `SellerReputation(Lifetime, Month1, Month6, Month12)`: `Score` lấy từ Lifetime, `PositivePercent` lấy từ Month12.
+- Badge trên product hiện `(score)` và "x% positive feedback (12 months)". Nếu Month12 không có P hoặc N thì hiện "No feedback in the last 12 months"; không có feedback nào thì "No feedback yet". Badge có link sang trang hồ sơ.
+
+**Trang hồ sơ `/Sellers/Feedback/{sellerId}?sentiment=&page=`** (public, no-store):
+
+- sellerId phải là user có role Seller; nếu không thì 404.
+- `sentiment` nhận `positive`/`neutral`/`negative`, để trống là tất cả; page phải nguyên dương; sai thì 400. Page vượt quá thì trả danh sách rỗng.
+- 25 dòng/trang, sắp theo Id giảm dần.
+- Mỗi dòng hiện sentiment, comment, tên item (Product, NULL thì hiện "Item unavailable"), buyer che tên dạng ký tự chữ/số đầu + `***` + ký tự chữ/số cuối (bỏ khoảng trắng và dấu; ≤2 ký tự thì chỉ giữ ký tự đầu; không có thì hiện "Buyer"), đơn giá của dòng đơn, "Verified purchase", thời điểm tương đối (Past month / Past 6 months / Past year / More than a year ago), và reply kèm ngày nếu có.
+- Không hiện email, order ID hay buyer ID.
+- Seller chủ hồ sơ thấy form Reply (tối đa 500 ký tự) cho từng dòng chưa có reply. Gửi xong redirect về trang kèm thông báo; nếu lỗi thì render lại trang 1 kèm thông báo lỗi và đúng status.
+- Menu My eBay của Seller có thêm mục "Feedback profile".
