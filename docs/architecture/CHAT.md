@@ -1,0 +1,42 @@
+# C01 — Chat contract
+
+Chốt 06/10/2026 tại baseline236637e. Dependencies A05/B02 đã có DbUp/EF/security và regression70 tests + CI37400491344. C01 chỉ schema/mapping/wire contract; C02 service/API, C03 hub/Redis, C04 UI, C05 reconnect/log/outbox chưa triển khai.
+
+## Membership và context
+
+- ChatConversation giữ đúng hai slot BuyerId/SellerId khác nhau, FK User, unique pair; không table membership mở, không thêm thành viên, không reassign người. Buyer bắt đầu từ fixed-price listing hợp lệ theo CATALOG hoặc OrderItem thuộc Buyer với OrderTable.SellerId snapshot. Seller chỉ trả lời hội thoại có sẵn. Không cần mua trước. Các listing/đơn cùng cặp Buyer–Seller dùng chung hội thoại.
+- ID actor/sender từ principal server; role hiện tại phải khớp slot và credential còn hợp lệ. Admin/foreign/missing cùng không có quyền object (404); unauthenticated API401, endpoint sai role403. Peer inactive/chuyển role không làm người khác nhận slot; owner còn hợp lệ có thể đọc lịch sử, gửi mới yêu cầu peer còn đúng role/credential. Revalidate mỗi thao tác/Hub invocation; C03 phải kiểm tra recipient active trước publish và xử lý stale subscriptions. Không claim global cookie/password/logout revocation hoặc E2EE từ B02.
+- Context đầu tiên trên conversation là ProductId/title/unit price snapshot, không overwrite khi mở lại từ item khác. Optional message context ProductId/OrderItemId + title/price snapshot; order context lấy Seller/UnitPrice từ order snapshot. Khi attach listing mới, seller phải khớp slot; order context phải thuộc Buyer của hội thoại và seller snapshot khớp. Không lấy sellerId/senderId/receiverId/price/status/trace từ body làm quyền hoặc nguồn tiền. Recipient suy từ slot đối diện.
+- SQL composite FK Message(ConversationId,ConversationBuyerId,ConversationSellerId) → ChatConversation(Id,BuyerId,SellerId) và scoped CHECK sender/receiver thuộc đúng cặp ngăn third member hoặc cặp giả trong modern row. Role/principal/context ownership vẫn là kiểm tra service C02, không thể suy ra đã có authorization HTTP từ FK.
+
+## Lưu, retry, cursor và read cursor
+
+- SQL là nguồn bền vững. Message gốc giữ id INT, senderId/receiverId/content NVARCHAR(MAX)/timestamp DATETIME nullable và FK gốc. DbUp0006 chỉ thêm nullable modern fields, table mới/index/constraints. Legacy Message giữ nguyên tất cả giá trị, modern fields NULL và chưa được nhập vào active chat; không tự đoán Buyer/Seller theo role hiện tại hoặc timestamp thiếu. Import legacy cần migration/task được xem xét riêng. Seedv1/script0002–5 bất biến.
+- Modern row: ConversationId/participant copies, Sequence BIGINT>0, ClientMessageId UUID không rỗng, PayloadHash BINARY(32), SentAtUtc DATETIME2(7), TraceId VARCHAR(32) hex lowercase đều required theo CHECK; timestamp gốc vẫn ghi UTC để tương thích. Optional context atoms phải đầy đủ nếu ProductId có giá trị; OrderItemId cần ProductId. Plain text trim Unicode + CRLF/CR→LF, 1–4000 UTF-16 units sau normalize; SQL check giới hạn8000 bytes và không rỗng/space-only, C02 kiểm tra toàn bộ Unicode whitespace. Không rich HTML/attachments/email copy.
+- Scope idempotency unique (ConversationId,SenderId,ClientMessageId) filtered modern. Cùng key/canonical payload trả DTO cũ (không thêm row/sequence/event mới), payload khác409. Một sender có thể dùng UUID trong conversation khác; hai sender cùng UUID độc lập. PayloadHash = SHA256 UTF8 của `productId-or-'-' + '\n' + orderItemId-or-'-' + '\n' + normalizedContent`; context snapshot/UTC/trace do server tạo không thuộc payload client. Replay kiểm tra membership trước trả DTO, vẫn trả receipt cũ nếu peer inactive nhưng requester còn được đọc.
+- Transaction gửi C02: validate actor/resource → lock ChatConversation UPDLOCK/HOLDLOCK → recheck membership/replay → allocate checked LastSequence+1 → insert Message/copy participants/hash/UTC/trace + advance LastSequence/UpdatedAtUtc → commit rồi ack. Rollback giữ nguyên counter, UUID có thể retry. Identity Message.id có thể gap; không dùng identity/timestamp làm cursor vì thứ tự commit có thể lệch. INT PK gốc có giới hạn nguồn, BIGINT cursor không thay PK hay claim storage vô hạn.
+- History default50/max100, before và after exclusive, không đồng thời. Không cursor: lấy newest N theo Sequence DESC, trả ASC; before>0 lấy Seq<before newest N rồi trả ASC; after>=0 tải bù Seq>after theo ASC. Response page oldest/newest cursors + hasMore + highWatermark(LastSequence), không OFFSET/unbounded ToList. Sequence unique per conversation, cross conversation cursor không trao quyền. Thời gian không quyết định thứ tự.
+- Mỗi history request capture highWatermark đã commit và mọi query page/hasMore thêm Sequence<=highWatermark; message commit sau đó tải lần sau. after>highWatermark trả400, không dịch cursor để che lỗi. Hash dựa request context IDs, không phụ thuộc context lookup/giá hiện tại; replay lookup trước validate context mutable/peer cho send mới.
+- Wire sequence/cursor/highWatermark/read sequence là **decimal string** để browser không mất chính xác >2^53; canonical digits, range0..Int64.MaxValue, before phải>0. Conversation/message IDs giữ INT JSON number. UTC DateTimeOffset offset0, clientMessageId UUID JSON string.
+- BuyerReadSequence/SellerReadSequence riêng trên conversation, default0, CHECK 0<=read<=LastSequence; C02 MarkRead lock row và max(old,requested), không lùi, không nhận userId. Không tự đánh dấu peer đã đọc khi sender gửi. Unread đếm message peer có Sequence>ownRead. C04 mới điều khiển read từ UI.
+- Inbox C02 page20/max50, keyset UpdatedAtUtc DESC/Id DESC, cursor tuple UTC+id exclusive; concurrent activity có thể dịch hội thoại nên client merge theo conversation ID và refresh đầu trang. Index participant/UpdatedAtUtc/id; history index ConversationId/Sequence, không INCLUDE body lớn. Dataset/performance và reconnect nghiệm thu C05/F05.
+
+## REST, event và lỗi (C02/C03 sẽ thực hiện)
+
+| Route / method | Request / response / rule |
+|---|---|
+| GET /api/v1/chat/antiforgery | Authenticated, no-store token cho header X-CSRF-TOKEN; không log token |
+| POST /api/v1/chat/conversations | Buyer; đúng một productId hoặc orderItemId; derive Seller và return existing/new conversation + requested context |
+| GET /api/v1/chat/conversations | Owned inbox, limit20–50/cursor tuple; public DTO không email/password |
+| GET /api/v1/chat/conversations/{id}/messages | Owned history, before/after/limit contract ở trên; legacy unlinked không trả |
+| POST /api/v1/chat/conversations/{id}/messages | clientMessageId/content/optional productId,orderItemId; owner principal, CSRF; persisted receipt và replay flag |
+| POST /api/v1/chat/conversations/{id}/read | throughSequence string; current owner only, CSRF, monotonic receipt |
+| Hub /hubs/chat | WebSocket-only, SkipNegotiation, cookie; exact Origin allowlist scheme/host/port, missing/foreign Origin fails closed; không query token hoặc client Register(userId) |
+| JoinConversation / SendMessage / MarkRead | Cùng authorization/DTO/transaction với REST; group `chat:{id}` do server join sau check, không client tự chọn membership |
+| MessageCommitted / ReadAdvanced | Chỉ sau SQL commit, owned group; typed DTO/cursor, không emit replay như tin mới; live delivery có thể thiếu/trùng → merge sequence/ID và REST catch-up |
+
+- 400 invalid GUID/text/cursor/context/body; 401 login required; 403 endpoint role; 404 foreign/missing object; 409 UUID-payload conflict/peer unavailable/stale context; 429 nếu limiter task triển khai chặn; 500 generic. Không trả SQL/inner exception/nội dung tin cũ trong lỗi. REST body/hub receive32KiB; HTTP unsafe CSRF, WebSocket handshake Origin guard. WSS/HTTPS/proxy/shared keys thuộc F01/F02, không claim đã chạy.
+- Log metadata only message ID/conversation ID/sequence/UTC/trace/result; không body, token, cookie, credential, địa chỉ. TraceId do server Activity.TraceId hoặc random tạo; replay giữ trace của record gốc, request trace mới chỉ log metadata. EF sensitive data logging phải off.
+- Redis chỉ backplane; không lưu message durable, không coi send SignalR thành công là commit. Crash sau commit trước publish recover bằng SQL after cursor. Guaranteed outbox/reliable delivery (nếu cần) phải thiết kế/kiểm chứng C05, C01 chưa có outbox.
+
+Files scope trước code: DbUp0006 + checksum; ChatConversation/Message extensions + EF mapping; Application/Chat DTO/interface/cursor codec; SQL constraint/legacy/mapping/cursor/idempotency/concurrency tests; task/evidence/handoff/matrix. Không route/service/hub/UI trong C01.
