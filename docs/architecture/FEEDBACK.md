@@ -98,3 +98,14 @@ Bảng mới `dbo.SellerFeedback`:
 - Gửi gộp phải rollback cả hai phần khi một phần lỗi; gửi đồng thời; uy tín tính theo seller snapshot.
 - Migration giữ nguyên dữ liệu và metadata; bảng `Feedback` nguồn không đổi.
 - HTTP: CSRF, role/owner, overposting; browser desktop và 320px.
+
+## Quyết định D04
+
+Người dùng chốt 06/10/2026 ([Q-BIZ-004, Q-UI-007](../questions/INDEX.md)). Phần này viết trước khi triển khai D04; chưa có code.
+
+- **Tỷ lệ tích cực = P/(P+N) của các feedback có `CreatedAtUtc` trong 12 tháng gần nhất** (now − 365 ngày, theo `TimeProvider`). Quyết định này thay quy tắc "toàn bộ feedback" của PLAN §3.2 đối với tỷ lệ.
+- **Điểm uy tín (P−N) vẫn tính toàn thời gian**, giống feedback score tích luỹ của eBay. Đây là cách agent hiểu câu trả lời và được ghi rõ để có thể đổi lại nếu người dùng muốn.
+- Badge D03 trên product sẽ đổi sang tỷ lệ 12 tháng khi triển khai D04. Hiện tại runtime D03 vẫn dùng toàn thời gian.
+- Không có P hoặc N trong 12 tháng thì tỷ lệ = null. Không có feedback nào thì hiển thị "No feedback yet".
+- **Seller reply:** chỉ seller nhận feedback (`SellerFeedback.SellerId` = actor có role Seller) mới được reply; mỗi feedback reply một lần, tối đa 500 ký tự, không sửa/rút. Cần migration mới cho reply và quyền tương ứng.
+- **Trang hồ sơ:** theo F1 giản lược trong [UI_CANDIDATES](UI_CANDIDATES.md#f1--seller-feedback-profile).

@@ -51,3 +51,19 @@ Ngày tìm 02/10/2026. Người dùng yêu cầu tìm ảnh thiếu trên Intern
 Clone giản lược: Ship to → item/quantity → COD mô phỏng → total/Place order, desktop hai cột/mobile một cột. Không triển khai card/PayPal/coupon/vault/tax/shipping options từ mẫu. COD là quyết định demo của dự án, không suy ra từ ảnh hoặc chính sách eBay. Không copy thông tin cá nhân trong nguồn.
 
 C04 06/10/2026 triển khai U1/M1 đã chốt: right white dialog/backdrop/item context/plaintext composer và Messages navigation/inbox/thread ba cột. Mobile full-width drawer hoặc list/thread Back là adaptation clone, không nguồn eBay mobile mới. Không attachments/offer/email/archive. [C04 evidence](../evidence/C04.md) ghi thực chứng desktop/mobile/error/paging/read/ownership; không hỏi lại phê duyệt U1/M1.
+
+## F1 — seller feedback profile
+
+Nguồn: [eBay Feedback profile thật](https://www.ebay.com/fdbk/feedback_profile/bestbuy), trang live xem ngày 06/10/2026 (không phải ảnh có năm). Ảnh chụp lưu ignored trong `artifacts/d04/F1-ebay-feedback-profile-top.jpg` và `artifacts/d04/F1-ebay-feedback-profile-list.jpg`; không commit vì là nội dung của eBay và có username thật đã được che một phần. Cách reply lấy từ [eBay Help](https://www.ebay.com/help/selling/leaving-feedback-buyers/replying-feedback-received-item-sold?id=4102). Người dùng chốt **F1 giản lược** qua Q-UI-007.
+
+Bản giản lược cho clone gồm:
+
+- Thẻ đầu trang: tên seller, `(score)`, "Positive Feedback (last 12 months): x%", thời điểm bắt đầu (lấy dữ liệu có thật; schema không có ngày tạo user thì bỏ dòng "Member since"), link "View items for sale" nếu có.
+- Bảng "Feedback ratings": các dòng Positive/Neutral/Negative, các cột 1 tháng / 6 tháng / 12 tháng.
+- Danh sách 3 cột FEEDBACK / FROM / WHEN:
+  - FEEDBACK: icon sentiment, comment, tên item.
+  - FROM: buyer che tên kiểu `b***r`, giá, "Verified purchase".
+  - WHEN: thời gian tương đối.
+  - Reply của seller hiện ngay dưới comment; Seller chủ hồ sơ thấy nút Reply bên phải.
+- Lọc theo sentiment và phân trang.
+- Bỏ: Detailed seller ratings, tab buyer/left for others, ô tìm item, ảnh, Member Quick Links. Mobile xếp thành một cột theo shell của clone, không có ảnh eBay mobile làm mẫu.

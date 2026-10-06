@@ -6,7 +6,7 @@
 | Q-TEAM-001 | Tài khoản Jira ánh xạ TV1–TV5 | Đã gán đúng account assignable | Answered 06/10/2026: Dat/Huy/Cuong/Nguyên/Hải theo phân công đã duyệt |
 | Q-TEAM-002 | Ngày nộp/mốc giảng viên | Chưa lập lịch ngày cụ thể; không chặn task kỹ thuật | Open |
 | Q-UI-001 | Inbox và conversation eBay | Chốt UI C04 | Answered: U1 + M1 desktop; mobile/trạng thái bổ sung khi làm C04 |
-| Q-UI-002 | Purchase history và form review/feedback | Chốt UI B06, D02–D04 | Partial: R1 và P1 đã chốt; profile chưa có mẫu |
+| Q-UI-002 | Purchase history và form review/feedback | Chốt UI B06, D02–D04 | Answered 06/10/2026: R1, P1 và F1 (feedback profile, giản lược) đã chốt |
 | Q-UI-003 | Form khiếu nại và case buyer/seller | Chốt UI E02–E03 | Partial: D1/D2 đã chốt; timeline/escalation chưa đủ ảnh |
 
 A02 đã quan sát home/menu và đọc Help. Ngày 02/10/2026 người dùng gửi U1 và xác nhận “Chốt cả M1, R1, D1, D2”. Xem [gallery/quyết định](../architecture/UI_CANDIDATES.md); các ảnh là mẫu thiết kế, không chứng minh toàn bộ UI hiện hành. Chi tiết còn thiếu: [UI-REFERENCES](UI-REFERENCES.md). P1 cũng đã được chốt qua lời nhắn trực tiếp ngày 02/10/2026. Không chặn A05.
@@ -32,3 +32,11 @@ Q-BIZ-001 (D01/D02, **Answered 06/10/2026**): người dùng yêu cầu đề xu
 Q-BIZ-002 (D02, **Answered 06/10/2026**, cùng câu trả lời "Đồng ý"): chỉ review gắn đơn (`OrderItemId IS NOT NULL`, tương đương eBay "verified purchase") được hiển thị và tính trung bình/số lượt. Review legacy giữ nguyên trong DB nhưng không hiển thị, không tính.
 
 Q-BIZ-003 (D03, **Answered 06/10/2026**): đối chiếu eBay Help (feedback trong 60 ngày, Positive/Neutral/Negative, comment là thêm tùy ý) và R1 ("0 / 500", "wait 7 days before ... neutral or negative"). Người dùng chọn: Delivered + trong 60 ngày từ khi giao; comment tùy chọn tối đa 500; **áp dụng** chờ 7 ngày cho Neutral/Negative; form gộp như R1. Chi tiết [FEEDBACK](../architecture/FEEDBACK.md).
+
+Q-UI-007 (D04 feedback profile, **Answered 06/10/2026**): đã trình F1 là trang eBay Feedback profile thật `https://www.ebay.com/fdbk/feedback_profile/bestbuy`, xem trực tiếp ngày 06/10/2026, kèm hai ảnh chụp lưu ignored trong `artifacts/d04/` (không commit). Nguồn phụ: [eBay Help reply feedback](https://www.ebay.com/help/selling/leaving-feedback-buyers/replying-feedback-received-item-sold?id=4102). Người dùng chọn **F1 giản lược**. Chi tiết [UI_CANDIDATES](../architecture/UI_CANDIDATES.md#f1--seller-feedback-profile).
+
+Q-BIZ-004 (D04, **Answered 06/10/2026**):
+- Tỷ lệ tích cực trên hồ sơ tính **12 tháng như eBay**; quyết định này thay quy tắc "dùng toàn bộ feedback" của PLAN §3.2 đối với tỷ lệ. Điểm uy tín (P−N) vẫn tính toàn thời gian; đây là cách agent hiểu, theo eBay (feedback score tích luỹ).
+- Badge D03 phải đổi sang tỷ lệ 12 tháng khi triển khai D04.
+- Seller reply: mỗi feedback chỉ reply một lần, không sửa và không rút lại (theo eBay Help).
+- Chi tiết [FEEDBACK](../architecture/FEEDBACK.md#quyết-định-d04).

@@ -53,3 +53,8 @@
   - B05+B06 → KAN-11; C01–C05 → KAN-13..16; D01+D02 → KAN-17.
   - **D03 → KAN-18/TV3 Pham Van Cuong: hoàn tất local một phần, còn D04.**
 - Chưa sync live; không tạo worklog/review/issue.
+
+## Cập nhật sau D03 (06/10/2026, chỉ tài liệu)
+
+- Đã chốt đầu vào cho D04: UI **F1 giản lược** dựa trên trang eBay Feedback profile thật (Q-UI-007); tỷ lệ tích cực **12 tháng**, điểm P−N tích luỹ, badge D03 sẽ đổi sang 12 tháng (Q-BIZ-004); reply một lần, không sửa. Xem [FEEDBACK](../architecture/FEEDBACK.md#quyết-định-d04).
+- Chưa đổi runtime. Chờ người dùng giao D04.
