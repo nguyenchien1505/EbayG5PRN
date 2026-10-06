@@ -1,10 +1,10 @@
 # Bắt đầu ở đây
 
-**Checkpoint:** A00–A07 hoàn tất; SQL baseline 17 bảng, EF mapping, DbUp và 12 test SQL pass. CI GitHub đã pass. B01–B04 auth/security/catalog hoàn tất, 32 SQL/HTTP tests pass; demo credential local đã enable riêng.
+**Checkpoint:** A00–A07 và B01–B05 hoàn tất; SQL baseline 17 bảng, DbUp additive 0004, auth/catalog/Buy Now-address-COD demo, 51 SQL/HTTP tests pass. Demo credential local đã enable riêng. GitHub CI mới nhất xem handoff.
 
 1. Đọc [quy định agent](../AGENTS.md) và [handoff mới nhất](handoffs/LATEST.md).
 2. Xem [task index](tasks/INDEX.md), chọn đúng task được yêu cầu.
-3. Task tiếp theo **[B05](tasks/B05.md)** — Buy Now, địa chỉ và COD mô phỏng. Đọc [CATALOG](architecture/CATALOG.md) và [SECURITY](architecture/SECURITY.md) để nối checkout đúng quyền/tồn kho.
+3. Task commerce tiếp theo **[B06](tasks/B06.md)** — lịch sử mua/bán và giao/nhận; chưa triển khai trong phiên B05. Đọc [CHECKOUT](architecture/CHECKOUT.md), [CATALOG](architecture/CATALOG.md) và [SECURITY](architecture/SECURITY.md), mẫu P1 đã chốt. Chỉ tiếp tục task người dùng yêu cầu.
 
 Các quyết định cố định: .NET 8 MVC/Razor; SQL Server; schema chỉ mở rộng; viết mới; UI tiếng Anh; repo riêng; GitHub private; Jira KAN; demo local Docker/K8s. Xem [ADR-001](decisions/ADR-001-foundation.md) khi cần lý do.
 

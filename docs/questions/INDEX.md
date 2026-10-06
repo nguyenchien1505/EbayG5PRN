@@ -24,3 +24,5 @@ Q-UI-005 cập nhật 03/10/2026: người dùng trả lời 'Tôi sẽ gửi �
 Q-UI-005 Answered: người dùng đã gửi ảnh chi tiết sản phẩm thay thế và yêu cầu tiếp tục; bố cục ảnh trái/title-seller-price-stock phải. Đã áp dụng/kiểm chứng B04 ngày 06/10/2026. PD1 Internet là đề xuất lịch sử, không dùng. Không commit ảnh/tài khoản trong ảnh nguồn.
 
 Q-TEAM-001: user xác nhận 'Tạo và gán theo đề xuất'; đã tạo 5 Epic +20 ticket KAN-4–28. [Jira mapping](../team/JIRA_MAPPING.md).
+
+Q-UI-006 (B05 checkout, Answered 06/10/2026): đã khảo sát eBay Checkout Help, eBay Connect Payments 2023 slide 3 và Pay with card chính thức; trình GIF C1 kèm nguồn không ghi năm của ảnh. User trả lời “Chốt C1 và bố cục đề xuất”. Áp dụng Ship to/item-quantity/COD demo/total-Place order, desktop hai cột/mobile một cột; [contract](../architecture/CHECKOUT.md), [mẫu](../architecture/UI_CANDIDATES.md). Không hỏi lại C1.

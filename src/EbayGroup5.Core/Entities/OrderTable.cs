@@ -8,4 +8,6 @@ public sealed class OrderTable
     public DateTime? OrderDate { get; set; }
     public decimal? TotalPrice { get; set; }
     public string? Status { get; set; }
+    public Guid? CheckoutKey { get; set; }
+    public string? CheckoutFingerprint { get; set; }
 }

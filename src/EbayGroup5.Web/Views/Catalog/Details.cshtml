@@ -9,8 +9,9 @@
         <div class="seller-section"><span class="seller-avatar" aria-hidden="true">S</span><div><strong>@Model.Item.Seller</strong><p>Seller</p></div></div>
         <p class="detail-price">US $@Model.Item.Price.ToString("N2", CultureInfo.InvariantCulture)</p>
         <p class="availability">@(Model.Quantity > 0 ? $"{Model.Quantity} available" : "Out of stock")</p>
-        <button class="button primary purchase-button" disabled aria-describedby="checkout-note">Buy It Now</button>
-        <p id="checkout-note" class="field-help">Checkout is not available yet.</p>
+        @if (Model.Quantity > 0) { <a class="button primary purchase-button" asp-controller="Checkout" asp-action="Index" asp-route-productId="@Model.Item.Id">Buy It Now</a> }
+        else { <button class="button primary purchase-button" disabled>Buy It Now</button> }
+        <p class="field-help">Cash on delivery demo checkout.</p>
         <details class="contact-seller">
             <summary>Contact seller</summary>
             <div class="contact-content"><h2>Message @Model.Item.Seller</h2><p>About: @Model.Item.Title</p><p>Messaging is not available yet. Please check back soon.</p></div>

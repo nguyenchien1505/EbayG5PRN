@@ -1,0 +1,15 @@
+@model EbayGroup5.Web.Models.AddressForm
+@{ ViewData["Title"] = "Add a shipping address"; }
+<a class="back-to-catalog" asp-action="Index" asp-route-productId="@Model.ProductId" asp-route-quantity="@Model.Quantity">← Back to checkout</a>
+<section class="address-form checkout-card"><h1>Add a shipping address</h1>
+<form asp-action="AddAddress" method="post">
+    <input asp-for="ProductId" type="hidden" /><input asp-for="Quantity" type="hidden" />
+    <div asp-validation-summary="All" class="validation-errors" role="alert"></div>
+    <label asp-for="FullName"></label><input asp-for="FullName" autocomplete="name" required />
+    <label asp-for="Phone"></label><input asp-for="Phone" autocomplete="tel" required />
+    <label asp-for="Street"></label><input asp-for="Street" autocomplete="address-line1" required />
+    <label asp-for="City"></label><input asp-for="City" autocomplete="address-level2" required />
+    <label asp-for="State"></label><input asp-for="State" autocomplete="address-level1" />
+    <label asp-for="Country"></label><input asp-for="Country" autocomplete="country-name" required />
+    <button class="button primary" type="submit">Save address</button>
+</form></section>

@@ -17,7 +17,7 @@ namespace EbayGroup5.Database.Tests;
 
 public sealed class AccountHttpTests
 {
-    private sealed class Factory(string target, string? remoteIp = "127.0.0.1") : WebApplicationFactory<EbayGroup5.Web.Controllers.AccountController>
+    internal sealed class Factory(string target, string? remoteIp = "127.0.0.1") : WebApplicationFactory<EbayGroup5.Web.Controllers.AccountController>
     {
         protected override void ConfigureWebHost(IWebHostBuilder builder)
         {
@@ -184,7 +184,7 @@ public sealed class AccountHttpTests
         var detail = await client.GetStringAsync("/Catalog/Details/" + id);
         Assert.Contains("Contact seller", detail);
         Assert.Contains("20 available", detail);
-        Assert.Contains("Checkout is not available yet", detail);
+        Assert.Contains("/Checkout?productId=", detail);
         Assert.DoesNotContain("buyer.a06@example.invalid", detail);
         Assert.Equal(HttpStatusCode.NotFound, (await client.GetAsync("/Catalog/Details/2147483647")).StatusCode);
         var missing = await client.GetAsync("/Home/ThisPageDoesNotExist");
