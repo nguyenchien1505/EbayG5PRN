@@ -74,7 +74,7 @@ public sealed class ReviewService(EbayDbContext db) : IReviewService
 
     private async Task<ReviewResult> Submit(int buyerId, int orderItemId, int rating, string? comment, CancellationToken ct)
     {
-        // Lock order matches B06 (User -> OrderTable -> OrderItem) so review and fulfillment never deadlock.
+        // Same lock order as B06 (User -> OrderTable -> OrderItem); shared HOLDLOCK keeps the order status stable until commit.
         var orderId = await db.Set<OrderItem>().AsNoTracking().Where(x => x.Id == orderItemId).Select(x => x.OrderId).SingleOrDefaultAsync(ct);
         var actor = await db.Set<User>().FromSqlInterpolated($"SELECT * FROM dbo.[User] WITH (HOLDLOCK) WHERE id={buyerId}").AsNoTracking().SingleOrDefaultAsync(ct);
         if (actor?.Role != "Buyer") return new(ReviewOutcome.Forbidden);
