@@ -89,3 +89,5 @@ SUP-03: [B05 evidence](../evidence/B05.md), 51 SQL/HTTP tests pass; principal Bu
 SUP-04: [B06 evidence](../evidence/B06.md): snapshot owner Buyer/Seller history, transactional Ship→Receive→Delivered/COD Paid; 70 SQL/HTTP tests và browser desktop/mobile. Không real payment/delivery. UI-01 xuyên suốt vẫn Pending.
 
 C01: [schema/contract evidence](../evidence/C01.md), 91 SQL/HTTP/schema tests pass; two-slot membership/FK/index/sequence/wire và legacy preservation. G5-01/02, G5-N01/02/04/05 vẫn Pending vì service/realtime/UI/reconnect/TLS/dataset lớn chưa kiểm chứng; task schema Done không làm requirement chat Done.
+
+C02: [service/REST evidence](../evidence/C02.md),116 tests pass (25 new+91 regression), SQL principal/membership/context/retry/rollback/paging/read và HTTP401/403/404/CSRF/no-store/body. G5-01/02 và G5-N01/02/04/05 vẫn Pending: service đã có, realtime UI/transport/restart reconnect/TLS/multi-instance/dataset lớn và operational trace còn C03–C05/F.

@@ -82,3 +82,5 @@ B06 evidence ready for next batch: runtimec2cf9e5, [CI37400491344](https://githu
 Ledger chưa sync sau C01: **B05+B06 → KAN-11/TV1 Tran Van Dat; C01 → KAN-13/TV2 Đoàn Công Huy**. [C01 evidence](../evidence/C01.md) có schema/contract +91tests, chưa service/realtime. Giữ sync theo đợt user yêu cầu; số task/mốc chưa ấn định, không ghi live Jira/worklog/review trong C01.
 
 C01 ready for next batch: schema c53b9d8/wire06d4ce2, [CI37403524947](https://github.com/Twiash/EbayGroup5/actions/runs/37403524947) pass91tests. C01/KAN-13/TV2 complete locally; G5 chat requirements còn Pending tới C02–C05/F. Chưa thay live Jira status/evidence, ledger giữ B05+B06 và C01 theo quy ước sync từng đợt.
+
+C02 ready for next batch: SQL service/owned REST, [evidence](../evidence/C02.md)116tests pass, no Hub/Redis/UI. **Ledger chưa sync: B05+B06 → KAN-11/TV1; C01 → KAN-13/TV2; C02 → KAN-14/TV2 Đoàn Công Huy**. Không thay live status/evidence/worklog/review; user chưa chốt số task/mốc gom đợt. Không tạo duplicate issue.
