@@ -59,7 +59,7 @@ Nguồn: [eBay Feedback profile thật](https://www.ebay.com/fdbk/feedback_profi
 Bản giản lược cho clone gồm:
 
 - Thẻ đầu trang: tên seller, `(score)`, "Positive Feedback (last 12 months): x%", thời điểm bắt đầu (lấy dữ liệu có thật; schema không có ngày tạo user thì bỏ dòng "Member since"), link "View items for sale" nếu có.
-- Bảng "Feedback ratings": các dòng Positive/Neutral/Negative, các cột 1 tháng / 6 tháng / 12 tháng.
+- Bảng "Feedback ratings": các dòng Positive/Neutral/Negative, các cột 1 tháng / 6 tháng / 12 tháng, thêm cột "All time" (đúng mô tả của phương án người dùng đã chọn; điểm P−N tính trên cột này).
 - Danh sách 3 cột FEEDBACK / FROM / WHEN:
   - FEEDBACK: icon sentiment, comment, tên item.
   - FROM: buyer che tên kiểu `b***r`, giá, "Verified purchase".

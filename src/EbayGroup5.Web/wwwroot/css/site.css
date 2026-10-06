@@ -196,3 +196,31 @@ main.shell-width { flex: 1; padding-block: 32px 64px; }
 .sentiment-input input:disabled + label { border-color:#e5e5e5; background:#e5e5e5; color:#767676; cursor:not-allowed; }
 .sentiment-input input:focus-visible + label { outline:3px solid #3665f3; outline-offset:2px; }
 .sentiment-note { margin:0 0 12px; }
+.seller-feedback-link { color:inherit; }
+.profile-card { display:flex; gap:20px; align-items:flex-start; margin:20px 0 32px; }
+.profile-card p { margin:0 0 6px; }
+.profile-avatar { width:72px; height:72px; font-size:28px; text-transform:uppercase; }
+.profile-name { font-size:20px; }
+.table-scroll { max-width:100%; overflow-x:auto; }
+.ratings-table { border-collapse:collapse; min-width:420px; border:1px solid #ddd; border-radius:12px; }
+.ratings-table th, .ratings-table td { padding:10px 16px; text-align:center; }
+.ratings-table tbody th { text-align:left; font-weight:400; white-space:nowrap; }
+.ratings-table thead th { font-weight:400; font-size:14px; border-bottom:1px solid #e5e5e5; }
+.sentiment-icon { display:inline-grid; place-items:center; width:20px; height:20px; border-radius:50%; color:#fff; font-weight:700; font-size:14px; line-height:1; margin-right:6px; vertical-align:middle; }
+.sentiment-positive { background:#05823f; }
+.sentiment-neutral { background:#707070; }
+.sentiment-negative { background:#e0103a; }
+.feedback-received { margin-top:36px; }
+.feedback-table { border-top:1px solid #ddd; }
+.feedback-row { display:grid; grid-template-columns:minmax(0,3fr) minmax(0,1.4fr) minmax(0,1fr); gap:16px; padding:14px 8px; border-bottom:1px solid #e5e5e5; overflow-wrap:anywhere; }
+.feedback-head { font-weight:700; font-size:13px; text-transform:uppercase; padding-block:10px; }
+.feedback-main p { margin:0 0 4px; }
+.feedback-comment { font-weight:700; white-space:pre-wrap; }
+.feedback-from { display:grid; gap:2px; align-content:start; font-size:14px; color:#555; }
+.feedback-when { font-size:14px; color:#555; }
+.feedback-reply { margin-top:10px; padding:10px 14px; border-left:3px solid #ddd; background:#f7f7f7; }
+.feedback-reply p { margin:6px 0 0; white-space:pre-wrap; }
+.reply-box { margin-top:10px; }
+.reply-box summary { cursor:pointer; color:#2454d6; text-decoration:underline; }
+.reply-box textarea { width:100%; margin:8px 0; font:inherit; padding:10px; border:1px solid #888; border-radius:8px; }
+@media(max-width:700px) { .feedback-head { display:none; } .feedback-row { grid-template-columns:minmax(0,1fr); gap:6px; } .profile-card { gap:14px; } .profile-avatar { width:52px; height:52px; font-size:22px; } .ratings-table { min-width:0; width:100%; } .ratings-table th, .ratings-table td { padding:8px 3px; font-size:13px; } .ratings-table .sentiment-icon { margin-right:3px; } }

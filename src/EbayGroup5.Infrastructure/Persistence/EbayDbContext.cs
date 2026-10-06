@@ -169,7 +169,10 @@ public sealed class EbayDbContext(DbContextOptions<EbayDbContext> options) : DbC
             entity.Property(x => x.Sentiment).HasColumnType("varchar(8)").HasMaxLength(8).IsUnicode(false);
             entity.Property(x => x.Comment).HasColumnType("nvarchar(500)").HasMaxLength(500);
             entity.Property(x => x.CreatedAtUtc).HasColumnType("datetime2(7)").HasDefaultValueSql("SYSUTCDATETIME()");
+            entity.Property(x => x.ReplyText).HasColumnType("nvarchar(500)").HasMaxLength(500);
+            entity.Property(x => x.RepliedAtUtc).HasColumnType("datetime2(7)");
             entity.HasIndex(x => new { x.SellerId, x.Id }).IsDescending(false, true).HasDatabaseName("IX_SellerFeedback_Seller");
+            entity.ToTable(t => t.HasTrigger("TR_SellerFeedback_Immutable"));
         });
         modelBuilder.Entity<ChatConversation>(entity =>
         {

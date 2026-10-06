@@ -14,16 +14,76 @@ public sealed class FeedbackService(EbayDbContext db, TimeProvider clock) : IFee
     private const string Delivered = "Delivered";
     private const string WaitMessage = "You need to wait 7 days before you can leave neutral or negative feedback for this seller.";
     private const string AlreadyLeft = "You already left feedback for this seller.";
+    private sealed record WindowRow(string Sentiment, int All, int M1, int M6, int M12);
 
     // Single visibility rule for reputation; D05 adds moderation here.
     private IQueryable<SellerFeedback> Visible() => db.Set<SellerFeedback>().AsNoTracking();
 
     public async Task<SellerReputation> ReputationAsync(int sellerId, CancellationToken cancellationToken = default)
     {
-        var counts = await Visible().Where(x => x.SellerId == sellerId).GroupBy(x => x.Sentiment)
-            .Select(g => new { Sentiment = g.Key, Count = g.Count() }).ToDictionaryAsync(x => x.Sentiment, x => x.Count, cancellationToken);
-        int Count(FeedbackSentiment sentiment) => counts.GetValueOrDefault(sentiment.ToString());
-        return new(Count(FeedbackSentiment.Positive), Count(FeedbackSentiment.Neutral), Count(FeedbackSentiment.Negative));
+        var now = clock.GetUtcNow().UtcDateTime;
+        DateTime m1 = now.AddMonths(-1), m6 = now.AddMonths(-6), m12 = now.AddMonths(-12);
+        // One grouped query: lifetime count plus windowed counts per sentiment.
+        var rows = await Visible().Where(x => x.SellerId == sellerId).GroupBy(x => x.Sentiment)
+            .Select(g => new WindowRow(g.Key, g.Count(), g.Count(x => x.CreatedAtUtc > m1), g.Count(x => x.CreatedAtUtc > m6), g.Count(x => x.CreatedAtUtc > m12)))
+            .ToListAsync(cancellationToken);
+        FeedbackCounts Counts(Func<WindowRow, int> pick)
+        {
+            int Of(FeedbackSentiment s) => rows.Where(x => x.Sentiment == s.ToString()).Sum(pick);
+            return new(Of(FeedbackSentiment.Positive), Of(FeedbackSentiment.Neutral), Of(FeedbackSentiment.Negative));
+        }
+        return new(Counts(x => x.All), Counts(x => x.M1), Counts(x => x.M6), Counts(x => x.M12));
+    }
+
+    public async Task<SellerFeedbackPage?> ProfileAsync(int sellerId, FeedbackSentiment? filter = null, int page = 1, CancellationToken cancellationToken = default)
+    {
+        if (page < 1 || page > int.MaxValue / SellerFeedbackPage.PageSize || (filter is { } f && !Enum.IsDefined(f))) throw new ArgumentException("Invalid feedback filters.");
+        var seller = await db.Set<User>().AsNoTracking().Where(x => x.Id == sellerId && x.Role == "Seller").Select(x => new { x.Username }).SingleOrDefaultAsync(cancellationToken);
+        if (seller == null) return null;
+        var reputation = await ReputationAsync(sellerId, cancellationToken);
+        var query = Visible().Where(x => x.SellerId == sellerId);
+        if (filter != null) query = query.Where(x => x.Sentiment == filter.Value.ToString());
+        var total = await query.CountAsync(cancellationToken);
+        var rows = await query.OrderByDescending(x => x.Id).Skip((page - 1) * SellerFeedbackPage.PageSize).Take(SellerFeedbackPage.PageSize)
+            .Select(x => new
+            {
+                x.Id, x.Sentiment, x.Comment, x.CreatedAtUtc, x.ReplyText, x.RepliedAtUtc,
+                Buyer = db.Set<User>().Where(u => u.Id == x.BuyerId).Select(u => u.Username).FirstOrDefault(),
+                Item = db.Set<OrderItem>().Where(i => i.Id == x.OrderItemId)
+                    .Select(i => new { i.UnitPrice, Title = db.Set<Product>().Where(p => p.Id == i.ProductId).Select(p => p.Title).FirstOrDefault() }).FirstOrDefault()
+            }).ToListAsync(cancellationToken);
+        var now = clock.GetUtcNow().UtcDateTime;
+        var entries = rows.Select(x => new FeedbackEntry(x.Id, Enum.Parse<FeedbackSentiment>(x.Sentiment), x.Comment, x.Item?.Title ?? "Item unavailable",
+            Mask(x.Buyer), x.Item?.UnitPrice, x.CreatedAtUtc, Recency(x.CreatedAtUtc, now), x.ReplyText, x.RepliedAtUtc)).ToList();
+        return new(sellerId, string.IsNullOrWhiteSpace(seller.Username) ? "eBay seller" : seller.Username, reputation, entries, total, page, filter);
+    }
+
+    // eBay-style partial identity: first and last character only; never exposes email or IDs.
+    internal static string Mask(string? username)
+    {
+        var visible = (username ?? "").Where(char.IsLetterOrDigit).ToArray();
+        if (visible.Length == 0) return "Buyer";
+        return visible.Length <= 2 ? visible[0] + "***" : $"{visible[0]}***{visible[^1]}";
+    }
+
+    internal static FeedbackRecency Recency(DateTime created, DateTime now) =>
+        created > now.AddMonths(-1) ? FeedbackRecency.PastMonth : created > now.AddMonths(-6) ? FeedbackRecency.Past6Months :
+        created > now.AddMonths(-12) ? FeedbackRecency.PastYear : FeedbackRecency.OlderThanYear;
+
+    public async Task<ReplyResult> ReplyAsync(int sellerId, int feedbackId, string? reply, CancellationToken cancellationToken = default)
+    {
+        var text = reply?.Trim();
+        if (string.IsNullOrEmpty(text)) return new(ReplyOutcome.Invalid, "Enter a reply.");
+        if (text.Length > FeedbackLimits.MaxReplyLength || text.Any(c => char.IsControl(c) && c is not ('\t' or '\r' or '\n')))
+            return new(ReplyOutcome.Invalid, $"Replies must be at most {FeedbackLimits.MaxReplyLength} characters without control characters.");
+        if (!await db.Set<User>().AnyAsync(x => x.Id == sellerId && x.Role == "Seller", cancellationToken)) return new(ReplyOutcome.Forbidden);
+        var now = clock.GetUtcNow().UtcDateTime;
+        // Single conditional UPDATE: ownership and "only once" are checked atomically by SQL.
+        var updated = await db.Set<SellerFeedback>().Where(x => x.Id == feedbackId && x.SellerId == sellerId && x.ReplyText == null)
+            .ExecuteUpdateAsync(x => x.SetProperty(f => f.ReplyText, text).SetProperty(f => f.RepliedAtUtc, now), cancellationToken);
+        if (updated == 1) return new(ReplyOutcome.Success);
+        return await Visible().AnyAsync(x => x.Id == feedbackId && x.SellerId == sellerId, cancellationToken)
+            ? new(ReplyOutcome.Conflict, "You already replied to this feedback.") : new(ReplyOutcome.NotFound);
     }
 
     public async Task<FeedbackLineEligibility?> FindItemAsync(int buyerId, int orderItemId, CancellationToken cancellationToken = default)
