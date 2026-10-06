@@ -5,7 +5,8 @@
     var reviewLines = (ViewData["ReviewLines"] as IReadOnlyList<EbayGroup5.Application.Reviews.ReviewLineEligibility>)?.ToDictionary(x => x.OrderItemId);
     var feedbackLines = (ViewData["FeedbackLines"] as IReadOnlyList<EbayGroup5.Application.Feedback.FeedbackLineEligibility>)?.ToDictionary(x => x.OrderItemId);
     var disputeLines = ViewData["DisputeLines"] as IReadOnlyDictionary<int, EbayGroup5.Application.Disputes.DisputeEligibility>;
-    var disputeTiming = ViewData["DisputeTiming"] as EbayGroup5.Application.Disputes.DisputeTiming; }
+    var disputeTiming = ViewData["DisputeTiming"] as EbayGroup5.Application.Disputes.DisputeTiming;
+    var sellerRequests = ViewData["SellerRequests"] as IReadOnlyDictionary<int, IReadOnlyList<EbayGroup5.Application.Disputes.DisputeSummary>>; }
 <a class="back-to-catalog" asp-action="@history">← Back to @(Model.Audience == OrderAudience.Buyer ? "purchase history" : "sales history")</a>
 <h1>Order #@Model.Id</h1><p class="order-status">@Model.Status</p>
 <p class="field-help">Placed: @(Model.Date?.ToString("MMM dd, yyyy", CultureInfo.InvariantCulture) ?? "Date unavailable"). Shipping and COD payments are simulated.</p>
@@ -24,7 +25,10 @@
         @if(disputeLines?.GetValueOrDefault(item.Id) is { } dispute && disputeTiming != null) {
             if(dispute.ItemNotReceived.CanOpen) { <a class="button outline review-action" asp-controller="Disputes" asp-action="NotReceived" asp-route-orderItemId="@item.Id">I didn't receive it</a> }
             if(dispute.Return.CanOpen) { <a class="button outline review-action" asp-controller="Disputes" asp-action="Return" asp-route-orderItemId="@item.Id">Return this item</a> }
-            foreach(var request in dispute.Requests) { <p class="dispute-status"><strong>@EbayGroup5.Web.Models.DisputeText.Kind(request.Kind)</strong> · @EbayGroup5.Web.Models.DisputeText.Status(request, disputeTiming)</p> }
+            foreach(var request in dispute.Requests) { <p class="dispute-status"><a asp-controller="Disputes" asp-action="Details" asp-route-id="@request.Id"><strong>@EbayGroup5.Web.Models.DisputeText.Kind(request.Kind)</strong></a> · @EbayGroup5.Web.Models.DisputeText.Status(request, disputeTiming)</p> }
+        }
+        @if(sellerRequests?.GetValueOrDefault(item.Id) is { } received && disputeTiming != null) {
+            foreach(var request in received) { <p class="dispute-status"><strong>@EbayGroup5.Web.Models.DisputeText.Kind(request.Kind)</strong> · @EbayGroup5.Web.Models.DisputeText.Status(request, disputeTiming, EbayGroup5.Application.Disputes.DisputeActor.Seller) · <a asp-controller="Disputes" asp-action="Details" asp-route-id="@request.Id">See request details</a></p> }
         }</div></div> }
     @if(Model.ItemCount > Model.Lines.Count) { <p class="field-help">Showing the first @Model.Lines.Count of @Model.ItemCount order lines. This legacy order is read-only.</p> }
     @if(Model.Lines.Count == 0) { <p>Item details are unavailable.</p> }

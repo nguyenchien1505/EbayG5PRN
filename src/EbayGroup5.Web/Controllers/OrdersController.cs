@@ -49,6 +49,12 @@ public sealed class OrdersController(IOrderService orders, IReviewService review
             ViewData["DisputeLines"] = await disputes.EligibilityAsync(ActorId, order.Lines.Select(x => x.Id).ToArray(), ct);
             ViewData["DisputeTiming"] = timing;
         }
+        else
+        {
+            // E03: the seller sees each line's requests and opens them from the sold order (Help 4702).
+            ViewData["SellerRequests"] = await disputes.RequestsForOrderAsync(ActorId, order.Id, ct);
+            ViewData["DisputeTiming"] = timing;
+        }
         return View("Details", order);
     }
 

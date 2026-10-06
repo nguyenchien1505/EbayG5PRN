@@ -47,25 +47,31 @@ public static class DisputeText
     public static string Date(DateTime utc, DisputeTiming timing) =>
         utc.ToString(timing.IsDemo ? "MMM dd, yyyy HH:mm:ss 'UTC'" : "MMM dd, yyyy", CultureInfo.InvariantCulture);
 
-    public static string Status(DisputeSummary request, DisputeTiming timing)
+    public static string Status(DisputeSummary request, DisputeTiming timing, DisputeActor viewer = DisputeActor.Buyer) =>
+        Status(request.Status, request.Outcome, request.DueAtUtc, null, timing, viewer);
+
+    /// <summary>Buyer labels from DISPUTE_FORMS.md; seller labels from DISPUTE_DETAILS.md (E03).</summary>
+    public static string Status(DisputeStatus status, DisputeOutcome? outcome, DateTime? dueAtUtc, decimal? offerAmount, DisputeTiming timing, DisputeActor viewer)
     {
-        string Due() => request.DueAtUtc is { } due ? Date(due, timing) : "the deadline";
-        return request.Status switch
+        string Due() => dueAtUtc is { } due ? Date(due, timing) : "the deadline";
+        var seller = viewer == DisputeActor.Seller;
+        return status switch
         {
-            DisputeStatus.Open => $"Waiting for the seller to respond by {Due()}",
-            DisputeStatus.ReturnAccepted => $"Return accepted — ship it by {Due()}",
-            DisputeStatus.ReturnShipped => $"Return shipped — waiting for the seller's refund by {Due()}",
+            DisputeStatus.Open when offerAmount != null => seller ? "Partial refund offered — waiting for the buyer" : "The seller offered a partial refund",
+            DisputeStatus.Open => seller ? $"Respond by {Due()}" : $"Waiting for the seller to respond by {Due()}",
+            DisputeStatus.ReturnAccepted => seller ? $"Return accepted — buyer ships by {Due()}" : $"Return accepted — ship it by {Due()}",
+            DisputeStatus.ReturnShipped => seller ? $"Item shipped back — refund by {Due()}" : $"Return shipped — waiting for the seller's refund by {Due()}",
             DisputeStatus.Escalated => "eBay is reviewing this request",
-            _ => request.Outcome switch
+            _ => outcome switch
             {
                 DisputeOutcome.Refunded => "Closed — refunded",
                 DisputeOutcome.PartialRefund => "Closed — partial refund",
-                DisputeOutcome.BuyerClosed => "You closed this request",
+                DisputeOutcome.BuyerClosed => seller ? "Buyer closed this request" : "You closed this request",
                 DisputeOutcome.ItemReceived => "Closed — item received",
-                DisputeOutcome.SellerDeclined => "Closed — seller declined the return",
+                DisputeOutcome.SellerDeclined => seller ? "Closed — you declined the return" : "Closed — seller declined the return",
                 DisputeOutcome.ReturnNotShipped => "Closed — return not shipped in time",
-                DisputeOutcome.DecidedForBuyer => "Closed — decided in your favor",
-                DisputeOutcome.DecidedForSeller => "Closed — decided in the seller's favor",
+                DisputeOutcome.DecidedForBuyer => seller ? "Closed — decided in the buyer's favor" : "Closed — decided in your favor",
+                DisputeOutcome.DecidedForSeller => seller ? "Closed — decided in your favor" : "Closed — decided in the seller's favor",
                 _ => "Closed"
             }
         };

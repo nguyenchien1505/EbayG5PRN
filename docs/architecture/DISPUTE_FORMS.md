@@ -32,7 +32,7 @@ Lấy từ [UI_CANDIDATES](UI_CANDIDATES.md#rà-soát-06102026--khiếu-nại-q-
 - **Purchases → More actions ▾** (menu D06), áp cho dòng đầu tiên còn sản phẩm của đơn:
   - "I didn't receive it" khi INR `CanOpen`.
   - "Return this item" khi Return `CanOpen`.
-  - "See request details" khi dòng đó đang có request. E02 trỏ tới trang chi tiết đơn (`#line-{id}`); E03 sẽ trỏ tới trang request.
+  - "See request details" khi dòng đó đang có request. E02 trỏ tới trang chi tiết đơn (`#line-{id}`); từ E03 trỏ tới trang request ([DISPUTE_DETAILS](DISPUTE_DETAILS.md)).
   - Contact seller giữ như cũ.
 - **Trang chi tiết đơn**, theo từng dòng:
   - Hai link trên khi tương ứng `CanOpen`.

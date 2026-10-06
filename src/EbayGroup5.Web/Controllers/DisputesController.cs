@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Security.Claims;
 using EbayGroup5.Application.Disputes;
 using EbayGroup5.Web.Models;
@@ -7,16 +8,17 @@ using Microsoft.AspNetCore.Mvc;
 namespace EbayGroup5.Web.Controllers;
 
 // E02 buyer forms: "I didn't receive it" and "Return this item" with server drafts (DISPUTE_FORMS.md).
-[Authorize(Policy = "Buyer")]
+// E03 request list, details/timeline and replies for the request's buyer and seller (DISPUTE_DETAILS.md).
+[Authorize(Roles = "Buyer,Seller")]
 [ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
 public sealed class DisputesController(IDisputeService disputes, DisputeTiming timing) : Controller
 {
     private int ActorId => int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
 
-    [HttpGet]
+    [HttpGet, Authorize(Policy = "Buyer")]
     public Task<IActionResult> NotReceived(int orderItemId, CancellationToken cancellationToken) => Form(orderItemId, DisputeKind.ItemNotReceived, cancellationToken);
 
-    [HttpGet]
+    [HttpGet, Authorize(Policy = "Buyer")]
     public Task<IActionResult> Return(int orderItemId, CancellationToken cancellationToken) => Form(orderItemId, DisputeKind.Return, cancellationToken);
 
     private async Task<IActionResult> Form(int orderItemId, DisputeKind kind, CancellationToken ct)
@@ -34,7 +36,7 @@ public sealed class DisputesController(IDisputeService disputes, DisputeTiming t
         return View(ViewName(kind), new DisputeFormPage(line, kind, form, draft != null, timing));
     }
 
-    [HttpPost]
+    [HttpPost, Authorize(Policy = "Buyer")]
     public async Task<IActionResult> Open([FromForm] DisputeForm form, CancellationToken cancellationToken)
     {
         if (ModelState.TryGetValue(nameof(DisputeForm.Kind), out var kindState) && kindState.Errors.Count > 0 || !Enum.IsDefined(form.Kind)) return BadRequest();
@@ -62,7 +64,7 @@ public sealed class DisputesController(IDisputeService disputes, DisputeTiming t
         }
     }
 
-    [HttpPost]
+    [HttpPost, Authorize(Policy = "Buyer")]
     public async Task<IActionResult> Draft([FromForm] DisputeForm form, CancellationToken cancellationToken)
     {
         if (!ModelState.IsValid || !Enum.IsDefined(form.Kind)) return BadRequest(new { error = "Invalid draft." });
@@ -81,6 +83,78 @@ public sealed class DisputesController(IDisputeService disputes, DisputeTiming t
     private static string ViewName(DisputeKind kind) => kind == DisputeKind.ItemNotReceived ? "NotReceived" : "Return";
 
     private IActionResult RedirectToLine(int orderId, int orderItemId) => Redirect(Url.Action("Details", "Orders", new { id = orderId }) + "#line-" + orderItemId);
+
+    private IActionResult RedirectToRequest(int disputeId) => RedirectToAction(nameof(Details), new { id = disputeId });
+
+    [HttpGet]
+    public async Task<IActionResult> Index(DisputeKind? kind, DisputeListState? state, int page = 1, CancellationToken cancellationToken = default)
+    {
+        if (!ModelState.IsValid || page < 1 || page > int.MaxValue / DisputeLimits.ListPageSize || kind is { } k && !Enum.IsDefined(k) || state is { } st && !Enum.IsDefined(st))
+            return BadRequest();
+        var list = await disputes.ListAsync(ActorId, new(kind, state, page), cancellationToken);
+        return list == null ? StatusCode(StatusCodes.Status403Forbidden) : View("Index", new DisputeListPage(list, timing));
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> Details(int id, int activity = 1, DisputeAction? reply = null, CancellationToken cancellationToken = default)
+    {
+        if (!ModelState.IsValid || id < 1 || activity < 1 || activity > int.MaxValue / DisputeLimits.TimelinePageSize || reply is { } r && !DisputeRequestText.Postable(r))
+            return BadRequest();
+        var detail = await disputes.FindAsync(ActorId, id, activity, cancellationToken);
+        if (detail == null) return NotFound();
+        if (reply is { } chosen && !detail.Actions.Contains(chosen))
+        {
+            Response.StatusCode = StatusCodes.Status409Conflict;
+            ViewData["DisputeError"] = "That option isn't available for this request right now.";
+            reply = null;
+        }
+        return View("Details", new DisputeDetailsPage(detail, reply, reply == null ? null : new DisputeActForm { DisputeId = id, Action = reply.Value }, timing));
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> Act([FromForm] DisputeActForm form, CancellationToken cancellationToken)
+    {
+        if (!ModelState.IsValid || form.DisputeId < 1 || !Enum.IsDefined(form.Action) || !DisputeRequestText.Postable(form.Action)) return BadRequest();
+        string? message = form.Message;
+        if (DisputeRequestText.ReasonsFor(form.Action) is { } reasons)
+        {
+            var label = reasons.FirstOrDefault(x => x.Code == form.Reason).Label;
+            if (label == null) return await RedisplayRequest(form, StatusCodes.Status400BadRequest, "Choose a reason.", cancellationToken);
+            if (form.Message?.Trim().Length > DisputeRequestText.MaxReasonNote)
+                return await RedisplayRequest(form, StatusCodes.Status400BadRequest, $"Notes must be at most {DisputeRequestText.MaxReasonNote} characters.", cancellationToken);
+            message = DisputeRequestText.Compose(label, form.Message);
+        }
+        decimal? amount = null;
+        if (form.Action == DisputeAction.OfferPartial)
+        {
+            if (!decimal.TryParse(form.Amount?.Trim(), NumberStyles.AllowDecimalPoint, CultureInfo.InvariantCulture, out var parsed))
+                return await RedisplayRequest(form, StatusCodes.Status400BadRequest, "Enter an amount such as 12.50.", cancellationToken);
+            amount = parsed;
+        }
+        var tracking = form.Action is DisputeAction.AddTracking or DisputeAction.MarkReturnShipped ? form.Tracking : null;
+        var result = await disputes.ActAsync(ActorId, form.DisputeId, new DisputeCommand(form.Action, message, amount, tracking), cancellationToken);
+        switch (result.Code)
+        {
+            case DisputeResultCode.Success:
+                TempData["DisputeNotice"] = DisputeRequestText.Notice(form.Action);
+                return RedirectToRequest(form.DisputeId);
+            case DisputeResultCode.NotFound: return NotFound();
+            case DisputeResultCode.Forbidden: return StatusCode(StatusCodes.Status403Forbidden);
+            case DisputeResultCode.Invalid: return await RedisplayRequest(form, StatusCodes.Status400BadRequest, result.Error, cancellationToken);
+            default: return await RedisplayRequest(form, StatusCodes.Status409Conflict, result.Error, cancellationToken);
+        }
+    }
+
+    // Invalid input keeps the chosen reply and what was typed; a conflict goes back to step 1 with the current state.
+    private async Task<IActionResult> RedisplayRequest(DisputeActForm form, int status, string? error, CancellationToken ct)
+    {
+        var detail = await disputes.FindAsync(ActorId, form.DisputeId, ct);
+        if (detail == null) return NotFound();
+        Response.StatusCode = status;
+        ViewData["DisputeError"] = error;
+        var keep = status == StatusCodes.Status400BadRequest && detail.Actions.Contains(form.Action);
+        return View("Details", new DisputeDetailsPage(detail, keep ? form.Action : null, keep ? form : null, timing));
+    }
 
     private IActionResult Unavailable(DisputeEligibility line, DisputeKind kind, string? reason)
     {

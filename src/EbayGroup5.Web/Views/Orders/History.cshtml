@@ -36,10 +36,10 @@
                         <summary class="button outline">More actions</summary>
                         <div class="more-actions-menu">
                             <button type="button" data-chat-order-item-id="@contactItem">Contact seller</button>
-                            @* E02 (DISPUTE_FORMS.md): request entries for the same line; E03 points "See request details" at the request page. *@
+                            @* E02 (DISPUTE_FORMS.md): request entries for the same line; "See request details" opens the newest request (E03). *@
                             @if (dispute?.ItemNotReceived.CanOpen == true) { <a asp-controller="Disputes" asp-action="NotReceived" asp-route-orderItemId="@contactItem">I didn't receive it</a> }
                             @if (dispute?.Return.CanOpen == true) { <a asp-controller="Disputes" asp-action="Return" asp-route-orderItemId="@contactItem">Return this item</a> }
-                            @if (dispute?.Requests.Count > 0) { <a asp-action="Details" asp-route-id="@order.Id" asp-fragment="line-@contactItem">See request details</a> }
+                            @if (dispute?.Requests.FirstOrDefault() is { } latest) { <a asp-controller="Disputes" asp-action="Details" asp-route-id="@latest.Id">See request details</a> }
                         </div>
                     </details>
                 }

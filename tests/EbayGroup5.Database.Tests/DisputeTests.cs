@@ -219,7 +219,8 @@ public sealed class DisputeTests
     private static async Task<DisputeDetail?> Find(SetupData s, int actor, int dispute)
     {
         await using var db = Open(s.Target);
-        return await Service(s, db).FindAsync(actor, dispute);
+        // E03 pages the timeline newest first; these checks read it oldest first (all fit on page 1).
+        return await Service(s, db).FindAsync(actor, dispute) is { } detail ? detail with { Events = detail.Events.Reverse().ToList() } : null;
     }
     private static async Task<int> Place(SetupData s)
     {

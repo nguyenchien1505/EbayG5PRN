@@ -293,5 +293,37 @@ main.shell-width { flex: 1; padding-block: 32px 64px; }
 .dispute-steps li::before { content:counter(step); grid-row:span 2; width:28px; height:28px; border-radius:50%; background:#191919; color:white; display:grid; place-items:center; font-size:13px; font-weight:700; }
 .dispute-steps li span { color:#555; font-size:14px; }
 .dispute-status { margin:8px 0 0; padding:8px 12px; border-left:4px solid #3665f3; background:#f2f5fe; font-size:14px; }
+/* E03 request details, timeline and list (DISPUTE_DETAILS.md) */
+.dispute-summary { display:grid; gap:6px; padding:0 0 16px; border-bottom:1px solid #eee; margin-bottom:8px; }
+.dispute-summary p { margin:0; }
+.dispute-headline { font-size:18px; font-weight:700; }
+.dispute-section-title { font-size:18px; margin:20px 0 10px; }
+.dispute-info { display:grid; grid-template-columns:minmax(120px,180px) minmax(0,1fr); gap:8px 16px; margin:0 0 8px; }
+.dispute-info dt { color:#707070; }
+.dispute-info dd { margin:0; }
+.dispute-text { white-space:pre-line; overflow-wrap:anywhere; }
+.dispute-reply { border-top:1px solid #eee; padding-top:16px; margin-top:16px; }
+.dispute-option-help { align-items:flex-start; }
+.dispute-option-help > span { display:grid; gap:2px; }
+.dispute-option-help input { margin-top:2px; }
+.dispute-input { box-sizing:border-box; width:100%; max-width:360px; font:inherit; padding:12px 14px; border:1px solid #888; border-radius:10px; background:#f7f7f7; }
+.dispute-input:focus { outline:2px solid #3665f3; outline-offset:1px; }
+.dispute-buttons { display:flex; flex-wrap:wrap; gap:12px; }
+.dispute-more { display:flex; flex-wrap:wrap; gap:16px; align-items:center; margin-top:16px; }
+.dispute-more p { margin:0; }
+.dispute-activity { border-top:1px solid #eee; margin-top:20px; }
+.dispute-events { list-style:none; margin:0; padding:0; display:grid; gap:12px; }
+.dispute-events li { border-left:3px solid #c7c7c7; padding:2px 0 2px 12px; }
+.dispute-events li p { margin:0 0 4px; }
+.dispute-events time { color:#707070; font-size:13px; font-weight:400; margin-left:6px; }
+.dispute-steps li.done::before { background:#191919; }
+.dispute-steps li.upcoming::before { background:white; color:#707070; box-shadow:inset 0 0 0 2px #c7c7c7; }
+.dispute-steps li.upcoming strong { color:#555; }
+.dispute-steps li.current::before { background:#3665f3; }
+.dispute-steps li.current strong { color:#3665f3; }
+.dispute-tabs { display:flex; flex-wrap:wrap; gap:4px 24px; border-bottom:1px solid #ddd; margin:8px 0 16px; }
+.dispute-tab { padding:10px 0; color:#191919; text-decoration:none; border-bottom:3px solid transparent; }
+.dispute-tab.active { border-bottom-color:#191919; font-weight:700; }
 @media(max-width:860px) { .dispute-layout { grid-template-columns:minmax(0,1fr); } }
+@media(max-width:520px) { .dispute-info { grid-template-columns:minmax(0,1fr); gap:2px; } .dispute-info dd { margin-bottom:8px; } .dispute-buttons .button { flex:1 1 100%; } }
 @media(max-width:700px) { .dispute-card { padding:18px; } .dispute-card h1 { font-size:22px; } .dispute-form .button { justify-self:stretch; } .dispute-item .order-item-icon { width:56px; } }

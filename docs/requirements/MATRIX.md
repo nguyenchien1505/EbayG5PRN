@@ -12,7 +12,7 @@ Status `Pending` nghĩa là chưa triển khai/chưa nghiệm thu. Task tài li�
 | G5-04 | Trung bình đánh giá trên sản phẩm | D02, D05 | Trung bình/số lượt đúng, đổi theo kiểm duyệt, không chia cho zero | Done |
 | G5-05 | Điểm uy tín seller từ feedback tích cực | D03–D04 | Sentiment riêng, công thức đã chốt, seller reply đúng quyền | Done |
 | G5-06 | Gửi khiếu nại có nội dung và lý do | E01–E02 | Đúng dòng hàng/owner; không tạo trùng khi gửi lại | Done |
-| G5-07 | Buyer quản lý đã gửi, seller quản lý đã nhận | E03 | Danh sách/chi tiết/timeline đúng quyền và phân trang | Pending |
+| G5-07 | Buyer quản lý đã gửi, seller quản lý đã nhận | E03 | Danh sách/chi tiết/timeline đúng quyền và phân trang | Done |
 | G5-08 | Phản hồi tự động kết nối hệ thống admin | E04–E05 | Tiếp nhận, hướng dẫn, chuyển quá hạn, admin phân xử có audit | Pending |
 
 ## Nhóm 5 — Yêu cầu phi chức năng gốc
@@ -113,3 +113,5 @@ D06: [entry point evidence](../evidence/D06.md), 203 .NET +14 Node; điểm vào
 E01: [dispute schema/state machine evidence](../evidence/E01.md), 225 .NET +14 Node; DbUp 0011 (ngày giao dự kiến, Dispute mở rộng, DisputeEvent append-only), rules thuần kiểm 7.728 tổ hợp, service open/act/system/find, INR đóng khi Confirm received, constraint/trigger/grant/migration/mutation. **G5-06 vẫn Pending** (form E02), G5-07 Pending E03, G5-08 Pending E04–E05, G5-N03 Pending E02, SUP-05 Pending E05.
 
 E02: [dispute form/draft evidence](../evidence/E02.md); DbUp 0012 nháp server, form INR/Return theo eBay, autosave + khôi phục khi reload + xóa khi gửi thành công, gửi lại không tạo trùng, đúng dòng hàng/owner. **G5-06 Done** (E01 rule + E02 form), **G5-N03 Done**. G5-07 Pending E03, G5-08 Pending E04–E05, SUP-05 Pending E05.
+
+E03: [request list/details evidence](../evidence/E03.md), 234 .NET +20 Node; danh sách buyer đã gửi / seller đã nhận (lọc, phân trang 10), trang request D2/H1 với trả lời, Ask eBay to step in và Close có lý do, timeline mới nhất trước phân trang 20; quyền theo owner (người lạ 404, admin 403 chờ E05), CSRF, overposting, gửi lại không ghi thêm, encode; browser desktop/390/320px. **G5-07 Done**. G5-08 Pending E04–E05, SUP-05 Pending E05; UI-01 project-wide Pending.

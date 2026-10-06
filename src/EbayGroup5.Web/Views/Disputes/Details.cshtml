@@ -1,0 +1,128 @@
+@model EbayGroup5.Web.Models.DisputeDetailsPage
+@using EbayGroup5.Application.Disputes
+@using EbayGroup5.Web.Models
+@{ var d = Model.Detail; var timing = Model.Timing; var seller = d.Viewer == DisputeActor.Seller; ViewData["Title"] = DisputeRequestText.Heading(d);
+    var replies = DisputeRequestText.Replies(d); var demo = DisputeText.DemoNotice(timing); var steps = DisputeRequestText.Steps(d.Kind); var current = DisputeRequestText.CurrentStep(d);
+    var reply = Model.Reply; var form = Model.Form; var reasons = reply is { } chosen ? DisputeRequestText.ReasonsFor(chosen) : null; }
+<a class="back-to-catalog" asp-action="Index">← Back to returns and requests</a>
+<div class="dispute-layout">
+    <section class="dispute-card" aria-labelledby="dispute-title">
+        <h1 id="dispute-title">@DisputeRequestText.Heading(d)</h1>
+        @if (TempData["DisputeNotice"] is string notice) { <p class="account-notice" role="status">@notice</p> }
+        @if (ViewData["DisputeError"] is string error) { <div class="validation-errors" role="alert">@error</div> }
+        <div class="dispute-summary">
+            <p class="dispute-headline">@DisputeRequestText.Headline(d, timing)</p>
+            <p>@DisputeRequestText.Guidance(d, timing)</p>
+            @if (demo != null) { <p class="dispute-demo" role="note">@demo</p> }
+        </div>
+        <div class="dispute-item">
+            <div class="order-item-icon product-placeholder" aria-hidden="true"><svg viewBox="0 0 64 64"><path d="M12 20 32 10 52 20 32 30Z M12 20v24l20 10 20-10V20 M32 30v24" /></svg></div>
+            <div>
+                <h2>@d.ItemTitle</h2>
+                <p class="field-help"><a asp-controller="Orders" asp-action="Details" asp-route-id="@d.OrderId">Order #@d.OrderId</a> · @DisputeRequestText.Money(d.LineTotal)@(d.Counterpart != null ? " · " + (seller ? "Buyer: " : "Seller: ") + d.Counterpart : "")</p>
+            </div>
+        </div>
+        <h2 class="dispute-section-title">Info from the buyer</h2>
+        <dl class="dispute-info">
+            <dt>Request</dt><dd>@DisputeText.Kind(d.Kind) · opened @DisputeText.Date(d.CreatedAtUtc, timing)</dd>
+            <dt>Reason</dt><dd>@DisputeText.Reason(d.Reason)</dd>
+            @if (d.Preference is { } preference) { <dt>The buyer would like</dt><dd>@(preference == DisputePreference.Refund ? "A refund" : "The item")</dd> }
+            <dt>Comments</dt><dd class="dispute-text">@(d.Details ?? "No comments")</dd>
+            @if (d.OfferAmount is { } offer && d.Status != DisputeStatus.Closed) { <dt>Partial refund offer</dt><dd>@DisputeRequestText.Money(offer)</dd> }
+            @if (d.ReturnTracking != null) { <dt>Return tracking</dt><dd>@d.ReturnTracking</dd> }
+            @if (d.RefundAmount is { } refund) { <dt>Refunded (simulated)</dt><dd>@DisputeRequestText.Money(refund)</dd> }
+        </dl>
+        @if (reply is { } action && form != null)
+        {
+            <form asp-action="Act" method="post" class="dispute-form dispute-reply" aria-labelledby="reply-title">
+                <h2 id="reply-title" class="dispute-section-title">@DisputeRequestText.ReplyLabel(action, d)</h2>
+                <p>@DisputeRequestText.ReplyHelp(action, d, timing)</p>
+                <input type="hidden" name="DisputeId" value="@d.Id" />
+                <input type="hidden" name="Action" value="@action" />
+                @if (reasons != null)
+                {
+                    <fieldset class="dispute-options">
+                        <legend>@(action == DisputeAction.Escalate ? "What's wrong?" : "Why are you closing this request?")</legend>
+                        @foreach (var reason in reasons)
+                        { <label class="dispute-option"><input type="radio" name="Reason" value="@reason.Code" required checked="@(form.Reason == reason.Code)" /> <span>@reason.Label</span></label> }
+                    </fieldset>
+                }
+                @if (action == DisputeAction.OfferPartial)
+                {
+                    <label for="dispute-amount" class="dispute-label">Amount (US $)</label>
+                    <input id="dispute-amount" class="dispute-input" name="Amount" inputmode="decimal" autocomplete="off" required value="@form.Amount" aria-describedby="amount-help" />
+                    <p id="amount-help" class="field-help">More than US $0.00 and less than @DisputeRequestText.Money(d.LineTotal).</p>
+                }
+                @if (action is DisputeAction.AddTracking or DisputeAction.MarkReturnShipped)
+                {
+                    <label for="dispute-tracking" class="dispute-label">Tracking number</label>
+                    <input id="dispute-tracking" class="dispute-input" name="Tracking" maxlength="@DisputeLimits.MaxTracking" autocomplete="off" required value="@form.Tracking" />
+                    <p class="field-help">Demo tracking reference. No real parcel is tracked.</p>
+                }
+                @{ var messageRequired = action == DisputeAction.Message; var max = reasons != null ? DisputeRequestText.MaxReasonNote : DisputeLimits.MaxText; }
+                <label for="dispute-message" class="dispute-label">@(messageRequired ? "Message" : "Add a note") @if (!messageRequired) { <span class="field-help">(optional)</span> }</label>
+                <textarea id="dispute-message" name="Message" rows="4" maxlength="@max" required="@messageRequired" data-count-target="dispute-message-count">@form.Message</textarea>
+                <p class="field-help review-count"><span id="dispute-message-count">@(form.Message?.Length ?? 0)</span> / @max</p>
+                <div class="dispute-buttons">
+                    <button type="submit" class="button primary">@DisputeRequestText.Confirm(action, d)</button>
+                    <a class="button outline" asp-action="Details" asp-route-id="@d.Id">Cancel</a>
+                </div>
+            </form>
+        }
+        else
+        {
+            @if (replies.Count > 0)
+            {
+                <form asp-action="Details" asp-route-id="@d.Id" method="get" class="dispute-form dispute-reply">
+                    <fieldset class="dispute-options">
+                        <legend>Select a reply</legend>
+                        @for (var i = 0; i < replies.Count; i++)
+                        {
+                            <label class="dispute-option dispute-option-help"><input type="radio" name="reply" value="@replies[i]" required checked="@(i == 0)" />
+                                <span><strong>@DisputeRequestText.ReplyLabel(replies[i], d)</strong><span class="field-help">@DisputeRequestText.ReplyHelp(replies[i], d, timing)</span></span></label>
+                        }
+                    </fieldset>
+                    <button type="submit" class="button primary">Continue</button>
+                </form>
+            }
+            @if (!seller && d.Status != DisputeStatus.Closed)
+            {
+                <div class="dispute-more">
+                    @if (d.Actions.Contains(DisputeAction.Escalate)) { <a class="button outline" asp-action="Details" asp-route-id="@d.Id" asp-route-reply="@DisputeAction.Escalate">Ask eBay to step in and help</a> }
+                    else if (d.Status is DisputeStatus.Open or DisputeStatus.ReturnShipped && d.DueAtUtc is { } due) { <p class="field-help">You can ask eBay to step in after @DisputeText.Date(due, timing) if it isn't resolved.</p> }
+                    @if (d.Actions.Contains(DisputeAction.Close)) { <a asp-action="Details" asp-route-id="@d.Id" asp-route-reply="@DisputeAction.Close">Close your request</a> }
+                </div>
+            }
+        }
+        <section class="dispute-activity" aria-labelledby="activity-title" id="activity">
+            <h2 id="activity-title" class="dispute-section-title">Request activity</h2>
+            <ol class="dispute-events">
+                @foreach (var e in d.Events)
+                {
+                    <li>
+                        <p><strong>@DisputeRequestText.Event(e, d)</strong> <time datetime="@e.CreatedAtUtc.ToString("O")">@DisputeText.Date(e.CreatedAtUtc, timing)</time></p>
+                        @if (e.Tracking != null) { <p class="field-help">Tracking: @e.Tracking</p> }
+                        @if (e.Message != null) { <p class="dispute-text">@e.Message</p> }
+                    </li>
+                }
+            </ol>
+            @if (d.EventPages > 1)
+            {
+                <nav class="pagination" aria-label="Request activity pages">
+                    @if (d.EventPage > 1) { <a asp-action="Details" asp-route-id="@d.Id" asp-route-activity="@(d.EventPage - 1)" asp-fragment="activity">← Newer activity</a> }
+                    <span>Page @d.EventPage of @d.EventPages</span>
+                    @if (d.EventPage < d.EventPages) { <a asp-action="Details" asp-route-id="@d.Id" asp-route-activity="@(d.EventPage + 1)" asp-fragment="activity">Older activity →</a> }
+                </nav>
+            }
+        </section>
+    </section>
+    <aside class="dispute-card dispute-steps" aria-labelledby="steps-title">
+        <h2 id="steps-title">What happens from here</h2>
+        <ol>
+            @for (var i = 0; i < steps.Count; i++)
+            { <li class="@(i == current ? "current" : current == null || i < current ? "done" : "upcoming")" aria-current="@(i == current ? "step" : null)"><strong>@steps[i].Title</strong><span>@steps[i].Text</span></li> }
+        </ol>
+        @if (d.Status == DisputeStatus.Escalated) { <p class="dispute-status">eBay is reviewing this request.</p> }
+    </aside>
+</div>
+@section Scripts { <script type="module" src="~/js/dispute-request.js" asp-append-version="true"></script> }
