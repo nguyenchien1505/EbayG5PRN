@@ -151,6 +151,31 @@ public sealed class EbayDbContext(DbContextOptions<EbayDbContext> options) : DbC
             entity.Property(x => x.Comment).HasColumnName("comment").HasColumnType("nvarchar(max)");
             entity.Property(x => x.CreatedAt).HasColumnName("createdAt").HasColumnType("datetime");
         });
+        modelBuilder.Entity<ChatConversation>(entity =>
+        {
+            entity.ToTable("ChatConversation", "dbo");
+            entity.HasKey(x => x.Id);
+            entity.Property(x => x.Id).HasColumnType("int").UseIdentityColumn();
+            entity.Property(x => x.BuyerId).HasColumnType("int");
+            entity.Property(x => x.SellerId).HasColumnType("int");
+            entity.HasOne<User>().WithMany().HasForeignKey(x => x.BuyerId).OnDelete(DeleteBehavior.ClientNoAction);
+            entity.HasOne<User>().WithMany().HasForeignKey(x => x.SellerId).OnDelete(DeleteBehavior.ClientNoAction);
+            entity.HasIndex(x => new { x.BuyerId, x.SellerId }).IsUnique().HasDatabaseName("UQ_ChatConversation_Pair");
+            entity.HasAlternateKey(x => new { x.Id, x.BuyerId, x.SellerId }).HasName("UQ_ChatConversation_Membership");
+            entity.Property(x => x.CreatedAtUtc).HasColumnType("datetime2(7)").HasDefaultValueSql("SYSUTCDATETIME()");
+            entity.Property(x => x.UpdatedAtUtc).HasColumnType("datetime2(7)").HasDefaultValueSql("SYSUTCDATETIME()");
+            entity.Property(x => x.LastSequence).HasColumnType("bigint").HasDefaultValue(0L);
+            entity.Property(x => x.BuyerReadSequence).HasColumnType("bigint").HasDefaultValue(0L);
+            entity.Property(x => x.SellerReadSequence).HasColumnType("bigint").HasDefaultValue(0L);
+            entity.Property(x => x.ContextProductId).HasColumnType("int");
+            entity.HasOne<Product>().WithMany().HasForeignKey(x => x.ContextProductId).OnDelete(DeleteBehavior.ClientNoAction);
+            entity.Property(x => x.ContextOrderItemId).HasColumnType("int");
+            entity.HasOne<OrderItem>().WithMany().HasForeignKey(x => x.ContextOrderItemId).OnDelete(DeleteBehavior.ClientNoAction);
+            entity.Property(x => x.ContextTitle).HasColumnType("nvarchar(255)").HasMaxLength(255);
+            entity.Property(x => x.ContextUnitPrice).HasColumnType("decimal(10,2)").HasPrecision(10, 2);
+            entity.HasIndex(x => new { x.BuyerId, x.UpdatedAtUtc, x.Id }).IsDescending(false, true, true).HasDatabaseName("IX_ChatConversation_Buyer_Inbox");
+            entity.HasIndex(x => new { x.SellerId, x.UpdatedAtUtc, x.Id }).IsDescending(false, true, true).HasDatabaseName("IX_ChatConversation_Seller_Inbox");
+        });
         modelBuilder.Entity<Message>(entity =>
         {
             entity.ToTable("Message", "dbo");
@@ -162,6 +187,25 @@ public sealed class EbayDbContext(DbContextOptions<EbayDbContext> options) : DbC
             entity.HasOne<User>().WithMany().HasForeignKey(x => x.ReceiverId).OnDelete(DeleteBehavior.ClientNoAction);
             entity.Property(x => x.Content).HasColumnName("content").HasColumnType("nvarchar(max)");
             entity.Property(x => x.Timestamp).HasColumnName("timestamp").HasColumnType("datetime");
+            entity.Property(x => x.ConversationId).HasColumnType("int");
+            entity.Property(x => x.ConversationBuyerId).HasColumnType("int");
+            entity.Property(x => x.ConversationSellerId).HasColumnType("int");
+            entity.HasOne<ChatConversation>().WithMany().HasForeignKey(x => new { x.ConversationId, x.ConversationBuyerId, x.ConversationSellerId })
+                .HasPrincipalKey(x => new { x.Id, x.BuyerId, x.SellerId }).OnDelete(DeleteBehavior.ClientNoAction);
+            entity.Property(x => x.Sequence).HasColumnType("bigint");
+            entity.Property(x => x.ClientMessageId).HasColumnType("uniqueidentifier");
+            entity.Property(x => x.PayloadHash).HasColumnType("binary(32)").HasMaxLength(32).IsFixedLength();
+            entity.Property(x => x.SentAtUtc).HasColumnType("datetime2(7)");
+            entity.Property(x => x.TraceId).HasColumnType("varchar(32)").HasMaxLength(32).IsUnicode(false);
+            entity.Property(x => x.ContextProductId).HasColumnType("int");
+            entity.Property(x => x.ContextOrderItemId).HasColumnType("int");
+            entity.HasOne<Product>().WithMany().HasForeignKey(x => x.ContextProductId).OnDelete(DeleteBehavior.ClientNoAction);
+            entity.HasOne<OrderItem>().WithMany().HasForeignKey(x => x.ContextOrderItemId).OnDelete(DeleteBehavior.ClientNoAction);
+            entity.Property(x => x.ContextTitle).HasColumnType("nvarchar(255)").HasMaxLength(255);
+            entity.Property(x => x.ContextUnitPrice).HasColumnType("decimal(10,2)").HasPrecision(10, 2);
+            entity.HasIndex(x => new { x.ConversationId, x.Sequence }).IsUnique().HasFilter("[ConversationId] IS NOT NULL").HasDatabaseName("UX_Message_ChatSequence");
+            entity.HasIndex(x => new { x.ConversationId, x.SenderId, x.ClientMessageId }).IsUnique().HasFilter("[ConversationId] IS NOT NULL").HasDatabaseName("UX_Message_ClientMessage");
+            entity.HasIndex(x => new { x.TraceId, x.SentAtUtc, x.Id }).HasFilter("[TraceId] IS NOT NULL").HasDatabaseName("IX_Message_Trace");
         });
         modelBuilder.Entity<Coupon>(entity =>
         {

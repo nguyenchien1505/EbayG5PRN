@@ -13,3 +13,5 @@
 A06 thêm migration 0003 tạo dbo.DemoSeedHistory, không cấp quyền app; seed chạy riêng theo [DEMO_SEED](DEMO_SEED.md). Test bảo toàn baseline cần chạy lại sau mỗi migration mở rộng; so sánh baseline là subset để cho phép cột/bảng/index thêm mới.
 
 Nguồn API: [DbUp usage](https://dbup.readthedocs.io/en/latest/usage/), [transactions](https://dbup.readthedocs.io/en/latest/more-info/transactions/), [EF property mapping](https://learn.microsoft.com/en-us/ef/core/modeling/entity-properties), [delete behavior](https://learn.microsoft.com/en-us/ef/core/saving/cascade-delete).
+
+C01/0006 thêm ChatConversation và nullable Message extensions theo [CHAT](CHAT.md); original17 bảng vẫn nguyên cấu trúc/cột/PK/FK/unique. Legacy messages giữ nguyên/unlinked; modern rows có CHECK/FK/unique riêng. New table chỉ grant app SELECT/INSERT/UPDATE, không DELETE; CRUD original17 và schema journal protection không thay. 91 SQL/HTTP/schema tests bao gồm metadata preservation/permissions/protocol/cursor prototypes; chưa authorization/realtime service chat C02/C03.

@@ -197,7 +197,7 @@ public sealed class OrderTests
         SqlFixture.CreateEmpty(target);
         var scripts = new List<SqlScript> { new("0001_Baseline.sql", Baseline.ReadTableDdl()) };
         var assembly = typeof(MigrationRunner).Assembly;
-        foreach (var resource in assembly.GetManifestResourceNames().Where(x => x.Contains(".Scripts.") && !x.EndsWith("0005_OrderSellerSnapshot.sql")).Order())
+        foreach (var resource in assembly.GetManifestResourceNames().Where(x => x.Contains(".Scripts.") && !x.EndsWith("0005_OrderSellerSnapshot.sql") && !x.EndsWith("0006_ChatConversation.sql")).Order())
         {
             using var reader = new StreamReader(assembly.GetManifestResourceStream(resource)!);
             scripts.Add(new(resource[(resource.IndexOf(".Scripts.", StringComparison.Ordinal) + 9)..], reader.ReadToEnd()));
@@ -206,7 +206,7 @@ public sealed class OrderTests
         DemoSeedRunner.Run(target);
         var before = SqlFixture.Rows(target, SqlFixture.Metadata);
         SqlFixture.Execute(target, "INSERT dbo.[User](email,role) VALUES(N'other@migration.example.invalid',N'Seller'); INSERT dbo.Product(title,sellerId) SELECT N'Other item',id FROM dbo.[User] WHERE email=N'other@migration.example.invalid'; INSERT dbo.OrderItem(orderId,productId) SELECT MIN(o.id),MAX(p.id) FROM dbo.OrderTable o CROSS JOIN dbo.Product p;");
-        Assert.Equal(1, MigrationRunner.Run(target));
+        Assert.Equal(2, MigrationRunner.Run(target));
         Assert.True(before.IsSubsetOf(SqlFixture.Rows(target, SqlFixture.Metadata)));
         Assert.Equal("1", SqlFixture.Scalar(target, "SELECT COUNT(*) FROM dbo.OrderTable WHERE SellerId IS NULL"));
         Assert.Equal("3", SqlFixture.Scalar(target, "SELECT COUNT(*) FROM dbo.OrderTable WHERE SellerId IS NOT NULL"));
