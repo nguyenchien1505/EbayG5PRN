@@ -1,6 +1,6 @@
 # Handoff — C05 reconnect, tải bù, metadata trace
 
-06/10/2026. Repo D:/WINDOWS/PRN3/EbayGroup5; baseline main/originccf1264; branch task/C05-chat-recovery. Checkpoint `git log --oneline --grep=C05`; C04 archived [C04](C04.md), dependency runtime2c09a7f/[CI37413352483](https://github.com/Twiash/EbayGroup5/actions/runs/37413352483) exact success verified before code.
+06/10/2026. Repo D:/WINDOWS/PRN3/EbayGroup5; baseline main/originccf1264; runtimec2717b9, task/C05-chat-recovery →main sau CI success. Checkpoint `git log --oneline --grep=C05`; C04 archived [C04](C04.md), dependency runtime2c09a7f/[CI37413352483](https://github.com/Twiash/EbayGroup5/actions/runs/37413352483) exact success verified before code.
 
 ## Hoàn tất
 
@@ -16,7 +16,7 @@
 - Actual browser: Connected lost-event SQL commit appears automatically; verified process restart with1050 offline rows loads all via continuation1101 retained bubbles, no Refresh/reload and draft retained. WS blocked fixture uses REST; injected lost-ack after real commit transitions Not sent→one Sent, SQL Last1178/Rows1178/LostAckRows1. Reload final50 newest/Connected/Sent once/draft empty;320px no horizontal overflow. Fake logout in second tab+401 clears bubbles/composer/draft/stops recovery.
 - Early browser illegal timer invocation fixed wrappers and recovery scenarios rerun; helper executable lock resolved stopping only verified preview process. Ignored final-recovery.jpg/mobile-320.jpg and earlier failure/recovery screenshots retained. Node covers hidden/offline/coalescing/auth-stop; no every-browser lifecycle/perf claim.
 - **G5-01/G5-02 Done**. G5-N01/N02/N04/N05 Pending F01–F05 TLS/WSS/deployed keys/scale/dataset/latency/log collection. Local Activity/record trace linkage tested, not deployed operational log acceptance. UI-01 project-wide Pending.
-- GitHub CI exact runtime pending; do not fast-forward main until its success. User launchSettings.json remains untracked/untouched; artifacts/config/secrets ignored. Commit/push authorized/private origin only; no force push.
+- **[CI37415620094](https://github.com/Twiash/EbayGroup5/actions/runs/37415620094) exact runtimec2717b92af775ea8f535c5cbdb36a2f3bea574cb success**: job3m29s/build0 warnings/errors/140 .NET1m42s+14 Node/source17/7 assets/vendor/planning119/TRX upload. Final docs-only [skip ci], main FF after success; no runtime changes. User launchSettings.json remains untracked/untouched; artifacts/config/secrets ignored. Private origin push authorized, no force push. Preview/tabs closed, viewport reset, test DB/container retained.
 
 ## Tiếp theo / Jira
 
