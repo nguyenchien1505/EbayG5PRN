@@ -2,7 +2,7 @@
 
 06/10/2026. Repo D:/WINDOWS/PRN3/EbayGroup5.
 
-- Baseline main `249bce7`; nhánh `task/D05-moderation`.
+- Baseline main `249bce7`; runtime `316adac` trên `task/D05-moderation`, fast-forward vào main sau khi [CI37431358143](https://github.com/Twiash/EbayGroup5/actions/runs/37431358143) pass.
 - Checkpoint: `git log --oneline --grep=D05`.
 - Handoff D04 lưu ở [D04](D04.md).
 
@@ -37,7 +37,7 @@
 - Trạng thái requirement:
   - **G5-04 Done**; G5-03 và G5-05 Done.
   - SUP-05 Pending: phần dispute thuộc E05.
-- GitHub CI: ghi bên dưới sau khi push.
+- **[CI37431358143](https://github.com/Twiash/EbayGroup5/actions/runs/37431358143) exact runtime 316adac success**: job 4m25s, 190 .NET + 14 Node, build 0 warnings, TRX upload. Docs-only [skip ci] sau CI.
 - `launchSettings.json` (untracked) không bị đụng.
 
 ## Lưu ý
