@@ -6,6 +6,7 @@ public static class ReviewLimits
     public const int MaxRating = 5;
     public const int MaxCommentLength = 2000;
     public const int MaxLines = 50;
+    public const int MaxBatchIds = 100;
 }
 
 public enum ReviewOutcome { Success, Invalid, NotFound, Forbidden, Conflict }
@@ -36,4 +37,6 @@ public interface IReviewService
     Task<ReviewResult> SubmitAsync(int buyerId, int orderItemId, int rating, string? comment, CancellationToken cancellationToken = default);
     /// <summary>Order-linked reviews only. Lists reviews with a comment; the summary counts every rating.</summary>
     Task<ProductReviewPage> ProductReviewsAsync(int productId, int page = 1, ReviewSort sort = ReviewSort.Recent, CancellationToken cancellationToken = default);
+    /// <summary>D06 catalog cards: same visibility and rounding as ProductReviewsAsync. Products without ratings are omitted; at most MaxBatchIds distinct ids.</summary>
+    Task<IReadOnlyDictionary<int, RatingSummary>> SummariesAsync(IReadOnlyCollection<int> productIds, CancellationToken cancellationToken = default);
 }

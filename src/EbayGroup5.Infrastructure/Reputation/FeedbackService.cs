@@ -14,25 +14,35 @@ public sealed class FeedbackService(EbayDbContext db, TimeProvider clock) : IFee
     private const string Delivered = "Delivered";
     private const string WaitMessage = "You need to wait 7 days before you can leave neutral or negative feedback for this seller.";
     private const string AlreadyLeft = "You already left feedback for this seller.";
-    private sealed record WindowRow(string Sentiment, int All, int M1, int M6, int M12);
+    private sealed record WindowRow(int Seller, string Sentiment, int All, int M1, int M6, int M12);
 
     // Single visibility rule for reputation and the public profile: not hidden by moderation (D05).
     private IQueryable<SellerFeedback> Visible() => db.Set<SellerFeedback>().AsNoTracking().Where(x => x.HiddenAtUtc == null);
 
-    public async Task<SellerReputation> ReputationAsync(int sellerId, CancellationToken cancellationToken = default)
+    public async Task<SellerReputation> ReputationAsync(int sellerId, CancellationToken cancellationToken = default) =>
+        (await ReputationsAsync([sellerId], cancellationToken))[sellerId];
+
+    public async Task<IReadOnlyDictionary<int, SellerReputation>> ReputationsAsync(IReadOnlyCollection<int> sellerIds, CancellationToken cancellationToken = default)
     {
+        var ids = sellerIds.Distinct().ToArray();
+        if (ids.Length > FeedbackLimits.MaxBatchIds) throw new ArgumentException("Too many sellers.", nameof(sellerIds));
+        if (ids.Length == 0) return new Dictionary<int, SellerReputation>();
         var now = clock.GetUtcNow().UtcDateTime;
         DateTime m1 = now.AddMonths(-1), m6 = now.AddMonths(-6), m12 = now.AddMonths(-12);
-        // One grouped query: lifetime count plus windowed counts per sentiment.
-        var rows = await Visible().Where(x => x.SellerId == sellerId).GroupBy(x => x.Sentiment)
-            .Select(g => new WindowRow(g.Key, g.Count(), g.Count(x => x.CreatedAtUtc > m1), g.Count(x => x.CreatedAtUtc > m6), g.Count(x => x.CreatedAtUtc > m12)))
+        // One grouped query: lifetime count plus windowed counts per seller and sentiment.
+        var rows = await Visible().Where(x => ids.Contains(x.SellerId)).GroupBy(x => new { x.SellerId, x.Sentiment })
+            .Select(g => new WindowRow(g.Key.SellerId, g.Key.Sentiment, g.Count(), g.Count(x => x.CreatedAtUtc > m1), g.Count(x => x.CreatedAtUtc > m6), g.Count(x => x.CreatedAtUtc > m12)))
             .ToListAsync(cancellationToken);
-        FeedbackCounts Counts(Func<WindowRow, int> pick)
+        SellerReputation Reputation(int seller)
         {
-            int Of(FeedbackSentiment s) => rows.Where(x => x.Sentiment == s.ToString()).Sum(pick);
-            return new(Of(FeedbackSentiment.Positive), Of(FeedbackSentiment.Neutral), Of(FeedbackSentiment.Negative));
+            FeedbackCounts Counts(Func<WindowRow, int> pick)
+            {
+                int Of(FeedbackSentiment s) => rows.Where(x => x.Seller == seller && x.Sentiment == s.ToString()).Sum(pick);
+                return new(Of(FeedbackSentiment.Positive), Of(FeedbackSentiment.Neutral), Of(FeedbackSentiment.Negative));
+            }
+            return new(Counts(x => x.All), Counts(x => x.M1), Counts(x => x.M6), Counts(x => x.M12));
         }
-        return new(Counts(x => x.All), Counts(x => x.M1), Counts(x => x.M6), Counts(x => x.M12));
+        return ids.ToDictionary(x => x, Reputation);
     }
 
     public async Task<SellerFeedbackPage?> ProfileAsync(int sellerId, FeedbackSentiment? filter = null, int page = 1, CancellationToken cancellationToken = default)

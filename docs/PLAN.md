@@ -183,6 +183,7 @@ Trạng thái chi tiết nằm trong [task index](tasks/INDEX.md); bảng dướ
 | D03 | Seller feedback và công thức uy tín | D01 | Sentiment tách biệt; công thức có unit test |
 | D04 | Trang uy tín và seller reply | D03, B03 | Chỉ seller liên quan được phản hồi |
 | D05 | Kiểm duyệt và audit review/feedback | D04, B02 | Ẩn nội dung cập nhật đúng tổng hợp |
+| D06 | Đồng bộ điểm vào nhóm 5 theo eBay (A1–A5, thêm 06/10/2026 theo ADR-002/Q-UI-008) | D05, C04, B06 | Điểm vào khớp eBay; số liệu card khớp trang chi tiết |
 | E01 | Schema và state machine dispute | B06 | Reason, actor, transition, active uniqueness rõ ràng |
 | E02 | Form khiếu nại và lưu nháp | E01, B03 | Reload khôi phục dữ liệu; gửi lại không tạo trùng |
 | E03 | Buyer/seller dashboard và trao đổi | E02 | Danh sách đúng quyền, timeline có phân trang |

@@ -41,7 +41,7 @@ public sealed class ChatPageTests
         var f = await ChatFixture.Create(); using var factory = new AccountHttpTests.Factory(f.Target);
         using var anonymous = factory.CreateClient(new() { AllowAutoRedirect = false });
         var anon = await anonymous.GetStringAsync("/Catalog/Details/" + f.Product);
-        Assert.Contains("Contact seller", anon); Assert.Contains("returnUrl=", anon, StringComparison.OrdinalIgnoreCase); Assert.DoesNotContain("id=\"chat-panel\"", anon);
+        Assert.Contains("seller-message", anon); Assert.Contains("returnUrl=", anon, StringComparison.OrdinalIgnoreCase); Assert.DoesNotContain("id=\"chat-panel\"", anon);
         using var buyer = await ChatHttpTests.SignIn(factory, 0); using var seller = await ChatHttpTests.SignIn(factory, 2);
         var buyerPage = await buyer.GetStringAsync("/Catalog/Details/" + f.Product);
         Assert.Contains("data-chat-product-id=\"" + f.Product, buyerPage); Assert.Contains("id=\"chat-panel\"", buyerPage); Assert.Contains(">Messages</a>", buyerPage);

@@ -6,8 +6,9 @@ using Microsoft.EntityFrameworkCore;
 
 namespace EbayGroup5.Infrastructure.Orders;
 
-public sealed class OrderService(EbayDbContext db) : IOrderService
+public sealed class OrderService(EbayDbContext db, TimeProvider? clock = null) : IOrderService
 {
+    private readonly TimeProvider clock = clock ?? TimeProvider.System;
     private static string Role(OrderAudience audience) => audience == OrderAudience.Buyer ? "Buyer" : "Seller";
     private IQueryable<OrderTable> Owned(int actorId, OrderAudience audience) => db.Set<OrderTable>().AsNoTracking()
         .Where(x => audience == OrderAudience.Buyer ? x.BuyerId == actorId : x.SellerId == actorId);
@@ -16,17 +17,30 @@ public sealed class OrderService(EbayDbContext db) : IOrderService
 
     public async Task<OrderHistory> HistoryAsync(int actorId, OrderAudience audience, int page = 1, string? status = null, CancellationToken cancellationToken = default)
     {
-        if (page < 1 || page > int.MaxValue / OrderHistory.PageSize || (status != null && status is not ("Pending" or "Shipped" or "Delivered" or "Cancelled")))
+        if (page < 1 || page > int.MaxValue / OrderHistory.PageSize || !OrderHistory.IsValidFilter(status, audience))
             throw new ArgumentException("Invalid order filters.");
         if (!await HasRole(actorId, audience, cancellationToken)) throw new UnauthorizedAccessException();
+        var buyer = audience == OrderAudience.Buyer;
+        var due = FeedbackDue.Items(db, actorId, clock.GetUtcNow().UtcDateTime);
+        if (!buyer) due = due.Where(_ => false); // Sellers never see buyer feedback actions.
         var orders = Owned(actorId, audience);
-        if (status != null) orders = orders.Where(x => x.Status == status);
+        if (status == OrderHistory.ReadyForFeedback) orders = orders.Where(x => due.Any(item => item.OrderId == x.Id));
+        else if (status != null) orders = orders.Where(x => x.Status == status);
         var total = await orders.CountAsync(cancellationToken);
-        var summaries = await orders.OrderByDescending(x => x.Id).Skip((page - 1) * OrderHistory.PageSize).Take(OrderHistory.PageSize)
-            .Select(x => new OrderSummary(x.Id, x.OrderDate, x.Status ?? "Unknown", x.TotalPrice,
-                (from item in db.Set<OrderItem>() join product in db.Set<Product>() on item.ProductId equals product.Id
-                    where item.OrderId == x.Id orderby item.Id select product.Title).FirstOrDefault() ?? "Item unavailable",
-                db.Set<OrderItem>().Count(item => item.OrderId == x.Id))).ToListAsync(cancellationToken);
+        var rows = await orders.OrderByDescending(x => x.Id).Skip((page - 1) * OrderHistory.PageSize).Take(OrderHistory.PageSize)
+            .Select(x => new
+            {
+                x.Id, x.OrderDate, x.Status, x.TotalPrice,
+                Title = (from item in db.Set<OrderItem>() join product in db.Set<Product>() on item.ProductId equals product.Id
+                    where item.OrderId == x.Id orderby item.Id select product.Title).FirstOrDefault(),
+                Count = db.Set<OrderItem>().Count(item => item.OrderId == x.Id),
+                FeedbackItemId = due.Where(item => item.OrderId == x.Id).OrderBy(item => item.Id).Select(item => (int?)item.Id).FirstOrDefault(),
+                FeedbackLines = due.Count(item => item.OrderId == x.Id),
+                ContactItemId = buyer ? db.Set<OrderItem>().Where(item => item.OrderId == x.Id && item.ProductId != null)
+                    .OrderBy(item => item.Id).Select(item => (int?)item.Id).FirstOrDefault() : null
+            }).ToListAsync(cancellationToken);
+        var summaries = rows.Select(x => new OrderSummary(x.Id, x.OrderDate, x.Status ?? "Unknown", x.TotalPrice, x.Title ?? "Item unavailable", x.Count)
+            { FeedbackItemId = x.FeedbackItemId, FeedbackLines = x.FeedbackLines, ContactItemId = x.ContactItemId }).ToList();
         return new(summaries, total, page, status, audience);
     }
 

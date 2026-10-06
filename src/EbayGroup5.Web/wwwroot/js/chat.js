@@ -363,6 +363,12 @@ if (root) {
             finally { recovery.wake(); }
         })();
         get("retry-load").addEventListener("click", refresh);
+        const folderToggle = document.querySelector("[data-folder-toggle]");
+        folderToggle?.addEventListener("click", () => {
+            const open = root.classList.toggle("folders-open");
+            folderToggle.setAttribute("aria-expanded", String(open));
+            folderToggle.setAttribute("aria-label", open ? "Hide folders" : "Show folders");
+        });
     } else {
         async function openPanel(trigger) {
             lastTrigger = trigger;
