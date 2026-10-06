@@ -1,6 +1,6 @@
 # Bắt đầu ở đây
 
-**Checkpoint:** A00–A07, B01–B06, C01–C05 và D01 hoàn tất (D01: DbUp0007 review gắn OrderItem + service + POST /Reviews/Create, 157 .NET +14 Node pass, UI thuộc D02, G5-03 Pending; nhánh task/D01-review-order-link chưa push/merge); sourceSQL17/DbUp0006 giữ nguyên, chat SQL/REST +cookie WS/Redis +inbox/contact/read +automatic recovery/metadata trace.140 .NET +14 Node pass; actual browser restart1050-message catch-up/lost event/lost ack verified. G5-01/G5-02 Done; TLS/deployment/perf/operational logs còn F. GitHub CI/runtime xem handoff.
+**Checkpoint:** A00–A07, B01–B06, C01–C05 và D01 hoàn tất (D01: DbUp0007 review gắn OrderItem + service + POST /Reviews/Create, 157 .NET +14 Node pass, UI thuộc D02, G5-03 Pending; GitHub [CI37418785742](https://github.com/Twiash/EbayGroup5/actions/runs/37418785742) success, main FF); sourceSQL17/DbUp0006 giữ nguyên, chat SQL/REST +cookie WS/Redis +inbox/contact/read +automatic recovery/metadata trace.140 .NET +14 Node pass; actual browser restart1050-message catch-up/lost event/lost ack verified. G5-01/G5-02 Done; TLS/deployment/perf/operational logs còn F. GitHub CI/runtime xem handoff.
 
 1. Đọc [quy định agent](../AGENTS.md) và [handoff mới nhất](handoffs/LATEST.md).
 2. Xem [task index](tasks/INDEX.md), chọn đúng task được yêu cầu.

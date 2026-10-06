@@ -95,4 +95,4 @@ C05 [recovery evidence](../evidence/C05.md)140 .NET+14 Node/browser restart1050-
 
 C05 runtimec2717b9/[CI37415620094](https://github.com/Twiash/EbayGroup5/actions/runs/37415620094) exact success140 .NET+14 Node, [handoff](../handoffs/C05.md) ready for batch; live Jira ledger/status unchanged.
 
-D01 [evidence](../evidence/D01.md)157 .NET+14 Node, DbUp0007/service/POST endpoint; **D01 →KAN-17/TV3 Pham Van Cuong complete locally (KAN-17 còn D02 UI)**. Pending batch ledger giữ B05+B06/KAN-11, C01/KAN-13, C02/KAN-14, C03+C04/KAN-15, C05/KAN-16 và thêm D01/KAN-17. Chưa sync live Jira, chưa push/CI cho D01; không giả worklog/review/duplicate issue.
+D01 [evidence](../evidence/D01.md)157 .NET+14 Node, DbUp0007/service/POST endpoint; **D01 →KAN-17/TV3 Pham Van Cuong complete locally (KAN-17 còn D02 UI)**. Pending batch ledger giữ B05+B06/KAN-11, C01/KAN-13, C02/KAN-14, C03+C04/KAN-15, C05/KAN-16 và thêm D01/KAN-17. Runtime 6ba273a/[CI37418785742](https://github.com/Twiash/EbayGroup5/actions/runs/37418785742) success. Chưa sync live Jira; không giả worklog/review/duplicate issue.
