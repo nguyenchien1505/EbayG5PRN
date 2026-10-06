@@ -1,6 +1,6 @@
 # Handoff — B05 Buy Now/address/COD
 
-06/10/2026. Repo D:/WINDOWS/PRN3/EbayGroup5; baseline06bb5f3; branch task/B05-buy-now-cod. Checkpoint `git log --oneline --grep=B05`. Handoff Jira cũ [JIRA-team-backlog](JIRA-team-backlog.md), runtime B04 [B04](B04.md).
+06/10/2026. Repo D:/WINDOWS/PRN3/EbayGroup5; baseline06bb5f3; runtime6d14618; main fast-forward từ task/B05-buy-now-cod sau CI pass. Checkpoint `git log --oneline --grep=B05`. Handoff Jira cũ [JIRA-team-backlog](JIRA-team-backlog.md), runtime B04 [B04](B04.md).
 
 ## Hoàn tất
 
@@ -14,7 +14,7 @@
 
 ## Kiểm tra/checkpoint
 
-- Verify-Planning (105 Markdown files), Verify-Migrations (5 immutable SQL assets) và diff --check pass. Test-CI.ps1 local container riêng cấu hình chuẩn2048MB/3GB: build0 warnings/errors, 51/51tests pass16s; stopped container retained. GitHub CI đang chuẩn bị push, ghi kết quả cuối tại LATEST.
+- Verify-Planning (105 Markdown files), Verify-Migrations (5 immutable SQL assets) và diff --check pass. Test-CI.ps1 local container riêng cấu hình chuẩn2048MB/3GB: build0 warnings/errors, 51/51tests pass16s; stopped container retained. GitHub [CI37397925776](https://github.com/Twiash/EbayGroup5/actions/runs/37397925776) tại runtime6d14618 pass: job2m20s, build0 warnings/errors, 51/51tests pass37s và TRX upload thành công. Commit tài liệu sau CI dùng [skip ci], chỉ checks docs/source integrity.
 - Local lần đầu migration cần GO (đã sửa trước apply). SQL retained test DBs gây resource-pool memory trong một run; override ignored artifacts/b05/compose-memory.yaml tăng engine2048→4096MB/container3→6GB trong kiểm chứng. Cấu hình repo không đổi; không xóa DB. Đã khôi phục engine2048MB/container3GB, đúng named volume cũ và SQL healthy; preview đã dừng.
 - Preview riêng không ghi dữ liệu vào EbayGroup5 demo. User untracked src/EbayGroup5.Web/Properties/launchSettings.json giữ nguyên/không stage. .env/.env.database/.env.auth giữ ignored, không in secrets.
 
@@ -22,4 +22,4 @@
 
 - Chỉ B05 trong phiên này. Khi user yêu cầu B06: đọc task B06/CHECKOUT/SECURITY/P1; chốt state transitions/order ownership trước code. Đơn B05 Pending, COD Pending; không ShippingInfo cho đến B06.
 - Jira mapping KAN-11 parentKAN-4/owner Tran Van Dat chứa B05+B06; không chuyển Done. Không cập nhật Jira hay tạo worklog trong phiên B05; trạng thái mapping là lần đồng bộ Jira trước. Không tạo ticket trùng.
-- Private origin Twiash/EbayGroup5; commit/push/CI đã được user cho phép; fast-forward main sau CI pass, không force-push. SDK/config qua Use-LocalDotnet/Use-LocalInfrastructure. Không subagents.
+- Private origin Twiash/EbayGroup5; commit/push/CI đã được user cho phép; main fast-forward/push sau CI pass, không force-push. SDK/config qua Use-LocalDotnet/Use-LocalInfrastructure. Không subagents.
