@@ -2,7 +2,7 @@
 
 06/10/2026. Repo D:/WINDOWS/PRN3/EbayGroup5.
 
-- Baseline main `fb9521f`. Commit docs Q-UI-009 `2728473`, sau đó là runtime trên `task/E04-dispute-automation`. Checkpoint `git log --oneline --grep=E04`. GitHub CI: xem mục Verification.
+- Baseline main `fb9521f`. Commit docs Q-UI-009 `2728473`, sau đó là runtime `4eb2a71` trên `task/E04-dispute-automation`, fast-forward vào main sau khi [CI37499272875](https://github.com/Twiash/EbayGroup5/actions/runs/37499272875) pass. Checkpoint `git log --oneline --grep=E04`.
 - Handoff trước: [E03](E03.md).
 - Q-UI-009 Answered: giữ nhãn clone, tạm giữ luật offer của E01, đồng ý tên "Returns and requests".
 
@@ -39,7 +39,7 @@
   - Mutation 2/2 bị bắt.
   - Browser có worker thật.
 - **Test-CI local pass: 239/239 .NET + 20/20 Node**, build 0 warnings, container CI tự xóa.
-- GitHub CI cho runtime E04: ghi bằng commit docs-only `[skip ci]` sau khi pass.
+- **GitHub [CI37499272875](https://github.com/Twiash/EbayGroup5/actions/runs/37499272875) exact runtime `4eb2a71` success**: build-test 5m14s, **239/239 .NET + 20/20 Node**, build 0 warnings. Docs-only `[skip ci]` sau CI.
 - Fixture E04 nằm trong `artifacts/d02/preview/Program.cs` (bị ignore). DB preview đã lên 0013.
 - **DB `EbayGroup5` của người dùng phải được áp 0013 trước khi chạy app**, vì EF đã map cột `NoticeKey`. Lệnh: `pwsh -NoProfile -File scripts/Initialize-Database.ps1`.
 - Không đụng `launchSettings.json`.
