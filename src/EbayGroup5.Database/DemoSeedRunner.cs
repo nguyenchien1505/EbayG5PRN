@@ -28,6 +28,15 @@ public static class DemoSeedRunner
         using var reader = new StreamReader(typeof(DemoSeedRunner).Assembly.GetManifestResourceStream("DemoSeed.v1.sql")!);
         command.CommandText = reader.ReadToEnd();
         command.ExecuteNonQuery();
+        // Ancillary B06 snapshot only for the newly created v1 Buyer. Original seed SQL/columns remain immutable.
+        // Dynamic SQL keeps the runner compatible with a pre-B06 schema in upgrade tests.
+        command.CommandText = """
+            IF COL_LENGTH(N'dbo.OrderTable', N'SellerId') IS NOT NULL
+                EXEC(N'UPDATE o SET SellerId=s.id FROM dbo.OrderTable o
+                    JOIN dbo.[User] b ON b.id=o.buyerId AND b.email=N''buyer.a06@example.invalid''
+                    CROSS JOIN dbo.[User] s WHERE s.email=N''seller.a06@example.invalid'' AND o.SellerId IS NULL;');
+            """;
+        command.ExecuteNonQuery();
         command.CommandText = "INSERT dbo.DemoSeedHistory(Version,AppliedAtUtc) VALUES(N'A06-v1',SYSUTCDATETIME());";
         command.ExecuteNonQuery();
         transaction.Commit();

@@ -124,7 +124,7 @@ Chọn **modular monolith**: Một ứng dụng web chứa MVC, REST API và Sig
 ### 3.3. Đơn hàng và khiếu nại
 
 - Demo tạo đơn một seller, kiểm tra tồn kho và tính tiền phía server; snapshot seller/giá để nghiệp vụ sau mua ổn định.
-- Trạng thái đơn chính: `Placed → Shipped → Delivered`; seller chỉ thao tác đơn thuộc mình.
+- Trạng thái đơn chính: `Pending → Shipped → Delivered` (Pending là tên persisted cho bước Placed, chốt B05/B06); seller chỉ thao tác đơn snapshot của mình, Buyer xác nhận đã nhận. COD mô phỏng ghi Paid cùng transaction Delivered, không thu tiền thật.
 - Khiếu nại chọn dòng hàng cụ thể nhưng giữ liên kết `Dispute.orderId` gốc, tránh nhập nhằng nếu gặp đơn nhiều seller.
 - Lý do: Chưa nhận hàng, khác mô tả, hư hỏng và khác. “Chưa nhận hàng” không bị buộc phải có trạng thái `Delivered`.
 - Luồng khiếu nại: `Open → SellerResponded → Resolved` hoặc `Escalated → Resolved/Rejected`; buyer có thể đóng vụ việc của mình.

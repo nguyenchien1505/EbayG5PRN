@@ -4,6 +4,7 @@ public sealed class OrderTable
 {
     public int Id { get; set; }
     public int? BuyerId { get; set; }
+    public int? SellerId { get; set; }
     public int? AddressId { get; set; }
     public DateTime? OrderDate { get; set; }
     public decimal? TotalPrice { get; set; }

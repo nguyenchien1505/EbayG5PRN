@@ -64,6 +64,8 @@ public sealed class EbayDbContext(DbContextOptions<EbayDbContext> options) : DbC
             entity.Property(x => x.Id).HasColumnName("id").HasColumnType("int").UseIdentityColumn();
             entity.Property(x => x.BuyerId).HasColumnName("buyerId").HasColumnType("int");
             entity.HasOne<User>().WithMany().HasForeignKey(x => x.BuyerId).OnDelete(DeleteBehavior.ClientNoAction);
+            entity.Property(x => x.SellerId).HasColumnType("int");
+            entity.HasOne<User>().WithMany().HasForeignKey(x => x.SellerId).OnDelete(DeleteBehavior.ClientNoAction);
             entity.Property(x => x.AddressId).HasColumnName("addressId").HasColumnType("int");
             entity.HasOne<Address>().WithMany().HasForeignKey(x => x.AddressId).OnDelete(DeleteBehavior.ClientNoAction);
             entity.Property(x => x.OrderDate).HasColumnName("orderDate").HasColumnType("datetime");

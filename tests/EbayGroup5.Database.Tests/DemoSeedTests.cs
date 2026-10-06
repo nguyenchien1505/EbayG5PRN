@@ -18,6 +18,7 @@ public sealed class DemoSeedTests
         Assert.Equal("3", SqlFixture.Scalar(target, "SELECT COUNT(*) FROM dbo.Product p JOIN dbo.Inventory i ON p.id=i.productId WHERE i.quantity>0 AND p.isAuction=0"));
         Assert.Equal("4", SqlFixture.Scalar(target, "SELECT COUNT(DISTINCT status) FROM dbo.OrderTable WHERE status IN ('Pending','Shipped','Delivered','Cancelled')"));
         Assert.Equal("8", SqlFixture.Scalar(target, "SELECT COUNT(*) FROM dbo.OrderItem"));
+        Assert.Equal("4", SqlFixture.Scalar(target, "SELECT COUNT(*) FROM dbo.OrderTable WHERE SellerId IS NOT NULL"));
         Assert.Equal("0", SqlFixture.Scalar(target, "SELECT COUNT(*) FROM dbo.OrderTable o WHERE o.totalPrice<>(SELECT SUM(quantity*unitPrice) FROM dbo.OrderItem WHERE orderId=o.id)"));
         Assert.Equal("4", SqlFixture.Scalar(target, "SELECT COUNT(*) FROM dbo.Payment p JOIN dbo.OrderTable o ON o.id=p.orderId WHERE p.amount=o.totalPrice AND p.userId=o.buyerId AND p.method='COD' AND ((o.status='Delivered' AND p.status='Paid' AND p.paidAt IS NOT NULL) OR (o.status<>'Delivered' AND p.paidAt IS NULL AND p.status=CASE WHEN o.status='Cancelled' THEN 'Cancelled' ELSE 'Pending' END))"));
         Assert.Equal("Existing", SqlFixture.Scalar(target, "SELECT username FROM dbo.[User] WHERE email='existing@example.invalid'"));

@@ -66,7 +66,7 @@ public sealed class CheckoutService(EbayDbContext db) : ICheckoutService
                 remaining -= taken;
                 if (remaining == 0) break;
             }
-            var order = new OrderTable { BuyerId = buyerId, AddressId = address.Id, OrderDate = DateTime.UtcNow,
+            var order = new OrderTable { BuyerId = buyerId, SellerId = seller.Id, AddressId = address.Id, OrderDate = DateTime.UtcNow,
                 TotalPrice = total, Status = "Pending", CheckoutKey = request.Key, CheckoutFingerprint = fingerprint };
             db.Add(order);
             await db.SaveChangesAsync(cancellationToken);

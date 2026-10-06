@@ -43,7 +43,7 @@ Status `Pending` nghĩa là chưa triển khai/chưa nghiệm thu. Task tài li�
 | SUP-01 | Buyer đăng ký/đăng nhập/đăng xuất; seller/admin seed | A06, B01–B02 | Password hash, cookie, CSRF, phân quyền, lỗi an toàn | Done |
 | SUP-02 | Catalog/detail/search/filter/pagination | B03–B04 | UI tiếng Anh, seller/contact link, dữ liệu seed | Done |
 | SUP-03 | Buy Now/address/COD/inventory | B05 | Tiền server, transaction nhất quán, không bán quá tồn kho | Done |
-| SUP-04 | Lịch sử mua/bán, giao và nhận hàng | B06 | Owner/seller đúng quyền, trạng thái hợp lệ tới Delivered | Pending |
+| SUP-04 | Lịch sử mua/bán, giao và nhận hàng | B06 | Owner/seller đúng quyền, trạng thái hợp lệ tới Delivered | Done |
 | SUP-05 | Admin dispute và kiểm duyệt review/feedback | B02, D05, E05 | Chặn user thường; mạng demo cho phép; audit và không xóa vật lý | Pending |
 
 ## Ràng buộc và quyết định của dự án
@@ -84,4 +84,6 @@ SUP-01: evidence [B01](../evidence/B01.md) và [B02](../evidence/B02.md); quyề
 
 SUP-02: [B04 evidence](../evidence/B04.md), catalog/detail MVC/API trên seed; Contact seller là điểm vào, gửi tin nhắn kiểm chứng ở C04.
 
-SUP-03: [B05 evidence](../evidence/B05.md), 51 SQL/HTTP tests pass; principal Buyer, owned address, server total, atomic COD/stock và replay/concurrency/rollback. B06/SUP-04 chưa triển khai.
+SUP-03: [B05 evidence](../evidence/B05.md), 51 SQL/HTTP tests pass; principal Buyer, owned address, server total, atomic COD/stock và replay/concurrency/rollback. B06/SUP-04 kiểm chứng tại evidence B06.
+
+SUP-04: [B06 evidence](../evidence/B06.md): snapshot owner Buyer/Seller history, transactional Ship→Receive→Delivered/COD Paid; 70 SQL/HTTP tests và browser desktop/mobile. Không real payment/delivery. UI-01 xuyên suốt vẫn Pending.

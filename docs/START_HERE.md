@@ -1,10 +1,10 @@
 # Bắt đầu ở đây
 
-**Checkpoint:** A00–A07 và B01–B05 hoàn tất; SQL baseline 17 bảng, DbUp additive 0004, auth/catalog/Buy Now-address-COD demo, 51 SQL/HTTP tests pass. Demo credential local đã enable riêng. GitHub CI mới nhất xem handoff.
+**Checkpoint:** A00–A07 và B01–B06 hoàn tất; SQL baseline17 bảng, DbUp additive0005, auth/catalog/checkout/history/giao nhận-COD demo, 70 SQL/HTTP tests pass. Demo credential local enable riêng; GitHub CI và runtime checkpoint xem handoff.
 
 1. Đọc [quy định agent](../AGENTS.md) và [handoff mới nhất](handoffs/LATEST.md).
 2. Xem [task index](tasks/INDEX.md), chọn đúng task được yêu cầu.
-3. Task commerce tiếp theo **[B06](tasks/B06.md)** — lịch sử mua/bán và giao/nhận; chưa triển khai trong phiên B05. Đọc [CHECKOUT](architecture/CHECKOUT.md), [CATALOG](architecture/CATALOG.md) và [SECURITY](architecture/SECURITY.md), mẫu P1 đã chốt. Chỉ tiếp tục task người dùng yêu cầu.
+3. B06 đã có Buyer/Seller đến Delivered; contract [ORDERS](architecture/ORDERS.md), [CHECKOUT](architecture/CHECKOUT.md), [SECURITY](architecture/SECURITY.md). Chỉ tiếp tục task user yêu cầu; thứ tự PLAN tiếp là [C01](tasks/C01.md), không tự mở cả backlog.
 
 Các quyết định cố định: .NET 8 MVC/Razor; SQL Server; schema chỉ mở rộng; viết mới; UI tiếng Anh; repo riêng; GitHub private; Jira KAN; demo local Docker/K8s. Xem [ADR-001](decisions/ADR-001-foundation.md) khi cần lý do.
 
@@ -12,6 +12,7 @@ Các quyết định cố định: .NET 8 MVC/Razor; SQL Server; schema chỉ m�
 - [Nguồn và checksum](requirements/SOURCES.md): dùng khi đối chiếu yêu cầu/schema.
 - [Câu hỏi đang mở](questions/INDEX.md): deadline và UI phần chưa triển khai; tài khoản thành viên đã chốt; UI đã chốt U1/M1/R1/P1/D1/D2. GitHub private repo [Twiash/EbayGroup5](https://github.com/Twiash/EbayGroup5) đã nối origin.
 - [Phân công](team/OWNERSHIP.md): đã tạo/gán 5 Epic +20 issue; [Jira mapping](team/JIRA_MAPPING.md).
+- User chốt đồng bộ Jira theo đợt task để phân chia thành viên; chưa ấn định số task. B05+B06 đã có evidence local, chờ gom đợt sync, chưa ghi Jira từng task.
 
 Kiểm tra tài liệu: `pwsh -NoProfile -File scripts/Verify-Planning.ps1` từ repo root. Build/run: [LOCAL_SETUP](runbooks/LOCAL_SETUP.md); SQL/Redis: [LOCAL_INFRA](runbooks/LOCAL_INFRA.md). Tra source: [SOURCE_MAP](architecture/SOURCE_MAP.md).
 
