@@ -2,7 +2,7 @@
 
 06/10/2026. Repo D:/WINDOWS/PRN3/EbayGroup5.
 
-- Baseline main `ae10f9d`; nhánh `task/D02-review-ui`.
+- Baseline main `ae10f9d`; runtime `d290a60` trên `task/D02-review-ui`, fast-forward vào main sau khi [CI37423139287](https://github.com/Twiash/EbayGroup5/actions/runs/37423139287) pass.
 - Checkpoint: `git log --oneline --grep=D02`.
 - Handoff D01 lưu ở [D01](D01.md).
 
@@ -38,7 +38,7 @@
   - G5-04 Pending phần kiểm duyệt (D05).
   - G5-05 Pending D03–D04.
   - SUP-05 Pending D05/E05; UI-01 Pending.
-- GitHub CI: kết quả ghi ở bên dưới sau khi push.
+- **[CI37423139287](https://github.com/Twiash/EbayGroup5/actions/runs/37423139287) exact runtime d290a60 success**: job 4m23s, 161 .NET + 14 Node, build 0 warnings, TRX upload. Docs-only [skip ci] sau CI.
 - `launchSettings.json` (untracked) không bị đụng. Fixture/DB/ảnh preview nằm trong `artifacts/d02`, đã ignore.
 
 ## Lưu ý cho task sau
