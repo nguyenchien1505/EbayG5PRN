@@ -1,6 +1,6 @@
-# C01 — Chat contract
+# Chat contract — C01/C02
 
-Chốt 06/10/2026 tại baseline236637e. Dependencies A05/B02 đã có DbUp/EF/security và regression70 tests + CI37400491344. C01 chỉ schema/mapping/wire contract; C02 service/API, C03 hub/Redis, C04 UI, C05 reconnect/log/outbox chưa triển khai.
+Chốt C01 06/10/2026 tại baseline236637e; C02 triển khai service/REST trên schema0006 tại baselined6c8221. Dependencies A05/B02/C01 có DbUp/EF/security +91tests và CI37403524947. C03 hub/Redis, C04 UI, C05 reconnect/log/outbox còn riêng; không suy ra realtime/TLS từ REST.
 
 ## Membership và context
 
@@ -22,7 +22,7 @@ Chốt 06/10/2026 tại baseline236637e. Dependencies A05/B02 đã có DbUp/EF/s
 - Conversation DTO có ownReadSequence/peerReadSequence để reload còn đúng trạng thái read; ReadAdvanced/receipt có readerId do server xác định để client phân biệt bên đọc. ReaderId không có trong body MarkRead và không trao quyền cập nhật cursor của người kia.
 - Inbox C02 page20/max50, keyset UpdatedAtUtc DESC/Id DESC, cursor tuple UTC+id exclusive; concurrent activity có thể dịch hội thoại nên client merge theo conversation ID và refresh đầu trang. Index participant/UpdatedAtUtc/id; history index ConversationId/Sequence, không INCLUDE body lớn. Dataset/performance và reconnect nghiệm thu C05/F05.
 
-## REST, event và lỗi (C02/C03 sẽ thực hiện)
+## REST (C02) và event (C03 còn lại)
 
 | Route / method | Request / response / rule |
 |---|---|
@@ -41,3 +41,12 @@ Chốt 06/10/2026 tại baseline236637e. Dependencies A05/B02 đã có DbUp/EF/s
 - Redis chỉ backplane; không lưu message durable, không coi send SignalR thành công là commit. Crash sau commit trước publish recover bằng SQL after cursor. Guaranteed outbox/reliable delivery (nếu cần) phải thiết kế/kiểm chứng C05, C01 chưa có outbox.
 
 Files scope trước code: DbUp0006 + checksum; ChatConversation/Message extensions + EF mapping; Application/Chat DTO/interface/cursor codec; SQL constraint/legacy/mapping/cursor/idempotency/concurrency tests; task/evidence/handoff/matrix. Không route/service/hub/UI trong C01.
+
+## Runtime C02
+
+- Infrastructure/Chat/ChatService thực hiện tất cả IChatService methods; Web/Controllers/ChatApiController cung cấp REST routes trên. Error codes ổn định qua Application/Chat/ChatException. Mọi actor/resource/peer/context lấy từ SQL và principal, không chấp nhận các identity/price/trace overpost. HTTP cookies được revalidate; service kiểm tra lại role/credential dưới HOLDLOCK trong transaction cho từng thao tác owned. Không cấp quyền Admin đọc chat.
+- Open dùng pair index UPDLOCK/HOLDLOCK range lock, kiểm tra context/actor lại dưới lock trước insert; same pair trả hội thoại hiện hữu và context requested riêng, giữ initial context. Send/MarkRead khóa conversation trước user/context; ExecuteUpdate cập nhật counter/read và insert trong cùng transaction, ack/log metadata sau commit. Không phụ thuộc entity cũ trong EF tracker. Không event publish C02; C03 chỉ publish receipt.Replayed=false và kiểm tra recipient active theo contract.
+- History lấy tối đa limit+1 dưới captured highWatermark, trả ASC; no unbounded history/legacy import. Inbox tối đa limit+1, keyset query `cursorUtc` (offset0) + `cursorId` cùng có/cùng thiếu; JSON nextCursor chứa updatedAtUtc/conversationId. Own/peerRead và unreadCount **decimal string**, unread chỉ đếm peer messages sau ownRead. N+1 count query có giới hạn tối đa50 conversations; chưa nghiệm thu latency/dataset lớn F05.
+- X-CSRF-TOKEN cấu hình shared antiforgery (form field MVC cũ vẫn hợp lệ). Token GET yêu cầu login, no-store. Tất cả chat response kể cả401/403/400/404/409/500 no-store; API401 không redirect/HTML status re-execute. JSON/model binding errors generic400; unsupported media type theo MVC415. Body<=32768 bytes kiểm tra declared và actual unknown/chunked length trước JSON binding; Kestrel oversize413 được adapter chuyển generic400 khi đọc.
+- Plaintext malformed UTF-16 bị reject400 trước SHA256, giữ newline/Unicode trim contract. Listing tồn tại nhưng không còn đủ điều kiện attach tin mới409; listing thiếu hoặc foreign context404. UUID replay trước lookup mutable context/peer; vẫn trả snapshot cũ khi peer đổi role/password, actor còn hợp lệ.
+- Local service/HTTP evidence tại [C02](../evidence/C02.md); mock failure chỉ dùng kiểm tra generic500, transaction/concurrency/authorization dựa service thật và SQL Server thật. No-store/CSRF/bounded body trên TestServer không phải bằng chứng WSS/Kestrel deployment/multi-instance.

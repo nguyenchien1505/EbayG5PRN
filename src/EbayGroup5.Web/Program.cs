@@ -11,6 +11,16 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllersWithViews(options => options.Filters.Add(new AutoValidateAntiforgeryTokenAttribute()));
 builder.Services.AddScoped<AccountService>();
+builder.Services.AddScoped<EbayGroup5.Application.Chat.IChatService, EbayGroup5.Infrastructure.Chat.ChatService>();
+builder.Services.AddScoped<ChatApiFilter>();
+builder.Services.AddAntiforgery(options => options.HeaderName = "X-CSRF-TOKEN");
+builder.Services.Configure<ApiBehaviorOptions>(options =>
+{
+    var defaultFactory = options.InvalidModelStateResponseFactory;
+    options.InvalidModelStateResponseFactory = context => context.HttpContext.Request.Path.StartsWithSegments("/api/v1/chat")
+        ? new BadRequestObjectResult(new ProblemDetails { Status = 400, Title = "Invalid chat request." })
+        : defaultFactory(context);
+});
 builder.Services.AddScoped<EbayGroup5.Application.Orders.IOrderService, EbayGroup5.Infrastructure.Orders.OrderService>();
 builder.Services.AddScoped<EbayGroup5.Application.Checkout.ICheckoutService, EbayGroup5.Infrastructure.Checkout.CheckoutService>();
 builder.Services.AddScoped<EbayGroup5.Application.Catalog.ICatalogService, EbayGroup5.Infrastructure.Catalog.CatalogService>();
@@ -48,12 +58,19 @@ builder.Services.AddDbContext<EbayDbContext>(options =>
 
 var app = builder.Build();
 
+app.Use(async (context, next) =>
+{
+    if (context.Request.Path.StartsWithSegments("/api/v1/chat"))
+        context.Response.OnStarting(() => { context.Response.Headers.CacheControl = "no-store"; return Task.CompletedTask; });
+    await next(context);
+});
+
 app.UseExceptionHandler(handler => handler.Run(context =>
         Results.Problem(statusCode: StatusCodes.Status500InternalServerError,
             title: "An unexpected error occurred.").ExecuteAsync(context)));
 
 app.UseStaticFiles();
-app.UseWhen(context => HttpMethods.IsGet(context.Request.Method), branch =>
+app.UseWhen(context => HttpMethods.IsGet(context.Request.Method) && !context.Request.Path.StartsWithSegments("/api/v1/chat"), branch =>
     branch.UseStatusCodePagesWithReExecute("/Home/Status", "?code={0}"));
 app.UseRouting();
 app.UseRateLimiter();

@@ -24,6 +24,16 @@ public sealed class AccountOwnerHandler : AuthorizationHandler<AccountOwnerRequi
 
 public sealed class AccessCookieEvents(EbayDbContext db) : CookieAuthenticationEvents
 {
+    public override Task RedirectToLogin(RedirectContext<CookieAuthenticationOptions> context)
+    {
+        if (context.Request.Path.StartsWithSegments("/api/v1/chat"))
+        {
+            context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+            return Task.CompletedTask;
+        }
+        return base.RedirectToLogin(context);
+    }
+
     public override async Task ValidatePrincipal(CookieValidatePrincipalContext context)
     {
         var principal = context.Principal;
