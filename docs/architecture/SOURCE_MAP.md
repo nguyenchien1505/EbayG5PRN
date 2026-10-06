@@ -45,3 +45,5 @@ D04: Database/Scripts/0009_SellerFeedbackReply.sql (reply, CHECK, trigger bất 
 D05: Database/Scripts/0010_Moderation.sql; Core/Entities/ContentReport, ModerationAudit (+Hidden/CommentRemoved trên Review, SellerFeedback); Application/Moderation/IModerationService; Infrastructure/Moderation/ModerationService; Web ReportsController, AdminController + Views/Reports/Create, Views/Admin/Moderation/ModerationItem, Report link trong _ReviewList và Sellers/Feedback, SiteNotice + menu Moderation trong _Layout; tests `ModerationTests.cs`, helper `SqlFixture.MigrateBefore`.
 
 E01 khiếu nại: `src/EbayGroup5.Application/Disputes/` (DisputeTiming, DisputeRules thuần, IDisputeService), `src/EbayGroup5.Infrastructure/Disputes/DisputeService.cs`, `src/EbayGroup5.Database/Scripts/0011_Dispute.sql`, test `tests/EbayGroup5.Database.Tests/DisputeTests.cs`. Contract [DISPUTES](DISPUTES.md).
+
+E02 form khiếu nại: `src/EbayGroup5.Web/Controllers/DisputesController.cs`, `Views/Disputes/`, `Models/DisputeForms.cs`, `wwwroot/js/dispute-form.js` + `dispute-draft.mjs` (test `tests/dispute-draft.test.mjs`), `Scripts/0012_DisputeDraft.sql`. Contract [DISPUTE_FORMS](DISPUTE_FORMS.md).

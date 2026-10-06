@@ -1,61 +1,47 @@
-# Handoff — E01: schema và state machine khiếu nại
+# Handoff — E02: form khiếu nại và nháp trên server
 
 06/10/2026. Repo D:/WINDOWS/PRN3/EbayGroup5.
 
-- Baseline main `aaec085`. Runtime `a8406ee` trên `task/E01-dispute-state-machine`, fast-forward vào main sau khi [CI37460995489](https://github.com/Twiash/EbayGroup5/actions/runs/37460995489) pass.
-- Checkpoint: `git log --oneline --grep=E01`. Handoff trước: [D06](D06.md).
+- Baseline main `e61e3ec`. Runtime trên `task/E02-dispute-form-draft`; chỉ fast-forward vào main sau khi GitHub CI chạy đúng hash pass.
+- Checkpoint: `git log --oneline --grep=E02`. Handoff trước: [E01](E01.md).
 
 ## Hoàn tất
 
-- **Q-BIZ-006 (người dùng chốt):**
-  - Ngày giao dự kiến tính lúc checkout và lưu lại.
-  - Return có bước gửi trả.
-  - Mọi listing coi như "30-day returns"; seller chỉ được Decline lý do đổi ý.
-- **Contract** [DISPUTES](../architecture/DISPUTES.md) gồm nguồn eBay Help 4042/4041, thời gian, điều kiện mở, trạng thái/outcome và bảng chuyển trạng thái.
-- **DbUp `0011_Dispute.sql`:**
-  - `OrderTable.EstimatedDeliveryUtc` + backfill.
-  - `UQ_OrderItem_Id_Order`.
-  - Mở rộng bảng gốc `Dispute`; CHECK chỉ áp cho dòng của module và NULL-safe.
-  - `UX_Dispute_ActiveLine`, `UX_Dispute_LineKind`; index buyer/seller/due.
-  - `TR_Dispute_Guard`: không xóa, không đổi danh tính, request đã đóng bị đóng băng.
-  - `DisputeEvent` append-only. Manifest có 12 assets.
-- **Application/Disputes:**
-  - `DisputeTiming`: ngày làm việc UTC; `Disputes:DemoBusinessDaySeconds` để demo; `EstimatedDeliveryBusinessDays` = 5.
-  - `DisputeRules`: hàm thuần `Decide` / `StateAllows` / `AvailableActions`.
-  - `IDisputeService` cùng các enum và record.
-- **Infrastructure/Disputes/`DisputeService`:**
-  - Eligibility, Open (khóa đơn, unique index là chốt chặn cuối), Act / ActAsSystem (khóa dòng request), Find (buyer/seller/admin).
-  - Nội bộ `ItemReceivedAsync` được `OrderService` gọi khi buyer Confirm received.
-- **B05/B06:**
-  - Checkout lưu ngày giao dự kiến.
-  - Ship ghi `estimatedArrival`.
-  - Receive đóng INR.
-  - Trang chi tiết đơn hiện "Estimated delivery".
-  - DI đăng ký `DisputeTiming` và `IDisputeService`.
+- Contract: [DISPUTE_FORMS](../architecture/DISPUTE_FORMS.md).
+- **DbUp `0012_DisputeDraft.sql`**: bảng `DisputeDraft`, mỗi bộ (buyer, dòng hàng, loại) một nháp; có CHECK theo loại và grant CRUD. Manifest có 13 assets.
+- **Application/Infrastructure:**
+  - `EligibilityAsync` theo lô, tối đa 50 dòng; dùng chung `Build` với bản cho một dòng.
+  - `DisputeEligibility` có thêm `ItemTitle`, `LineTotal`, `Requests`.
+  - `FindDraftAsync` / `SaveDraftAsync`: khóa đơn như `OpenAsync`, lưu bằng MERGE.
+  - `OpenAsync` xóa nháp trong cùng transaction.
+- **Web:**
+  - `DisputesController`: NotReceived, Return, Open, Draft.
+  - Views `Disputes/*`: INR theo Help 4042, Return 2 bước theo E1, trang Unavailable.
+  - `Models/DisputeForms.cs`: nhãn lý do E1m và nhãn trạng thái.
+  - Purchases More actions: I didn't receive it / Return this item / See request details.
+  - Trang chi tiết đơn: link mở request và trạng thái theo từng dòng (`#line-{id}`).
+  - JS: `dispute-draft.mjs` (thuần, có Node test) và `dispute-form.js`. CSS dispute trong `site.css`.
+  - `Test-CI.ps1` chạy thêm `tests/dispute-draft.test.mjs`.
 
 ## Verification
 
-- [Evidence](../evidence/E01.md): Test-CI local **225/225 .NET + 14/14 Node**, build 0 warnings.
-- Mutation: 3/3 bị test bắt.
-- **GitHub [CI37460995489](https://github.com/Twiash/EbayGroup5/actions/runs/37460995489) exact runtime `a8406ee` success**: job build-test 5m05s, 225/225 .NET + 14/14 Node, build 0 warnings. Docs-only `[skip ci]` sau CI.
-- Chưa kiểm trên browser vì E01 không có UI khiếu nại.
+- [Evidence](../evidence/E02.md):
+  - Node 6/6; SQL tập trung 86/86; mutation 2/2 bị bắt.
+  - Browser: luồng Return đầy đủ, desktop/390/320px.
+- **Full Test-CI local bị chặn vì ổ C: còn 0,2 GB.** Docker Desktop dừng và SQL báo mất log. Đã báo người dùng; không tự xóa dữ liệu.
+- GitHub CI: xem commit docs `[skip ci]` của E02.
 - Không đụng `launchSettings.json` (untracked).
 
 ## Cho task sau
 
-- **E02:**
-  - Form ở `Purchases → More actions` (menu D06 trong `Views/Orders/History.cshtml`) và trang chi tiết đơn.
-  - Dùng `EligibilityAsync` để hiện/ẩn "I didn't receive it" / "Return this item" kèm lý do.
-  - Gọi `OpenAsync`; mẫu UI E1/E1m/E0.
-  - Nháp server (G5-N03) cần migration riêng (0012).
-  - Khi đang chạy thời gian demo (`DisputeDetail.DemoTiming`) phải ghi rõ trên UI.
-- **E03:** trang request details/timeline lấy từ `FindAsync`; nút theo `Actions`; nhãn trạng thái kiểu eBay; mẫu D2/H1.
-- **E04:** job gọi `ActAsSystemAsync(Escalate | ExpireReturn)`; dùng index `IX_Dispute_Due`; lệnh đã idempotent (trả Conflict khi không còn áp dụng); event `AutoNotice` đã có trong CHECK.
-- **E05:** `ActAsync(Decide, ForBuyer, note)` ghi `resolution`; cần thêm AdminNetwork ở tầng web.
-- Ngoài phạm vi: appeal 30 ngày; chọn số lượng khi return; hoàn tiền thật.
+- **E03:**
+  - Trang `/Disputes/Details/{id}` dùng `FindAsync` (timeline, `Actions`); đổi link "See request details" ở `History.cshtml` / `Details.cshtml` sang trang này.
+  - Thêm danh sách request cho buyer và seller (G5-07).
+  - Mẫu UI: D2/H1.
+- **E04/E05:** như [E01](E01.md).
+- **Môi trường:** trước khi chạy Test-CI local cần giải phóng ổ C: (Docker Desktop VM + DB test `EbayGroup5_Test_*` trong SQL local).
 
 ## Tiếp theo / Jira
 
-- Chờ người dùng chọn task.
-- E01 thuộc KAN-21 (cùng E02) → **hoàn tất local một phần**, còn chờ E02.
+- E01 + E02 → **KAN-21 / TV4 Nguyên Nguyễn: hoàn tất local**.
 - Chưa sync live; không tạo worklog/review/issue.

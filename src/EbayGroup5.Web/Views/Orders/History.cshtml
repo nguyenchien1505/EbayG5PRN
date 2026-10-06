@@ -1,7 +1,8 @@
 @model EbayGroup5.Application.Orders.OrderHistory
 @using EbayGroup5.Application.Orders
 @using System.Globalization
-@{ var buyer = Model.Audience == OrderAudience.Buyer; var action = buyer ? "Purchases" : "Sales"; ViewData["Title"] = buyer ? "Purchase history" : "Sales history";
+@{ var disputeLines = ViewData["DisputeLines"] as IReadOnlyDictionary<int, EbayGroup5.Application.Disputes.DisputeEligibility>;
+    var buyer = Model.Audience == OrderAudience.Buyer; var action = buyer ? "Purchases" : "Sales"; ViewData["Title"] = buyer ? "Purchase history" : "Sales history";
     // D06 (A3): eBay-style filter chips; "Ready for feedback" is buyer-only.
     var chips = new List<(string? Value, string Label)> { (null, buyer ? "All purchases" : "All sales") };
     if (buyer) chips.Add((OrderHistory.ReadyForFeedback, "Ready for feedback"));
@@ -30,11 +31,15 @@
                 }
                 @if (buyer && order.ContactItemId is int contactItem)
                 {
-                    @* D06 (A4): E02 adds I didn't receive it / Return this item / See request details here. *@
+                    var dispute = disputeLines?.GetValueOrDefault(contactItem);
                     <details class="more-actions">
                         <summary class="button outline">More actions</summary>
                         <div class="more-actions-menu">
                             <button type="button" data-chat-order-item-id="@contactItem">Contact seller</button>
+                            @* E02 (DISPUTE_FORMS.md): request entries for the same line; E03 points "See request details" at the request page. *@
+                            @if (dispute?.ItemNotReceived.CanOpen == true) { <a asp-controller="Disputes" asp-action="NotReceived" asp-route-orderItemId="@contactItem">I didn't receive it</a> }
+                            @if (dispute?.Return.CanOpen == true) { <a asp-controller="Disputes" asp-action="Return" asp-route-orderItemId="@contactItem">Return this item</a> }
+                            @if (dispute?.Requests.Count > 0) { <a asp-action="Details" asp-route-id="@order.Id" asp-fragment="line-@contactItem">See request details</a> }
                         </div>
                     </details>
                 }

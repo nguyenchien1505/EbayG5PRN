@@ -14,17 +14,73 @@ public sealed class DisputeService(EbayDbContext db, TimeProvider clock, Dispute
     private DateTime Now => clock.GetUtcNow().UtcDateTime;
 
     private sealed record LineFacts(int OrderId, int OrderItemId, int? SellerId, string? Status, DateTime? EstimatedDeliveryUtc, DateTime? DeliveredAtUtc, decimal? LineTotal);
-    private sealed record Existing(int Id, string? Kind, DateTime? ClosedAtUtc);
+    private sealed record Existing(int Id, int OrderItemId, string? Kind, string? Status, string? Outcome, DateTime? DueAtUtc, DateTime? ClosedAtUtc);
 
     public async Task<DisputeEligibility?> EligibilityAsync(int buyerId, int orderItemId, CancellationToken cancellationToken = default)
     {
         if (!await IsRole(buyerId, "Buyer", cancellationToken)) return null;
-        var order = await db.Set<OrderTable>().AsNoTracking()
-            .Where(o => o.BuyerId == buyerId && db.Set<OrderItem>().Any(i => i.Id == orderItemId && i.OrderId == o.Id)).SingleOrDefaultAsync(cancellationToken);
-        if (order == null) return null;
-        var facts = await Facts(order, orderItemId, cancellationToken);
-        return Evaluate(facts, await ExistingFor(orderItemId, cancellationToken), Now);
+        return (await Build(buyerId, [orderItemId], cancellationToken)).GetValueOrDefault(orderItemId);
     }
+
+    public async Task<IReadOnlyDictionary<int, DisputeEligibility>> EligibilityAsync(int buyerId, IReadOnlyCollection<int> orderItemIds, CancellationToken cancellationToken = default)
+    {
+        var ids = orderItemIds.Distinct().ToArray();
+        if (ids.Length > DisputeLimits.MaxBatchLines) throw new ArgumentException("Too many order lines.", nameof(orderItemIds));
+        if (ids.Length == 0 || !await IsRole(buyerId, "Buyer", cancellationToken)) return new Dictionary<int, DisputeEligibility>();
+        return await Build(buyerId, ids, cancellationToken);
+    }
+
+    public async Task<DisputeDraftView?> FindDraftAsync(int buyerId, int orderItemId, DisputeKind kind, CancellationToken cancellationToken = default)
+    {
+        if (!Enum.IsDefined(kind) || !await IsRole(buyerId, "Buyer", cancellationToken)) return null;
+        var draft = await db.Set<DisputeDraft>().AsNoTracking()
+            .SingleOrDefaultAsync(x => x.BuyerId == buyerId && x.OrderItemId == orderItemId && x.Kind == kind.ToString(), cancellationToken);
+        return draft == null ? null : new(draft.Reason == null ? null : Enum.Parse<DisputeReason>(draft.Reason),
+            draft.Preference == null ? null : Enum.Parse<DisputePreference>(draft.Preference), draft.Details, DateTime.SpecifyKind(draft.UpdatedAtUtc, DateTimeKind.Utc));
+    }
+
+    public async Task<DraftSaveResult> SaveDraftAsync(int buyerId, DisputeDraftInput input, CancellationToken cancellationToken = default)
+    {
+        if (!Enum.IsDefined(input.Kind) || (input.Reason is { } reason && !DisputeRules.ReasonMatches(input.Kind, reason)))
+            return new(DisputeResultCode.Invalid, Error: "Choose a valid reason.");
+        if (input.Kind == DisputeKind.ItemNotReceived ? input.Preference is { } p && !Enum.IsDefined(p) : input.Preference != null)
+            return new(DisputeResultCode.Invalid, Error: "Choose a valid option.");
+        if (!DisputeRules.TryText(input.Details, DisputeLimits.MaxText, required: false, out var details))
+            return new(DisputeResultCode.Invalid, Error: $"Details must be at most {DisputeLimits.MaxText} characters without control characters.");
+        await using var transaction = await db.Database.BeginTransactionAsync(IsolationLevel.ReadCommitted, cancellationToken);
+        try
+        {
+            if (!await IsRole(buyerId, "Buyer", cancellationToken)) return new(DisputeResultCode.Forbidden);
+            // Same order lock as OpenAsync: a late autosave cannot recreate the draft of a request that just opened.
+            var order = await LockOrder(input.OrderItemId, cancellationToken);
+            if (order == null || order.BuyerId != buyerId) return new(DisputeResultCode.NotFound);
+            var eligibility = (await Build(buyerId, [input.OrderItemId], cancellationToken))[input.OrderItemId].For(input.Kind);
+            if (!eligibility.CanOpen) return new(DisputeResultCode.Conflict, Error: eligibility.Reason);
+            var now = Now;
+            var kind = input.Kind.ToString();
+            var reasonText = input.Reason?.ToString();
+            var preference = input.Preference?.ToString();
+            await db.Database.ExecuteSqlInterpolatedAsync($"""
+                MERGE dbo.DisputeDraft WITH (HOLDLOCK) AS t
+                USING (SELECT {buyerId} AS BuyerId, {input.OrderItemId} AS OrderItemId, {kind} AS Kind) AS s
+                ON t.BuyerId = s.BuyerId AND t.OrderItemId = s.OrderItemId AND t.Kind = s.Kind
+                WHEN MATCHED THEN UPDATE SET Reason = {reasonText}, Preference = {preference}, Details = {details}, UpdatedAtUtc = {now}
+                WHEN NOT MATCHED THEN INSERT (BuyerId, OrderItemId, Kind, Reason, Preference, Details, UpdatedAtUtc)
+                    VALUES ({buyerId}, {input.OrderItemId}, {kind}, {reasonText}, {preference}, {details}, {now});
+                """, cancellationToken);
+            await transaction.CommitAsync(cancellationToken);
+            return new(DisputeResultCode.Success, now);
+        }
+        catch
+        {
+            await transaction.RollbackAsync(CancellationToken.None);
+            throw;
+        }
+    }
+
+    private Task<OrderTable?> LockOrder(int orderItemId, CancellationToken ct) => db.Set<OrderTable>().FromSqlInterpolated(
+            $"SELECT o.* FROM dbo.OrderTable o WITH (UPDLOCK,HOLDLOCK) WHERE o.id=(SELECT i.orderId FROM dbo.OrderItem i WHERE i.id={orderItemId})")
+        .AsNoTracking().SingleOrDefaultAsync(ct);
 
     public async Task<DisputeResult> OpenAsync(int buyerId, OpenDisputeRequest request, CancellationToken cancellationToken = default)
     {
@@ -42,14 +98,9 @@ public sealed class DisputeService(EbayDbContext db, TimeProvider clock, Dispute
         {
             if (!await IsRole(buyerId, "Buyer", cancellationToken)) return new(DisputeResultCode.Forbidden);
             // The order lock serializes concurrent opens for any line of the order; unique indexes are the final guard.
-            var order = await db.Set<OrderTable>().FromSqlInterpolated(
-                    $"SELECT o.* FROM dbo.OrderTable o WITH (UPDLOCK,HOLDLOCK) WHERE o.id=(SELECT i.orderId FROM dbo.OrderItem i WHERE i.id={request.OrderItemId})")
-                .AsNoTracking().SingleOrDefaultAsync(cancellationToken);
+            var order = await LockOrder(request.OrderItemId, cancellationToken);
             if (order == null || order.BuyerId != buyerId) return new(DisputeResultCode.NotFound);
-            var facts = await Facts(order, request.OrderItemId, cancellationToken);
-            var existing = await ExistingFor(request.OrderItemId, cancellationToken);
-            var eligibility = Evaluate(facts, existing, Now);
-            var kind = inr ? eligibility.ItemNotReceived : eligibility.Return;
+            var kind = (await Build(buyerId, [request.OrderItemId], cancellationToken))[request.OrderItemId].For(request.Kind);
             if (!kind.CanOpen) return new(DisputeResultCode.Conflict, Error: kind.Reason, ExistingDisputeId: kind.ExistingDisputeId);
             var now = Now;
             var row = new Dispute
@@ -62,6 +113,9 @@ public sealed class DisputeService(EbayDbContext db, TimeProvider clock, Dispute
             await db.SaveChangesAsync(cancellationToken);
             db.Add(Event(row.Id, buyerId, DisputeActor.Buyer, DisputeEventType.Opened, null, null, null, now));
             await db.SaveChangesAsync(cancellationToken);
+            // G5-N03: the draft goes only once the request exists (same transaction).
+            await db.Set<DisputeDraft>().Where(x => x.BuyerId == buyerId && x.OrderItemId == request.OrderItemId && x.Kind == row.Kind)
+                .ExecuteDeleteAsync(cancellationToken);
             await transaction.CommitAsync(cancellationToken);
             db.ChangeTracker.Clear();
             return new(DisputeResultCode.Success, row.Id);
@@ -164,19 +218,41 @@ public sealed class DisputeService(EbayDbContext db, TimeProvider clock, Dispute
         return role == "Admin" ? DisputeActor.Admin : null;
     }
 
-    private async Task<LineFacts> Facts(OrderTable order, int orderItemId, CancellationToken ct)
+    // One query each for lines, payments of delivered orders and existing requests; same rules for one line or a Purchases page.
+    private async Task<Dictionary<int, DisputeEligibility>> Build(int buyerId, int[] ids, CancellationToken ct)
     {
-        var line = await db.Set<OrderItem>().AsNoTracking().Where(x => x.Id == orderItemId).Select(x => new { x.Quantity, x.UnitPrice }).SingleAsync(ct);
-        var payments = order.Status == Delivered ? await db.Set<Payment>().AsNoTracking().Where(x => x.OrderId == order.Id).Take(2).ToListAsync(ct) : [];
-        // Same delivered timestamp rule as seller feedback (D03): exactly one Paid payment with paidAt.
-        DateTime? deliveredAt = payments is [{ Status: "Paid", PaidAt: { } paidAt }] ? DateTime.SpecifyKind(paidAt, DateTimeKind.Utc) : null;
-        decimal? total = line is { Quantity: > 0, UnitPrice: >= 0 } ? line.Quantity!.Value * line.UnitPrice!.Value : null;
-        var estimated = order.EstimatedDeliveryUtc is { } e ? DateTime.SpecifyKind(e, DateTimeKind.Utc) : (DateTime?)null;
-        return new(order.Id, orderItemId, order.SellerId, order.Status, estimated, deliveredAt, total);
+        var lines = await (from item in db.Set<OrderItem>().AsNoTracking()
+                           join order in db.Set<OrderTable>().AsNoTracking() on item.OrderId equals order.Id
+                           where ids.Contains(item.Id) && order.BuyerId == buyerId
+                           select new
+                           {
+                               item.Id, item.Quantity, item.UnitPrice, OrderId = order.Id, order.SellerId, order.Status, order.EstimatedDeliveryUtc,
+                               Title = db.Set<Product>().Where(p => p.Id == item.ProductId).Select(p => p.Title).FirstOrDefault()
+                           }).ToListAsync(ct);
+        var delivered = lines.Where(x => x.Status == Delivered).Select(x => x.OrderId).Distinct().ToArray();
+        var payments = delivered.Length == 0 ? [] : await db.Set<Payment>().AsNoTracking().Where(x => x.OrderId != null && delivered.Contains(x.OrderId.Value))
+            .Select(x => new { OrderId = x.OrderId!.Value, x.Status, x.PaidAt }).ToListAsync(ct);
+        var found = lines.Select(x => x.Id).ToArray();
+        var existing = await db.Set<Dispute>().AsNoTracking().Where(x => x.OrderItemId != null && found.Contains(x.OrderItemId.Value)).OrderByDescending(x => x.Id)
+            .Select(x => new Existing(x.Id, x.OrderItemId!.Value, x.Kind, x.Status, x.Outcome, x.DueAtUtc, x.ClosedAtUtc)).ToListAsync(ct);
+        var now = Now;
+        return lines.ToDictionary(x => x.Id, x =>
+        {
+            // Same delivered timestamp rule as seller feedback (D03): exactly one Paid payment with paidAt.
+            var paid = payments.Where(p => p.OrderId == x.OrderId).ToList();
+            DateTime? deliveredAt = paid.Count == 1 && paid[0].Status == "Paid" && paid[0].PaidAt is { } at ? DateTime.SpecifyKind(at, DateTimeKind.Utc) : null;
+            decimal? total = x.Quantity is > 0 && x.UnitPrice is >= 0 ? x.Quantity.Value * x.UnitPrice.Value : null;
+            var estimated = x.EstimatedDeliveryUtc is { } e ? DateTime.SpecifyKind(e, DateTimeKind.Utc) : (DateTime?)null;
+            var mine = existing.Where(d => d.OrderItemId == x.Id).ToList();
+            return Evaluate(new(x.OrderId, x.Id, x.SellerId, x.Status, estimated, deliveredAt, total), mine, now) with
+            {
+                ItemTitle = x.Title ?? "Item unavailable",
+                LineTotal = total,
+                Requests = mine.Select(d => new DisputeSummary(d.Id, Enum.Parse<DisputeKind>(d.Kind!), Enum.Parse<DisputeStatus>(d.Status!),
+                    d.Outcome == null ? null : Enum.Parse<DisputeOutcome>(d.Outcome), d.DueAtUtc is { } due ? DateTime.SpecifyKind(due, DateTimeKind.Utc) : null)).ToList()
+            };
+        });
     }
-
-    private Task<List<Existing>> ExistingFor(int orderItemId, CancellationToken ct) =>
-        db.Set<Dispute>().AsNoTracking().Where(x => x.OrderItemId == orderItemId).Select(x => new Existing(x.Id, x.Kind, x.ClosedAtUtc)).ToListAsync(ct);
 
     private static DisputeEligibility Evaluate(LineFacts f, IReadOnlyList<Existing> existing, DateTime now)
     {
