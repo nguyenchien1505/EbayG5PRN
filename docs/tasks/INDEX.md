@@ -28,6 +28,7 @@ Trạng thái ở đây là đầu mối theo dõi. Planned = cần kiểm tra d
 | [D03](D03.md) | Seller feedback và công thức uy tín | D01 | Done |
 | [D04](D04.md) | Trang uy tín và seller reply | D03, B03 | Done |
 | [D05](D05.md) | Kiểm duyệt và audit review/feedback | D04, B02 | Done |
+| [D06](D06.md) | Đồng bộ điểm vào nhóm 5 theo eBay (A1–A5) | D05, C04, B06 | Done |
 | [E01](E01.md) | Schema và state machine dispute | B06 | Planned |
 | [E02](E02.md) | Form khiếu nại và lưu nháp | E01, B03 | Planned |
 | [E03](E03.md) | Buyer/seller dashboard và trao đổi | E02 | Planned |

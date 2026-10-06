@@ -21,7 +21,7 @@ public sealed class OrdersController(IOrderService orders, IReviewService review
 
     private async Task<IActionResult> History(OrderAudience audience, int page, string? status, CancellationToken ct)
     {
-        if (!ModelState.IsValid || page < 1 || page > int.MaxValue / OrderHistory.PageSize || (status != null && status is not ("Pending" or "Shipped" or "Delivered" or "Cancelled"))) return BadRequest();
+        if (!ModelState.IsValid || page < 1 || page > int.MaxValue / OrderHistory.PageSize || !OrderHistory.IsValidFilter(status, audience)) return BadRequest();
         return View("History", await orders.HistoryAsync(ActorId, audience, page, status, ct));
     }
 

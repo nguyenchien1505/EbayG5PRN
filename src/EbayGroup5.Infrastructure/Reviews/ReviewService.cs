@@ -12,9 +12,33 @@ public sealed class ReviewService(EbayDbContext db) : IReviewService
     private const string Delivered = "Delivered";
 
     // Single visibility rule for public reads: order-linked (Q-BIZ-002) and not hidden by moderation (D05).
-    private IQueryable<Review> Visible(int productId) =>
-        db.Set<Review>().AsNoTracking().Where(x => x.ProductId == productId && x.OrderItemId != null && x.HiddenAtUtc == null
+    private IQueryable<Review> Visible() =>
+        db.Set<Review>().AsNoTracking().Where(x => x.ProductId != null && x.OrderItemId != null && x.HiddenAtUtc == null
             && x.Rating >= ReviewLimits.MinRating && x.Rating <= ReviewLimits.MaxRating);
+    private IQueryable<Review> Visible(int productId) => Visible().Where(x => x.ProductId == productId);
+
+    private sealed record RatingGroup(int Rating, int Count, int Reviews);
+
+    // Shared by the product page and catalog cards so both always show the same numbers.
+    private static RatingSummary Summarize(IReadOnlyCollection<RatingGroup> groups)
+    {
+        var ratings = groups.Sum(x => x.Count);
+        return ratings == 0 ? RatingSummary.Empty : new RatingSummary(ratings, groups.Sum(x => x.Reviews),
+            Math.Round(groups.Sum(x => (decimal)x.Rating * x.Count) / ratings, 1, MidpointRounding.AwayFromZero),
+            Enumerable.Range(1, 5).Reverse().Select(star => groups.Where(x => x.Rating == star).Sum(x => x.Count)).ToList());
+    }
+
+    public async Task<IReadOnlyDictionary<int, RatingSummary>> SummariesAsync(IReadOnlyCollection<int> productIds, CancellationToken cancellationToken = default)
+    {
+        var ids = productIds.Distinct().ToArray();
+        if (ids.Length > ReviewLimits.MaxBatchIds) throw new ArgumentException("Too many products.", nameof(productIds));
+        if (ids.Length == 0) return new Dictionary<int, RatingSummary>();
+        var rows = await Visible().Where(x => ids.Contains(x.ProductId!.Value))
+            .GroupBy(x => new { Product = x.ProductId!.Value, Rating = x.Rating!.Value })
+            .Select(g => new { g.Key.Product, g.Key.Rating, Count = g.Count(), Reviews = g.Count(x => x.Comment != null && x.CommentRemovedAtUtc == null) })
+            .ToListAsync(cancellationToken);
+        return rows.GroupBy(x => x.Product).ToDictionary(g => g.Key, g => Summarize(g.Select(x => new RatingGroup(x.Rating, x.Count, x.Reviews)).ToList()));
+    }
 
     public async Task<IReadOnlyList<ReviewLineEligibility>?> ListForOrderAsync(int buyerId, int orderId, CancellationToken cancellationToken = default)
     {
@@ -60,11 +84,8 @@ public sealed class ReviewService(EbayDbContext db) : IReviewService
     {
         if (page < 1 || page > int.MaxValue / ProductReviewPage.PageSize || !Enum.IsDefined(sort)) throw new ArgumentException("Invalid review filters.");
         var groups = await Visible(productId).GroupBy(x => x.Rating!.Value)
-            .Select(g => new { Rating = g.Key, Count = g.Count(), Reviews = g.Count(x => x.Comment != null && x.CommentRemovedAtUtc == null) }).ToListAsync(cancellationToken);
-        var ratings = groups.Sum(x => x.Count);
-        var summary = ratings == 0 ? RatingSummary.Empty : new RatingSummary(ratings, groups.Sum(x => x.Reviews),
-            Math.Round(groups.Sum(x => (decimal)x.Rating * x.Count) / ratings, 1, MidpointRounding.AwayFromZero),
-            Enumerable.Range(1, 5).Reverse().Select(star => groups.Where(x => x.Rating == star).Sum(x => x.Count)).ToList());
+            .Select(g => new RatingGroup(g.Key, g.Count(), g.Count(x => x.Comment != null && x.CommentRemovedAtUtc == null))).ToListAsync(cancellationToken);
+        var summary = Summarize(groups);
         var withComment = Visible(productId).Where(x => x.Comment != null && x.CommentRemovedAtUtc == null);
         var ordered = sort switch
         {

@@ -1,21 +1,44 @@
 @model EbayGroup5.Application.Orders.OrderHistory
 @using EbayGroup5.Application.Orders
 @using System.Globalization
-@{ var action = Model.Audience == OrderAudience.Buyer ? "Purchases" : "Sales"; ViewData["Title"] = Model.Audience == OrderAudience.Buyer ? "Purchase history" : "Sales history"; }
+@{ var buyer = Model.Audience == OrderAudience.Buyer; var action = buyer ? "Purchases" : "Sales"; ViewData["Title"] = buyer ? "Purchase history" : "Sales history";
+    // D06 (A3): eBay-style filter chips; "Ready for feedback" is buyer-only.
+    var chips = new List<(string? Value, string Label)> { (null, buyer ? "All purchases" : "All sales") };
+    if (buyer) chips.Add((OrderHistory.ReadyForFeedback, "Ready for feedback"));
+    chips.AddRange(OrderHistory.Statuses.Select(x => ((string?)x, x))); }
 <h1>@ViewData["Title"]</h1>
 <p class="field-help">Your orders · @Model.Total results. Shipping and COD payments are simulated.</p>
-<form class="order-filters" asp-action="@action" method="get"><label for="order-status">Status</label>
-    <select id="order-status" name="status"><option value="">All orders</option>
-        @foreach(var status in new[] {"Pending", "Shipped", "Delivered", "Cancelled"}) { <option value="@status" selected="@(Model.Status == status)">@status</option> }
-    </select><button class="button outline" type="submit">Apply</button><a asp-action="@action">Clear filter</a>
-</form>
-@if (Model.Orders.Count == 0) { <section class="checkout-card"><h2>No orders here</h2><p>No orders match this page or filter.</p><a asp-controller="Catalog" asp-action="Index">Browse items</a></section> }
+<nav class="order-chips" aria-label="Filter orders">
+    @foreach (var chip in chips)
+    {
+        var active = Model.Status == chip.Value;
+        <a class="order-chip@(active ? " active" : "")" asp-action="@action" asp-route-status="@chip.Value" aria-current="@(active ? "page" : null)">@chip.Label</a>
+    }
+</nav>
+@if (Model.Orders.Count == 0) { <section class="checkout-card"><h2>No orders here</h2><p>@(Model.Status == OrderHistory.ReadyForFeedback ? "You have no orders ready for feedback." : "No orders match this page or filter.")</p><a asp-controller="Catalog" asp-action="Index">Browse items</a></section> }
 @foreach (var order in Model.Orders)
 {
     <article class="order-card"><div class="order-card-heading"><strong>@order.Status</strong><span>Order #@order.Id · @(order.Date?.ToString("MMM dd, yyyy", CultureInfo.InvariantCulture) ?? "Date unavailable")</span></div>
         <div class="order-card-content"><div class="order-item-icon product-placeholder" aria-hidden="true"><svg viewBox="0 0 64 64"><path d="M12 20 32 10 52 20 32 30Z M12 20v24l20 10 20-10V20 M32 30v24" /></svg></div>
             <div class="order-item-text"><h2><a asp-action="Details" asp-route-id="@order.Id">@order.Title</a></h2><p>@order.ItemCount order line(s)</p><strong>Total: @(order.Total is decimal total ? "US $" + total.ToString("N2", CultureInfo.InvariantCulture) : "Unavailable")</strong></div>
-            <a class="button outline" asp-action="Details" asp-route-id="@order.Id">View order details</a>
+            <div class="order-card-actions">
+                <a class="button outline" asp-action="Details" asp-route-id="@order.Id">View order details</a>
+                @if (buyer && order.FeedbackItemId is int feedbackItem)
+                {
+                    if (order.FeedbackLines == 1) { <a class="button outline" asp-controller="Reviews" asp-action="Create" asp-route-orderItemId="@feedbackItem">Leave feedback</a> }
+                    else { <a class="button outline" asp-action="Details" asp-route-id="@order.Id" title="@order.FeedbackLines items are ready for feedback">Leave feedback</a> }
+                }
+                @if (buyer && order.ContactItemId is int contactItem)
+                {
+                    @* D06 (A4): E02 adds I didn't receive it / Return this item / See request details here. *@
+                    <details class="more-actions">
+                        <summary class="button outline">More actions</summary>
+                        <div class="more-actions-menu">
+                            <button type="button" data-chat-order-item-id="@contactItem">Contact seller</button>
+                        </div>
+                    </details>
+                }
+            </div>
         </div>
     </article>
 }
@@ -24,3 +47,6 @@
     <span>Page @Model.Page of @Math.Max(1, Model.TotalPages)</span>
     @if(Model.Page < Model.TotalPages) { <a asp-action="@action" asp-route-page="@(Model.Page+1)" asp-route-status="@Model.Status">Next →</a> }
 </nav>
+@if (buyer) { <partial name="_ChatPanel" /> }
+@section Styles { @if (buyer) { <link rel="stylesheet" href="~/css/chat.css" asp-append-version="true" /> } }
+@section Scripts { @if (buyer) { <partial name="_ChatScripts" /> } }

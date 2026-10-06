@@ -8,14 +8,16 @@
     <section class="detail-info" aria-labelledby="product-title">
         <h1 id="product-title">@Model.Item.Title</h1>
         @if (summary.Average is decimal average) { <a class="rating-inline" href="#reviews"><partial name="_Stars" model="average" /><span>@average.ToString("0.0", CultureInfo.InvariantCulture) · @summary.Ratings product rating@(summary.Ratings == 1 ? "" : "s")</span></a> }
-        <div class="seller-section"><span class="seller-avatar" aria-hidden="true">S</span><div><strong>@Model.Item.Seller</strong><p><a class="seller-feedback-link" asp-controller="Sellers" asp-action="Feedback" asp-route-id="@Model.Item.SellerId"><partial name="_SellerReputation" model="reputation" /></a></p></div></div>
+        <div class="seller-section"><span class="seller-avatar" aria-hidden="true">S</span><div class="seller-section-text"><strong>@Model.Item.Seller</strong><p><a class="seller-feedback-link" asp-controller="Sellers" asp-action="Feedback" asp-route-id="@Model.Item.SellerId"><partial name="_SellerReputation" model="reputation" /></a></p></div>
+            @* D06 (A1): eBay puts the Message button in the seller card; behavior is unchanged from C04. *@
+            @if (User.IsInRole("Buyer")) { <button type="button" class="button outline seller-message" data-chat-product-id="@Model.Item.Id">Message</button> }
+            else if (User.Identity?.IsAuthenticated != true) { <a class="button outline seller-message" asp-controller="Account" asp-action="Login" asp-route-returnUrl="@Url.Action("Details", "Catalog", new { id = Model.Item.Id, message = true })">Message</a> }
+        </div>
         <p class="detail-price">US $@Model.Item.Price.ToString("N2", CultureInfo.InvariantCulture)</p>
         <p class="availability">@(Model.Quantity > 0 ? $"{Model.Quantity} available" : "Out of stock")</p>
         @if (Model.Quantity > 0) { <a class="button primary purchase-button" asp-controller="Checkout" asp-action="Index" asp-route-productId="@Model.Item.Id">Buy It Now</a> }
         else { <button class="button primary purchase-button" disabled>Buy It Now</button> }
         <p class="field-help">Cash on delivery demo checkout.</p>
-        @if (User.IsInRole("Buyer")) { <button type="button" class="chat-contact" data-chat-product-id="@Model.Item.Id">Contact seller</button> }
-        else if (User.Identity?.IsAuthenticated != true) { <a class="chat-contact" asp-controller="Account" asp-action="Login" asp-route-returnUrl="@Url.Action("Details", "Catalog", new { id = Model.Item.Id, message = true })">Contact seller</a> }
     </section>
 </div>
 <section class="item-description"><h2>About this item</h2><p class="field-help">Item number: @Model.Item.Id</p><p>@(string.IsNullOrWhiteSpace(Model.Item.Description) ? "No description provided." : Model.Item.Description)</p></section>

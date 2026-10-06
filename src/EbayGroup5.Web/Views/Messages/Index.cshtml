@@ -1,6 +1,8 @@
 @{ ViewData["Title"] = "Messages"; }
+@* D06 (A5): eBay 2026 header — folder panel toggle beside "Messages", collapsed by default. *@
+<div class="chat-titlebar"><button type="button" class="chat-icon-button chat-folder-toggle" data-folder-toggle aria-controls="chat-folders" aria-expanded="false" aria-label="Show folders"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2" /><path d="M9 4v16 M13 12h5 M15.5 9.5 18 12l-2.5 2.5" /></svg></button><h1>Messages</h1></div>
 <div id="chat-app" class="chat-workspace" data-chat-root data-mode="inbox" data-actor-id="@ViewData["ActorId"]" data-conversation-id="@ViewData["ConversationId"]">
-    <aside class="chat-folders" aria-label="Messages navigation"><h1>Messages</h1><a class="chat-folder active" asp-controller="Messages" asp-action="Index" aria-current="page">Inbox</a></aside>
+    <aside id="chat-folders" class="chat-folders" aria-label="Message folders"><a class="chat-folder active" asp-controller="Messages" asp-action="Index" aria-current="page">Inbox</a></aside>
     <section class="chat-inbox" aria-labelledby="chat-inbox-title">
         <div class="chat-inbox-heading"><h2 id="chat-inbox-title">Inbox</h2><button type="button" class="chat-icon-button" data-refresh aria-label="Refresh messages">↻</button></div>
         <p class="chat-inbox-notice" data-inbox-notice role="status">Loading conversations…</p>

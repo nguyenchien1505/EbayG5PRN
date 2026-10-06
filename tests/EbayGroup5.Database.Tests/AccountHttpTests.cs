@@ -187,7 +187,7 @@ public sealed class AccountHttpTests
         Assert.Contains("Wireless Headphones", catalog);
         var id = SqlFixture.Scalar(target, "SELECT MIN(id) FROM dbo.Product");
         var detail = await client.GetStringAsync("/Catalog/Details/" + id);
-        Assert.Contains("Contact seller", detail);
+        Assert.Contains("seller-message", detail);
         Assert.Contains("20 available", detail);
         Assert.Contains("/Checkout?productId=", detail);
         Assert.DoesNotContain("buyer.a06@example.invalid", detail);

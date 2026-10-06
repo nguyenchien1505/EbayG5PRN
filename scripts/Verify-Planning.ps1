@@ -19,8 +19,8 @@ $planIds = @([regex]::Matches($plan, '(?m)^\| ([A-G]\d{2}) \|') | ForEach-Object
 $index = Get-Content -LiteralPath (Join-Path $root 'docs/tasks/INDEX.md') -Raw -Encoding utf8
 $indexRows = [regex]::Matches($index, '(?m)^\| \[([A-G]\d{2})\]\([^)]*\) \|[^\r\n]+\| (Planned|Ready|InProgress|Blocked|Done) \|')
 $indexIds = @($indexRows | ForEach-Object { $_.Groups[1].Value })
-Assert-Planning ($planIds.Count -eq 39 -and @($planIds | Select-Object -Unique).Count -eq 39) 'Plan must contain 39 unique tasks.'
-Assert-Planning ($indexIds.Count -eq 39 -and @(Compare-Object $planIds $indexIds).Count -eq 0) 'Task index does not match plan.'
+Assert-Planning ($planIds.Count -eq 40 -and @($planIds | Select-Object -Unique).Count -eq 40) 'Plan must contain 40 unique tasks.'
+Assert-Planning ($indexIds.Count -eq 40 -and @(Compare-Object $planIds $indexIds).Count -eq 0) 'Task index does not match plan.'
 foreach ($row in $indexRows) {
     $id = $row.Groups[1].Value
     $status = $row.Groups[2].Value
@@ -62,5 +62,5 @@ if ($failures.Count -gt 0) {
     $failures | ForEach-Object { Write-Output "FAIL: $_" }
     exit 1
 }
-Write-Output "PASS: SQL checksum and 17 tables; 39 task cards/index statuses; required requirement IDs; $($markdownFiles.Count) Markdown files and local link targets."
+Write-Output "PASS: SQL checksum and 17 tables; 40 task cards/index statuses; required requirement IDs; $($markdownFiles.Count) Markdown files and local link targets."
 Write-Output 'Scope: documentation/source integrity only. No runtime, SQL migration, UI or performance test has run.'

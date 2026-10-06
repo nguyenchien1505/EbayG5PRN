@@ -41,6 +41,8 @@ Phương pháp:
 
 ## Điểm vào nhóm 5 cần đồng bộ theo eBay (chưa triển khai)
 
+**Cập nhật:** đã triển khai ở D06 ngày 06/10/2026, xem [ENTRY_POINTS](ENTRY_POINTS.md). Tiêu đề giữ nguyên để không gãy link cũ.
+
 | ID | Thay đổi | Requirement | Ghi chú |
 |---|---|---|---|
 | A1 | Trang sản phẩm: chuyển điểm vào chat thành nút **Message** trong seller card (cạnh tên, % positive) | G5-01 | Hành vi panel U1 giữ nguyên |
@@ -49,4 +51,4 @@ Phương pháp:
 | A4 | Purchases: menu **More actions ▾** (Contact seller; E02 thêm I didn't receive it / Return this item / See request details) | G5-01, G5-06 | Có thể làm chung E02 |
 | A5 | Messages: thu cột thư mục thành icon toggle như eBay 2026 | G5-01 | Thẩm mỹ nhỏ |
 
-Thời điểm triển khai chờ người dùng chọn (Q-UI-008).
+Người dùng chọn phương án 1 (Q-UI-008): làm task riêng D06 trước E01.

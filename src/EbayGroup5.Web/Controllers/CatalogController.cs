@@ -18,6 +18,9 @@ public sealed class CatalogController(ICatalogService catalog, IReviewService re
         }
         var result = await catalog.SearchAsync(q, categoryId, page, cancellationToken);
         ViewData["SearchQuery"] = result.Query;
+        // D06 (A2): card rating and seller reputation, batched for the current page only.
+        ViewData["Ratings"] = await reviews.SummariesAsync(result.Items.Select(x => x.Id).ToArray(), cancellationToken);
+        ViewData["Reputations"] = await feedback.ReputationsAsync(result.Items.Select(x => x.SellerId).ToArray(), cancellationToken);
         return View(result);
     }
 
