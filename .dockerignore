@@ -1,0 +1,23 @@
+# F01: only sources needed by the Dockerfile reach the build context; never secrets or local state.
+**/bin/
+**/obj/
+**/TestResults/
+.git/
+.github/
+.vs/
+.idea/
+artifacts/
+secrets/
+.env
+.env.*
+*.pfx
+*.p12
+*.key
+*.log
+node_modules/
+tests/
+deploy/
+scripts/
+src/EbayGroup5.Web/Properties/
+docs/
+!docs/requirements/sources/clone_ebay_sqlserver_schema.sql

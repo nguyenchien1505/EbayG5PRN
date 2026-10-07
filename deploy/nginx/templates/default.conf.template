@@ -1,0 +1,62 @@
+# F01 (docs/architecture/DEPLOYMENT.md). The nginx image renders ${PUBLIC_HTTPS_PORT} with envsubst; nginx variables stay as-is.
+server_tokens off;
+
+# No query strings in access logs (they may carry user input).
+log_format ebaygroup5 '$remote_addr [$time_iso8601] "$request_method $uri" $status $body_bytes_sent $request_time rid=$request_id';
+
+map $http_upgrade $connection_upgrade {
+    default upgrade;
+    ''      close;
+}
+
+upstream ebaygroup5_web {
+    server web:8080;
+    keepalive 16;
+}
+
+server {
+    listen 8080;
+    access_log /dev/stdout ebaygroup5;
+    return 308 https://$host:${PUBLIC_HTTPS_PORT}$request_uri;
+}
+
+server {
+    listen 8443 ssl;
+    http2 on;
+    access_log /dev/stdout ebaygroup5;
+
+    ssl_certificate /etc/nginx/tls/server.crt;
+    ssl_certificate_key /etc/nginx/tls/server.key;
+    ssl_protocols TLSv1.2 TLSv1.3;
+    ssl_prefer_server_ciphers off;
+    ssl_session_cache shared:ebaygroup5_tls:1m;
+    ssl_session_timeout 10m;
+
+    client_max_body_size 1m;
+
+    proxy_http_version 1.1;
+
+    # proxy_set_header is inherited only when a block sets none of its own, so every location repeats the common set.
+    # Forwarding headers are overwritten (never appended); the app trusts them only from this proxy's address.
+    location /hubs/chat {
+        proxy_pass http://ebaygroup5_web;
+        proxy_set_header Host $host;
+        proxy_set_header X-Forwarded-For $remote_addr;
+        proxy_set_header X-Forwarded-Proto https;
+        proxy_set_header X-Request-Id $request_id;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection $connection_upgrade;
+        proxy_buffering off;
+        proxy_read_timeout 120s;
+        proxy_send_timeout 120s;
+    }
+
+    location / {
+        proxy_pass http://ebaygroup5_web;
+        proxy_set_header Host $host;
+        proxy_set_header X-Forwarded-For $remote_addr;
+        proxy_set_header X-Forwarded-Proto https;
+        proxy_set_header X-Request-Id $request_id;
+        proxy_set_header Connection "";
+    }
+}

@@ -1,0 +1,89 @@
+# F01 (docs/architecture/DEPLOYMENT.md): app image + Nginx HTTPS on top of compose.yaml.
+# Use scripts/Start-AppStack.ps1 (user stack) or scripts/Test-AppStack.ps1 (isolated smoke test); both pass
+# --env-file .env --env-file .env.database so the passwords below are interpolated, never committed.
+services:
+  migrate:
+    build:
+      context: .
+      target: migrate
+    image: ebaygroup5-migrate:${APP_IMAGE_TAG:-local}
+    environment:
+      ConnectionStrings__MigrationConnection: "Server=sqlserver,1433;Database=EbayGroup5;User ID=sa;Password=${MSSQL_SA_PASSWORD:?Run Initialize-LocalEnvironment.ps1 first};Encrypt=True;TrustServerCertificate=True"
+      Database__AppPassword: ${SQL_APP_PASSWORD:?Run Initialize-Database.ps1 first (creates .env.database)}
+    depends_on:
+      sqlserver:
+        condition: service_healthy
+    restart: "no"
+
+  web:
+    build:
+      context: .
+      target: web
+    image: ebaygroup5-web:${APP_IMAGE_TAG:-local}
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      ConnectionStrings__DefaultConnection: "Server=sqlserver,1433;Database=EbayGroup5;User ID=EbayGroup5App;Password=${SQL_APP_PASSWORD:?Run Initialize-Database.ps1 first};Encrypt=True;TrustServerCertificate=True"
+      ConnectionStrings__Redis: "redis:6379,password=${REDIS_PASSWORD:?Run Initialize-LocalEnvironment.ps1 first},abortConnect=false"
+      Chat__AllowedOrigins__0: "https://localhost:${HTTPS_PORT:-8443}"
+      Chat__AllowedOrigins__1: "https://127.0.0.1:${HTTPS_PORT:-8443}"
+      # Forwarded headers are trusted only from the Nginx address; admins only from the host (Docker gateway of the app network).
+      ReverseProxy__KnownProxies__0: ${APP_PROXY_ADDRESS:-172.30.250.10}
+      Security__AdminAllowedAddresses__0: ${APP_GATEWAY:-172.30.250.1}
+    volumes:
+      - dataprotection-keys:/home/app/.aspnet/DataProtection-Keys
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+      redis:
+        condition: service_healthy
+    healthcheck:
+      # The runtime image has bash (not curl); /dev/tcp is a bash feature, so call bash directly instead of CMD-SHELL (dash).
+      test: ["CMD", "bash", "-c", "exec 3<>/dev/tcp/127.0.0.1/8080 && printf 'GET /health/ready HTTP/1.0\\r\\nHost: localhost\\r\\n\\r\\n' >&3 && head -n 1 <&3 | grep -q ' 200 '"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+      start_period: 20s
+    networks:
+      - default
+      - app
+    restart: unless-stopped
+    mem_limit: 512m
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  nginx:
+    image: nginx:1.28.3-alpine@sha256:a8b39bd9cf0f83869a2162827a0caf6137ddf759d50a171451b335cecc87d236
+    environment:
+      PUBLIC_HTTPS_PORT: ${HTTPS_PORT:-8443}
+    ports:
+      - "127.0.0.1:${HTTP_PORT:-8080}:8080"
+      - "127.0.0.1:${HTTPS_PORT:-8443}:8443"
+    volumes:
+      - ./deploy/nginx/templates:/etc/nginx/templates:ro
+      - ${TLS_DIR:-./secrets/tls}:/etc/nginx/tls:ro
+    depends_on:
+      web:
+        condition: service_healthy
+    networks:
+      app:
+        ipv4_address: ${APP_PROXY_ADDRESS:-172.30.250.10}
+    restart: unless-stopped
+    mem_limit: 128m
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+networks:
+  app:
+    ipam:
+      config:
+        - subnet: ${APP_SUBNET:-172.30.250.0/24}
+          gateway: ${APP_GATEWAY:-172.30.250.1}
+
+volumes:
+  dataprotection-keys:

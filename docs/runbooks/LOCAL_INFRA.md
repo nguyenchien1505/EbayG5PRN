@@ -93,3 +93,24 @@ pwsh -NoProfile -File scripts/Enable-DemoAuth.ps1              # mật khẩu de
 Dữ liệu tự tạo khi chạy app (tài khoản, đơn, chat, review, khiếu nại) chỉ nằm trong volume `sqlserver-data`. Mất volume là mất dữ liệu này. Schema, seed và secret local (`.env`, `.env.database`, `.env.auth`) đều nằm trong repo hoặc trên đĩa nên dựng lại được.
 
 **Ghi nhận ngày 06/10/2026:** lần Test-CI đầu tiên ngay sau khi tải lại image có 7 test fail với lỗi "insufficient system memory in resource pool 'default'". Lần chạy lại pass 230/230 và không còn container sót. Nếu lỗi này lặp lại, cần xem lại `MSSQL_MEMORY_LIMIT_MB` của container CI (2048) và RAM của WSL (`.wslconfig`).
+
+## App image và Nginx HTTPS (F01, từ 07/10/2026)
+
+Contract: [DEPLOYMENT](../architecture/DEPLOYMENT.md). Stack dev (SQL/Redis trong `compose.yaml`) giữ nguyên. App stack chạy thêm từ `compose.app.yaml` trên cùng project `ebaygroup5-local`.
+
+```powershell
+pwsh -NoProfile -File scripts/New-LocalTlsCertificate.ps1   # một lần: secrets/tls/{ca.crt,server.crt,server.key}, không lưu khóa CA
+pwsh -NoProfile -File scripts/Start-AppStack.ps1             # build image, migrate, web, nginx → https://localhost:8443
+pwsh -NoProfile -File scripts/Start-AppStack.ps1 -Stop       # gỡ web/nginx/migrate; SQL, Redis và volume giữ nguyên
+```
+
+- HTTP `http://localhost:8080` trả 308 sang HTTPS. Chỉ Nginx publish port, và chỉ trên `127.0.0.1`.
+- Trình duyệt sẽ cảnh báo chứng chỉ cho tới khi người dùng **tự** tin CA local. Đây là thay đổi thiết lập bảo mật của máy, nên agent không tự chạy lệnh này:
+  `Import-Certificate -FilePath secrets/tls/ca.crt -CertStoreLocation Cert:\CurrentUser\Root`.
+  Muốn gỡ: xóa chứng chỉ "EbayGroup5 Local Development CA" trong `certmgr.msc`.
+- Admin chỉ dùng được từ chính máy chạy Docker, tức gateway `172.30.250.1` của mạng `app`. Header `X-Forwarded-For` do client tự gửi bị Nginx ghi đè.
+- Kiểm tra bằng curl: `curl --cacert secrets/tls/ca.crt https://localhost:8443/health/ready` → `Ready`.
+- **Smoke test cô lập:** `pwsh -NoProfile -File scripts/Test-AppStack.ps1` (GitHub CI cũng chạy).
+  - Script tạo project `ebaygroup5-stack-<hex>` với mật khẩu, port, subnet và chứng chỉ riêng.
+  - Pass: gỡ đúng project đó, gồm container, network, volume `<project>_*` và image tag `stack-<hex>`.
+  - Fail: giữ lại và ghi log vào `artifacts/stack/<hex>/logs.txt`. Dọn bằng `Clear-TestArtifacts.ps1 -Apply`.
