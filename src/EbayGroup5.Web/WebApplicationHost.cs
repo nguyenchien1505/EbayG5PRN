@@ -5,10 +5,10 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Mvc;
 using EbayGroup5.Web.Security;
 using Microsoft.AspNetCore.Authorization;
-using System.Threading.RateLimiting;
 using EbayGroup5.Web.Chat;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.AspNetCore.Http.Connections;
+using Microsoft.AspNetCore.DataProtection;
 using StackExchange.Redis;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 
@@ -76,14 +76,19 @@ public static class WebApplicationHost
         builder.Services.AddScoped<AccessCookieEvents>();
         builder.Services.AddSingleton<AdminNetwork>();
         builder.Services.AddSingleton<ReadinessProbe>();
+        // F02 (SCALE_OUT.md): one Redis connection for readiness, shared rate limits and (in deployments) the key ring.
+        builder.Services.AddSingleton<RedisConnection>();
+        builder.Services.AddSingleton<SharedRateLimiter>();
+        builder.Services.AddDataProtection().SetApplicationName("EbayGroup5");
+        builder.Services.AddOptions<Microsoft.AspNetCore.DataProtection.KeyManagement.KeyManagementOptions>()
+            .Configure<RedisConnection, IConfiguration>((options, redis, configuration) =>
+            {
+                // Every instance reads and writes the same key ring, so a cookie from one instance is valid on all of them.
+                if (configuration["DataProtection:KeyStore"] == "Redis")
+                    options.XmlRepository = new Microsoft.AspNetCore.DataProtection.StackExchangeRedis.RedisXmlRepository(
+                        () => redis.Multiplexer.GetDatabase(), redis.KeyPrefix + ":DataProtection-Keys");
+            });
         builder.Services.AddSingleton<IAuthorizationHandler, AccountOwnerHandler>();
-        builder.Services.AddRateLimiter(options =>
-        {
-            options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
-            options.AddPolicy("Auth", context => RateLimitPartition.GetFixedWindowLimiter(
-                context.Connection.RemoteIpAddress?.MapToIPv6().ToString() ?? "unknown",
-                _ => new FixedWindowRateLimiterOptions { PermitLimit = 10, Window = TimeSpan.FromMinutes(1), QueueLimit = 0 }));
-        });
         builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme).AddCookie(options =>
         {
             options.Cookie.Name = "EbayGroup5.Auth";
@@ -107,6 +112,10 @@ public static class WebApplicationHost
                 ?? throw new InvalidOperationException("DefaultConnection is required for database operations.")));
 
         var app = builder.Build();
+        // F02: fail at start-up on a misconfigured key store (later it would only surface as 500s) or rate-limit policy.
+        if (app.Configuration["DataProtection:KeyStore"] is { Length: > 0 } store && store != "Redis")
+            throw new InvalidOperationException($"Unsupported DataProtection:KeyStore '{store}'.");
+        app.Services.GetRequiredService<SharedRateLimiter>();
 
         // F01: behind Nginx, client IP and scheme come from the proxy's headers, and only from configured proxy addresses.
         if (ReverseProxy.Options(app.Configuration) is { } forwarded) app.UseForwardedHeaders(forwarded);
@@ -126,8 +135,9 @@ public static class WebApplicationHost
         app.UseWhen(context => HttpMethods.IsGet(context.Request.Method) && !context.Request.Path.StartsWithSegments("/api/v1/chat") && !context.Request.Path.StartsWithSegments("/hubs/chat"), branch =>
             branch.UseStatusCodePagesWithReExecute("/Home/Status", "?code={0}"));
         app.UseRouting();
-        app.UseRateLimiter();
         app.UseAuthentication();
+        // F02: shared counters (Redis) right after authentication, before antiforgery and MVC (SCALE_OUT.md).
+        app.UseSharedRateLimits();
         app.Use(async (context, next) =>
         {
             if (context.User.IsInRole("Admin") && !context.RequestServices.GetRequiredService<AdminNetwork>().Allows(context.Connection.RemoteIpAddress))

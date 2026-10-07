@@ -30,7 +30,7 @@ Status `Pending` nghĩa là chưa triển khai/chưa nghiệm thu. Task tài li�
 | ID | Yêu cầu chuẩn hóa | Task | Minh chứng nghiệm thu | Status |
 |---|---|---|---|---|
 | OPS-01 | Tăng user: load balancing, Nginx | F01–F02, F05 | Nginx phân tải ít nhất hai app instance; chat xuyên instance | Pending |
-| OPS-02 | Rate limiting theo khoảng thời gian | F02, F04 | HTTP trả 429 theo policy; Hub giới hạn invocation; counter dùng chung | Pending |
+| OPS-02 | Rate limiting theo khoảng thời gian | F02, F04 | HTTP trả 429 theo policy; Hub giới hạn invocation; counter dùng chung | Done |
 | OPS-03 | CI và CD bằng GitHub Actions | A07, F07 | Log CI thật, image SHA, deploy local qua runner tin cậy, smoke test | Pending |
 | OPS-04 | Quản lý nhóm trên Jira | A01, G02 | Backlog KAN, vai trò, task/code mapping, trạng thái có bằng chứng | Pending |
 | OPS-05 | Kiểm thử tải và an ninh, JMeter | F04–F05 | Script chạy lại được; báo cáo tải, bảo mật, giới hạn thực tế | Pending |
@@ -121,3 +121,5 @@ E04: [automation evidence](../evidence/E04.md); DbUp 0013 khóa thông báo duy 
 E05: [admin decision evidence](../evidence/E05.md); hàng đợi admin theo hạn 48 giờ, trang review có audit trail đủ actor/thời điểm/kết quả, Decide buyer/seller kèm note và hoàn tiền mô phỏng (Payment không đổi), Message hai bên; Admin cần credential (như D05), Buyer/Seller 403, ngoài mạng demo 403, CSRF, hai admin song song chỉ một quyết định, request không xóa/không mở lại; buyer/seller thấy kết quả, không thấy tên admin; browser. **G5-08 Done** (E04 tự động + E05 phân xử), **SUP-05 Done** (D05 kiểm duyệt + E05 dispute). UI-01 project-wide Pending.
 
 F01: [app image/Nginx HTTPS evidence](../evidence/F01.md); image web/migrate pin digest + locked restore, Nginx TLS/WSS/308, forwarded headers chỉ từ proxy đã khai báo (rỗng = tắt), readiness SQL+Redis, stack thật qua HTTPS 12/12 (TLS chain, cookie Secure, WSS handshake, Origin, XFF giả bị bỏ qua) chạy cả trong GitHub CI. **G5-N01 vẫn Pending** (HTTPS/WSS đạt; kiểm thử bảo mật F04), **OPS-01 vẫn Pending** (Nginx đạt; hai instance F02, tải F05).
+
+F02: [scale-out evidence](../evidence/F02.md); 2 replica web sau Nginx, key ring DataProtection dùng chung trên Redis (đổi instance giữ login, đối chứng key ring khác thì mất), rate limit dùng chung trên Redis cho auth/chat REST/mọi invocation Hub (429 + Retry-After; Hub `429:` giữ kết nối), dự phòng theo instance khi Redis gián đoạn; stack thật 2 upstream, XFF giả 429 nhờ bộ đếm chung. **OPS-02 Done** (F04 sẽ thử vượt giới hạn). **OPS-01 vẫn Pending**: Nginx + 2 instance đạt, chat xuyên instance đạt ở test hai host C03; đo qua stack dưới tải thuộc F05. G5-N04 Pending F05.

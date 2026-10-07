@@ -26,7 +26,8 @@ internal sealed class ChatSocketHost(WebApplication app, Uri address) : IAsyncDi
     public Uri Address { get; } = address;
     private readonly List<SocketClient> sockets = [];
     public static async Task<ChatSocketHost> Start(ChatFixture fixture, IDataProtectionProvider keys, string? redis = null, int cookieSeconds = 1800,
-        Action<IServiceCollection>? customize = null, string? address = null, ILoggerProvider? logs = null)
+        Action<IServiceCollection>? customize = null, string? address = null, ILoggerProvider? logs = null,
+        IReadOnlyDictionary<string, string?>? settings = null)
     {
         var root = new DirectoryInfo(AppContext.BaseDirectory);
         while (root != null && !File.Exists(Path.Combine(root.FullName, "global.json"))) root = root.Parent;
@@ -43,8 +44,11 @@ internal sealed class ChatSocketHost(WebApplication app, Uri address) : IAsyncDi
             ["Chat:AllowedOrigins:0"] = Origin,
             ["Chat:AllowedOrigins:1"] = "http://localhost:5085",
             // E04: chat hosts don't exercise disputes; keep the dispute background pass off.
-            ["Disputes:Automation:Enabled"] = "false"
+            ["Disputes:Automation:Enabled"] = "false",
+            // F02: hosts of one fixture share rate-limit counters (like replicas); other fixtures never see them.
+            ["Redis:KeyPrefix"] = "EbayGroup5.Tests." + new SqlConnectionStringBuilder(fixture.Target).InitialCatalog
         });
+        if (settings != null) builder.Configuration.AddInMemoryCollection(settings);
         builder.Services.AddSingleton(keys);
         builder.Services.PostConfigure<Microsoft.AspNetCore.Authentication.Cookies.CookieAuthenticationOptions>(
             Microsoft.AspNetCore.Authentication.Cookies.CookieAuthenticationDefaults.AuthenticationScheme, options => options.ExpireTimeSpan = TimeSpan.FromSeconds(cookieSeconds));

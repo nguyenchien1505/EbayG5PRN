@@ -53,6 +53,13 @@ try {
     dotnet run --project tests/EbayGroup5.StackSmoke -c Release --no-launch-profile -- `
         --https-port $httpsPort --http-port $httpPort --ca (Join-Path $work 'tls/ca.crt') --wait-seconds 240
     if ($LASTEXITCODE -ne 0) { throw 'Stack smoke checks failed; stack retained for diagnosis.' }
+    # F02 (SCALE_OUT.md): at least two running web replicas actually served the signed-in requests.
+    $replicas = @(docker @compose ps --status running --format '{{.Name}}' web)
+    if ($LASTEXITCODE -ne 0 -or $replicas.Count -lt 2) { throw "Expected at least two running web replicas, found $($replicas.Count)." }
+    $upstreams = @(docker @compose logs --no-color nginx 2>&1 | Select-String '"GET /Account/Me" 200 .* upstream=(\S+)' |
+        ForEach-Object { $_.Matches[0].Groups[1].Value } | Sort-Object -Unique)
+    if ($upstreams.Count -lt 2) { throw "Signed-in requests reached $($upstreams.Count) upstream(s); expected two or more." }
+    Write-Output "PASS $($replicas.Count) web replicas served signed-in requests ($($upstreams.Count) distinct upstreams; login kept across instances)"
     Write-Output 'PASS: app image + Nginx HTTPS/WSS stack smoke (isolated project).'
     $succeeded = $true
 } finally {

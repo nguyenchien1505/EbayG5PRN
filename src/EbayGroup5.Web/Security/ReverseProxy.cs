@@ -1,7 +1,6 @@
 using System.Net;
 using EbayGroup5.Infrastructure.Persistence;
 using Microsoft.AspNetCore.HttpOverrides;
-using StackExchange.Redis;
 
 namespace EbayGroup5.Web.Security;
 
@@ -39,18 +38,16 @@ public static class ReverseProxy
     }
 }
 
-/// <summary>F01 readiness: SQL Server and Redis reachable. A dedicated, lazily created Redis connection; no details leave the process.</summary>
-public sealed class ReadinessProbe(IConfiguration configuration) : IAsyncDisposable
+/// <summary>F01 readiness: SQL Server and Redis reachable (shared F02 connection); no details leave the process.</summary>
+public sealed class ReadinessProbe(RedisConnection redis)
 {
-    private readonly SemaphoreSlim gate = new(1, 1);
-    private ConnectionMultiplexer? redis;
-
     public async Task<bool> ReadyAsync(EbayDbContext db, CancellationToken ct)
     {
         try
         {
             if (!await db.Database.CanConnectAsync(ct)) return false;
-            var connection = await Redis(ct);
+            var connection = redis.Multiplexer;
+            if (!connection.IsConnected) return false;
             await connection.GetDatabase().PingAsync();
             return true;
         }
@@ -58,29 +55,5 @@ public sealed class ReadinessProbe(IConfiguration configuration) : IAsyncDisposa
         {
             return false;
         }
-    }
-
-    private async Task<ConnectionMultiplexer> Redis(CancellationToken ct)
-    {
-        if (redis is { IsConnected: true } ready) return ready;
-        await gate.WaitAsync(ct);
-        try
-        {
-            if (redis is { IsConnected: true } existing) return existing;
-            if (redis != null) await redis.DisposeAsync();
-            var options = ConfigurationOptions.Parse(configuration.GetConnectionString("Redis") ?? throw new InvalidOperationException("Redis is not configured."));
-            options.AbortOnConnectFail = true;
-            options.ConnectTimeout = 3000;
-            options.ConnectRetry = 1;
-            redis = await ConnectionMultiplexer.ConnectAsync(options);
-            return redis;
-        }
-        finally { gate.Release(); }
-    }
-
-    public async ValueTask DisposeAsync()
-    {
-        if (redis != null) await redis.DisposeAsync();
-        gate.Dispose();
     }
 }

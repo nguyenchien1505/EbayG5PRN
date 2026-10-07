@@ -35,7 +35,7 @@ Trạng thái ở đây là đầu mối theo dõi. Planned = cần kiểm tra d
 | [E04](E04.md) | Phản hồi tự động và chuyển quá hạn | E03 | Done |
 | [E05](E05.md) | Admin xử lý và kết quả mô phỏng | E04, B02 | Done |
 | [F01](F01.md) | Docker image ứng dụng và Nginx HTTPS | C05, D05, E05 | Done |
-| [F02](F02.md) | Nhiều instance, key dùng chung, rate limit | F01 | Planned |
+| [F02](F02.md) | Nhiều instance, key dùng chung, rate limit | F01 | Done |
 | [F03](F03.md) | Test tích hợp và hành trình trình duyệt | F02 | Planned |
 | [F04](F04.md) | Kiểm thử bảo mật | F03 | Planned |
 | [F05](F05.md) | JMeter và đo realtime | F03 | Planned |

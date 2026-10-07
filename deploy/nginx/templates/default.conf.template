@@ -2,15 +2,20 @@
 server_tokens off;
 
 # No query strings in access logs (they may carry user input).
-log_format ebaygroup5 '$remote_addr [$time_iso8601] "$request_method $uri" $status $body_bytes_sent $request_time rid=$request_id';
+log_format ebaygroup5 '$remote_addr [$time_iso8601] "$request_method $uri" $status $body_bytes_sent $request_time rid=$request_id upstream=$upstream_addr';
 
 map $http_upgrade $connection_upgrade {
     default upgrade;
     ''      close;
 }
 
+# F02 (SCALE_OUT.md): Docker DNS returns every web replica; "resolve" (open source since 1.27.3) keeps the list current
+# when a replica restarts with a new address. Round-robin across replicas; chat needs no stickiness (WebSockets only).
+resolver 127.0.0.11 valid=10s ipv6=off;
+
 upstream ebaygroup5_web {
-    server web:8080;
+    zone ebaygroup5_web 64k;
+    server web:8080 resolve;
     keepalive 16;
 }
 

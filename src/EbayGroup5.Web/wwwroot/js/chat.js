@@ -26,7 +26,7 @@ if (root) {
     const isBottom = () => transcript.scrollHeight - transcript.scrollTop - transcript.clientHeight < 64;
     const element = (tag, className, text) => { const node = document.createElement(tag); if (className) node.className = className; if (text != null) node.textContent = text; return node; };
     const status = (message, error = false) => { const node = get("status"); node.textContent = message; node.hidden = !message; node.classList.toggle("error", error); if (!message) get("retry-load").hidden = true; };
-    const errorCode = error => error?.status ?? Number(error?.message?.match(/HubException: (400|401|403|404|409|500):/)?.[1] ?? 0);
+    const errorCode = error => error?.status ?? Number(error?.message?.match(/HubException: (400|401|403|404|409|429|500):/)?.[1] ?? 0);
     function signIn() {
         sessionEnded = true; recovery.stop(); csrf = null; drafts.clear(); subscriptions.clear();
         get("connection").textContent = "Signed out";
@@ -40,7 +40,8 @@ if (root) {
     function showFailure(error, action = "load messages") {
         const code = errorCode(error);
         if (code === 401) { signIn(); return; }
-        status(code === 404 || code === 403 ? "This conversation is unavailable." : code === 409
+        // F02: shared rate limit (HTTP 429 or "429:" from the hub); pending sends keep their UUID and retry with backoff (retryableSend).
+        status(code === 429 ? "You're doing that too often. Wait a moment and try again." : code === 404 || code === 403 ? "This conversation is unavailable." : code === 409
             ? "This conversation is currently unavailable. Please try again later."
             : `Couldn't ${action}. Please try again.`, true);
         if (action === "load messages" && code !== 404 && code !== 403) get("retry-load").hidden = false;

@@ -29,8 +29,10 @@ services:
       # Forwarded headers are trusted only from the Nginx address; admins only from the host (Docker gateway of the app network).
       ReverseProxy__KnownProxies__0: ${APP_PROXY_ADDRESS:-172.30.250.10}
       Security__AdminAllowedAddresses__0: ${APP_GATEWAY:-172.30.250.1}
-    volumes:
-      - dataprotection-keys:/home/app/.aspnet/DataProtection-Keys
+      # F02 (SCALE_OUT.md): every replica shares the Data Protection key ring in Redis, so switching instance keeps the login.
+      DataProtection__KeyStore: Redis
+    deploy:
+      replicas: ${WEB_REPLICAS:-2}
     depends_on:
       migrate:
         condition: service_completed_successfully
@@ -84,6 +86,3 @@ networks:
       config:
         - subnet: ${APP_SUBNET:-172.30.250.0/24}
           gateway: ${APP_GATEWAY:-172.30.250.1}
-
-volumes:
-  dataprotection-keys:

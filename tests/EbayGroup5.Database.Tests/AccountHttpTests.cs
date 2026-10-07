@@ -27,6 +27,8 @@ public sealed class AccountHttpTests
         {
             builder.UseEnvironment("Production");
             // F01: extra configuration (for example ReverseProxy:KnownProxies) visible to the pipeline at build time.
+            // F02: shared rate-limit counters live in Redis; each host gets its own key prefix unless a test shares one on purpose.
+            builder.UseSetting("Redis:KeyPrefix", "EbayGroup5.Tests." + Guid.NewGuid().ToString("N"));
             foreach (var (key, value) in settings ?? new Dictionary<string, string>()) builder.UseSetting(key, value);
             builder.ConfigureServices(services =>
             {
