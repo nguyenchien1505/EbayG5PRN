@@ -1,30 +1,47 @@
-# Handoff — F08 rolling update/rollback (đang kiểm thử)
+# Handoff — F08 rolling update / rollback dưới tải
 
-08/10/2026. Baseline main 60fc6a5; branch task/F08-rolling-rollback.
+08/10/2026. Baseline main `60fc6a5`; branch `task/F08-rolling-rollback`.
+Runtime `ad0ce27`; checkpoint `git log --oneline --grep=F08`.
 Handoff trước: [F07](F07.md). Dependency F05/LOAD, F07/CD có evidence thật.
 
-## Phạm vi / đã viết
+## Hoàn tất
 
-- Contract [ROLLING](../architecture/ROLLING.md), [runbook](../runbooks/ROLLING.md).
-- Test-RollingUpdate: cluster riêng ebaygroup5-rolling-<hex>, TLS/SQL/port riêng,
-  seed LoadSeed; probe HTTP/WSS đồng thời qua nginx HTTPS.
-- RollingLoad: HTTP không retry, WSS automatic reconnect/rejoin/SQL cursor catch-up,
-  gửi retry UUID cũ; so sánh ACK/delivery và COUNT từng UUID SQL.
-- Warmup → set image B → rollout → undo về revision A → rollout;
-  xác minh hai replica/pod UID khác và migration journal không đổi.
-- Short 10 user/10 cặp/120s (dataset 1/10); Full 50 user/20 cặp/600s (100k/10k/1k).
-- CI thêm Short, upload report; Clear-TestArtifacts hỗ trợ prefix rolling.
+- [Contract](../architecture/ROLLING.md), [runbook](../runbooks/ROLLING.md), [evidence](../evidence/F08.md).
+- Test-RollingUpdate: cluster riêng ebaygroup5-rolling-<hex>, TLS/SQL/port riêng;
+  LoadSeed, HTTP không retry và WSS cùng chạy qua nginx HTTPS.
+- RollingLoad: automatic reconnect/rejoin/cursor catch-up, retry cùng UUID;
+  so sánh ACK/delivery và COUNT từng UUID SQL. Report không chứa secret/tin chat.
+- Warmup → set image B → rollout → undo revision A → rollout → tiếp tục đủ thời lượng;
+  xác minh 2 replica, pod UID khác, image khôi phục, migration journal giữ 14.
+- CI thêm Short/upload report; cleanup chỉ đúng cluster test. Không đổi app/schema.
 
-## Verification hiện tại
+## Verification
 
-- Load project build 0 warning; syntax/docs pass.
-- Short đang chạy. Lần đầu script truyền --/dấu phẩy qua PS function sai;
-  đã sửa quoting, dọn đúng cluster lỗi và chạy lại.
-- Chưa nghiệm thu OPS-06/PERF-01; không ghi task Done từ code.
+- Short local: 6.363 HTTP 0 lỗi; 1.255 ACK đủ, SQL thiếu/trùng 0/0;
+  40 reconnect max 2.165,56ms. Cluster đã dọn.
+- **Full local PASS**: 50 HTTP user +20 cặp WSS ×600s, dataset 100k tin/10k review/1k dispute;
+  152.130 HTTP 0 error/5xx/network, 12.891 ACK nhận đủ/một dòng SQL;
+  80 reconnect max **2.509,50ms**, max HTTP p95 **241,48ms**, chat p95 **27,98ms**.
+- [CI37678243173](https://github.com/Twiash/EbayGroup5/actions/runs/37678243173) **attempt 2 success** trên `ad0ce27`:
+  263/263 .NET +20/20 Node, 0 warning, compose/load/K8s và rolling Short pass.
+  Rolling CI: 4.635 HTTP 0 lỗi, 1.188 ACK đủ, 50 reconnect max 1.376,06ms.
+- Attempt 1 timeout journey J4 nút Next trước F08; cùng SHA chạy lại pass, ghi rõ trong evidence.
+- Harness sửa quoting kubectl và startup timeout: 20 cặp+50 sign-in cần285s;
+  startup600s nằm ngoài cửa sổ đo, recovery10s/p95<1s/HTTP0 lỗi giữ nguyên.
+- Full report `artifacts/rolling/18ac202e6961/report.json`, Short CI artifact `rolling-report`.
 
-## Còn lại
+## Requirement / Jira / giới hạn
 
-- Hoàn thành Short và Full; sửa lỗi thực nếu gate không đạt, không hạ ngưỡng.
-- Test-CI local, CI Short thật trên checkpoint runtime; report + evidence + matrix.
-- Stage file cụ thể/commit [F08], [skip ci] + dispatch để tránh CI trùng, FF main sau pass.
-- Không tự làm G01/Jira live. Cluster demo ebaygroup5 và user launchSettings.json giữ nguyên.
+- **F08 Done; OPS-06/PERF-01 Done**. F05 cung cấp Full JMeter/Stress, F08 cung cấp transition.
+- **KAN-27 / TV5 Hải Lê: F03+F04+F05+F08 hoàn tất local**, chưa sync Jira live/worklog/review.
+- Single-node kind; A/B cùng binary nghiệp vụ, khác image ID/label. Không chứng minh
+  multi-node/DB failover hoặc rollback schema không tương thích.
+
+## Bước tiếp theo / giữ nguyên
+
+- **G01**: rà ma trận yêu cầu/UI theo task card, chỉ làm khi người dùng yêu cầu.
+- Cluster demo `ebaygroup5` giữ nguyên web `f0b65b0`, 2 Ready; test clusters đã dọn.
+- Source SQL checksum/17 bảng giữ nguyên. Không thay secrets hoặc dữ liệu demo.
+- Thay đổi ngoài F08 trong `docs/requirements/sources/requirements-extracted.md`
+  và untracked `src/EbayGroup5.Web/Properties/launchSettings.json` giữ nguyên, không commit.
+- Lịch sử co-author backup ngoài repo: D:/WINDOWS/PRN3/EbayGroup5-backups/20261008-remove-claude.

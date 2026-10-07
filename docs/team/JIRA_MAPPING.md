@@ -134,3 +134,8 @@ F03 [evidence](../evidence/F03.md): hành trình trình duyệt Playwright + ma 
 F04 [evidence](../evidence/F04.md): kiểm thử bảo mật (IDOR/CSRF/XSS/header/TLS/secret scan). **F03+F04 → KAN-27/TV5 Hải Lê: hoàn tất local một phần** (KAN-27 còn F05, F08). Không tự tạo issue/worklog; chưa sync live. Runtime 4a20f28/[CI37568707408](https://github.com/Twiash/EbayGroup5/actions/runs/37568707408) success.
 
 F05 [evidence](../evidence/F05.md): JMeter + đo realtime, dataset lớn, stress. **F03+F04+F05 → KAN-27/TV5 Hải Lê: hoàn tất local một phần** (KAN-27 còn F08). Không tự tạo issue/worklog; chưa sync live. Runtime 1be91ce/[CI37620564985](https://github.com/Twiash/EbayGroup5/actions/runs/37620564985) success.
+
+F08 [evidence](../evidence/F08.md): Full rolling/rollback local và
+[CI37678243173](https://github.com/Twiash/EbayGroup5/actions/runs/37678243173) attempt 2 success trên `ad0ce27`.
+**F03+F04+F05+F08 → KAN-27/TV5 Hải Lê: hoàn tất local**; OPS-06/PERF-01 Done.
+Chưa sync Jira live; giữ trạng thái thực trong bảng trên, không tạo worklog/issue/review.

@@ -34,7 +34,7 @@ Status `Pending` nghĩa là chưa triển khai/chưa nghiệm thu. Task tài li�
 | OPS-03 | CI và CD bằng GitHub Actions | A07, F07 | Log CI thật, image SHA, deploy local qua runner tin cậy, smoke test | Done |
 | OPS-04 | Quản lý nhóm trên Jira | A01, G02 | Backlog KAN, vai trò, task/code mapping, trạng thái có bằng chứng | Pending |
 | OPS-05 | Kiểm thử tải và an ninh, JMeter | F04–F05 | Script chạy lại được; báo cáo tải, bảo mật, giới hạn thực tế | Done |
-| OPS-06 | Zero downtime khi cập nhật bằng K8s | F06–F08 | Rolling update/rollback dưới tải; HTTP không 5xx, chat phục hồi | Pending |
+| OPS-06 | Zero downtime khi cập nhật bằng K8s | F06–F08 | Rolling update/rollback dưới tải; HTTP không 5xx, chat phục hồi | Done |
 
 ## Luồng phụ thuộc được người dùng duyệt
 
@@ -56,7 +56,7 @@ Status `Pending` nghĩa là chưa triển khai/chưa nghiệm thu. Task tài li�
 | CON-04 | Task nhỏ, đọc theo nhu cầu, bàn giao | A00–A01 và xuyên suốt | AGENTS, START_HERE, task cards, handoff, kiểm tra docs | Established |
 | CON-05 | Báo thông tin UI/nghiệp vụ không tự lấy được | A02 và xuyên suốt | Câu hỏi cụ thể, nguồn đã kiểm tra, câu trả lời lưu bền vững | Established |
 | UI-01 | Bám hành trình eBay thực tế, UI tiếng Anh responsive | A02, B03, C04, D02–D04, E02–E03, G01 | Có nguồn/ảnh tham chiếu truy cập được, khác biệt ghi rõ, desktop/mobile | Pending |
-| PERF-01 | Ngưỡng tải/latency nội bộ | F05, F08 | Theo mục tiêu bên dưới, ghi cấu hình máy và dữ liệu đo | Pending |
+| PERF-01 | Ngưỡng tải/latency nội bộ | F05, F08 | Theo mục tiêu bên dưới, ghi cấu hình máy và dữ liệu đo | Done |
 | DOC-01 | Báo cáo, demo và bàn giao | G01–G02 | Mỗi yêu cầu có bằng chứng; setup từ clone sạch; mỗi thành viên giải thích module | Pending |
 
 `Established` chỉ áp dụng quy tắc làm việc đã được thiết lập, không khẳng định đã tuân thủ trong các task tương lai. CON-01 Verified A07: [metadata/upgrade và seed tests trên GitHub CI](../evidence/A07.md) đã pass cho baseline hiện tại; bắt buộc chạy lại với mỗi migration, không suy ra tương lai đã pass.
@@ -136,3 +136,11 @@ F07: [CD evidence](../evidence/F07.md); CI37668281294 và CD37669952216 success 
 GitHub-hosted build image full SHA, artifact checksum/digest mapping/revision/platform,
 Windows runner ephemeral deploy vào kind, migration 0 mới, 2 web Ready, TLS CA/hostname + read-only smoke,
 runner deregister/không service. **OPS-03 Done** (CI A07 + CD F07). OPS-06/PERF-01 vẫn Pending F08.
+
+F08: [rolling evidence](../evidence/F08.md), Full local 50 HTTP user +20 cặp WSS ×600s,
+dataset 100k tin/10k review/1k dispute: 152.130 request 0 error/5xx/network, 12.891 ACK đủ/một dòng SQL,
+80 recovery max 2,51s, max route p95 241,48ms/chat p95 27,98ms. CI37678243173 attempt 2 success
+trên ad0ce27, rolling Short 4.635 request/1.188 ACK, 0 thiếu/trùng, recovery max 1,38s.
+Revision/image/pod UID xác nhận update và undo thật; 14 migration giữ nguyên.
+**OPS-06 Done** (F06 K8s +F07 CD +F08 transition), **PERF-01 Done** (F05 Full/Stress +F08).
+Giới hạn: single-node kind, image tương thích/cùng binary nghiệp vụ, không chứng minh DB/node failover.
