@@ -132,9 +132,17 @@ public static class RollingLoad
         var pairsConnected = new List<(Side Buyer, Side Seller)>();
         try
         {
-            foreach (var pair in pairs) pairsConnected.Add((await Connect(pair.Buyer, pair.BuyerId, pair.Conversation), await Connect(pair.Seller, pair.SellerId, pair.Conversation)));
+            foreach (var pair in pairs)
+            {
+                pairsConnected.Add((await Connect(pair.Buyer, pair.BuyerId, pair.Conversation), await Connect(pair.Seller, pair.SellerId, pair.Conversation)));
+                File.WriteAllText(Path.Combine(work, "setup.json"), JsonSerializer.Serialize(new { connectedPairs = pairsConnected.Count, httpUsers = 0, elapsedSeconds = clock.Elapsed.TotalSeconds }));
+            }
             var probes = new List<HttpClient>();
-            for (var i = 1; i <= workers; i++) probes.Add(await Login(LoadSeed.BuyerEmail(i)));
+            for (var i = 1; i <= workers; i++)
+            {
+                probes.Add(await Login(LoadSeed.BuyerEmail(i)));
+                File.WriteAllText(Path.Combine(work, "setup.json"), JsonSerializer.Serialize(new { connectedPairs = pairsConnected.Count, httpUsers = i, elapsedSeconds = clock.Elapsed.TotalSeconds }));
+            }
             var end = clock.Elapsed + TimeSpan.FromSeconds(seconds);
             File.WriteAllText(Path.Combine(work, "ready.json"), JsonSerializer.Serialize(new { pairs = count, workers, seconds, utc = DateTime.UtcNow }));
             Console.WriteLine($"Rolling load ready: {workers} HTTP users, {count} WSS pairs, {seconds}s.");

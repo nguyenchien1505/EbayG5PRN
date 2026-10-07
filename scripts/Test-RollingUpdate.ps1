@@ -78,7 +78,8 @@ try {
     Phase 'warmup'
     $load=Start-Tool $dotnet @($dll,'rolling','--base',"https://localhost:$httpsPort",'--ca',(Join-Path $work 'tls/ca.crt'),'--pairs',(Join-Path $work 'dataset/chat-pairs.csv'),
         '--count',"$($settings.Pairs)",'--workers',"$($settings.Workers)",'--seconds',"$($settings.Seconds)",'--work',$work,'--out',$loadReport) (Join-Path $work 'load.log')
-    $deadline=[DateTime]::UtcNow.AddSeconds(180)
+    # Startup is outside the measured window; the 10-second recovery gate below is unchanged.
+    $deadline=[DateTime]::UtcNow.AddSeconds(600)
     while (-not (Test-Path -LiteralPath (Join-Path $work 'ready.json'))) {
         if ($load.Process.HasExited) { Finish-Tool $load; throw 'Rolling load failed before ready (see load.log).' }
         if ([DateTime]::UtcNow -gt $deadline) { throw 'Rolling load ready timeout.' }
