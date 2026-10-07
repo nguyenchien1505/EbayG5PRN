@@ -190,7 +190,9 @@ Check(missing.StatusCode == HttpStatusCode.NotFound && !new[] { "Exception", "  
 // 6. Client-supplied X-Forwarded-For is overwritten by nginx: varied spoofed addresses still share one rate-limit partition.
 var limited = false;
 var loginPage = await https.GetStringAsync("Account/Login");
-for (var i = 0; i < 12 && !limited; i++)
+// Up to 25 tries: the fixed 60 s window may roll over once mid-loop (count restarts), and 25 > 10 + 10 still proves the limit.
+// If spoofed addresses were trusted, every try would be its own partition and 429 would never come.
+for (var i = 0; i < 25 && !limited; i++)
 {
     using var request = new HttpRequestMessage(HttpMethod.Post, "Account/Login")
     {
