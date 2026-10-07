@@ -40,8 +40,9 @@ try {
     # 2. Current tracked text files.
     $files = @(git ls-files)
     foreach ($path in $files) {
-        if (-not (Test-Path -LiteralPath $path -PathType Leaf)) { continue }
-        $item = Get-Item -LiteralPath $path
+        # FileInfo, not Get-Item: on Linux Get-Item skips dotfiles (.dockerignore) unless -Force.
+        $item = [IO.FileInfo]::new((Join-Path $repoRoot $path))
+        if (-not $item.Exists) { continue }
         if ($item.Length -gt 2MB) { continue }
         $bytes = [IO.File]::ReadAllBytes($item.FullName)
         if ([Array]::IndexOf($bytes, [byte]0) -ge 0) { continue } # binary
