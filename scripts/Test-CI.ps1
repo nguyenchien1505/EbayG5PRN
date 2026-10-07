@@ -27,6 +27,8 @@ try {
     if ($LASTEXITCODE -ne 0) { throw 'Secret scan failed.' }
     node --test tests/chat-client.test.mjs tests/dispute-draft.test.mjs
     if ($LASTEXITCODE -ne 0) { throw 'Chat client state tests failed; Node20+ is required.' }
+    pwsh -NoProfile -File "$repoRoot/tests/cd-artifact.test.ps1"
+    if ($LASTEXITCODE -ne 0) { throw 'CD artifact rejection tests failed.' }
     dotnet restore --locked-mode
     if ($LASTEXITCODE -ne 0) { throw 'Locked restore failed.' }
     $audit = @(dotnet list EbayGroup5.sln package --vulnerable --include-transitive 2>&1)

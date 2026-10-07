@@ -3,6 +3,7 @@
 | ID | Cần biết | Ảnh hưởng | Trạng thái |
 |---|---|---|---|
 | Q-ENV-001 | Private repo [Twiash/EbayGroup5](https://github.com/Twiash/EbayGroup5), tự tạo theo yêu cầu người dùng 03/10/2026 | Origin đã nối, main đã push | Answered: gh xác minh owner Twiash và isPrivate=true |
+| Q-ENV-002 | F07: runner tin cậy để GitHub Actions deploy vào kind local | Quyền chạy Docker/kubectl trên máy người dùng | Answered 08/10/2026: người dùng chọn runner tạm thời trên máy hiện tại; một job CD thủ công từ main, không service; [CD](../architecture/CD.md) |
 | Q-TEAM-001 | Tài khoản Jira ánh xạ TV1–TV5 | Đã gán đúng account assignable | Answered 06/10/2026: Dat/Huy/Cuong/Nguyên/Hải theo phân công đã duyệt |
 | Q-TEAM-002 | Ngày nộp/mốc giảng viên | Chưa lập lịch ngày cụ thể; không chặn task kỹ thuật | Open |
 | Q-SEC-001 | F04: logout chưa thu hồi bản sao cookie (hạn tuyệt đối 30 phút, đã biết từ B02). Có thêm denylist phiên trên Redis (claim `sid`, kiểm ở `ValidatePrincipal`) không? ([SECURITY_TESTS](../architecture/SECURITY_TESTS.md#rủi-ro-còn-lại-ghi-trong-evidence-không-sửa-ở-f04)) | Không chặn F04; nếu đồng ý là task riêng (đụng auth mọi request, cần quyết định khi Redis gián đoạn) | Answered 07/10/2026: người dùng chọn thêm danh sách phiên bị thu hồi trên Redis; contract ở [SECURITY_TESTS](../architecture/SECURITY_TESTS.md#bổ-sung-thu-hồi-phiên-khi-logout-q-sec-001) |
