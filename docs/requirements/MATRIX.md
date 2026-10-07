@@ -23,7 +23,7 @@ Status `Pending` nghĩa là chưa triển khai/chưa nghiệm thu. Task tài li�
 | G5-N02 | Chat mượt và realtime | C04–C05, F05 | UI không treo; có pending/error/reconnect; đo latency theo PERF-01 | Pending |
 | G5-N03 | Khiếu nại không mất dữ liệu khi reload | E02 | Nháp server và khôi phục; gửi thành công mới xóa nháp | Done |
 | G5-N04 | Mở rộng lưu trữ lịch sử, phản hồi nhanh với dữ liệu lớn | C01–C05, F02, F05 | Cursor/index, nhiều instance, đo dataset lớn | Pending |
-| G5-N05 | Debug tin nhắn theo thời gian/log ID | C05, F03 | Message ID/UTC/trace ID liên kết được log và DB không lộ nội dung | Pending |
+| G5-N05 | Debug tin nhắn theo thời gian/log ID | C05, F03 | Message ID/UTC/trace ID liên kết được log và DB không lộ nội dung | Done |
 
 ## Yêu cầu khác — Nhóm 25% trong đề
 
@@ -123,3 +123,5 @@ E05: [admin decision evidence](../evidence/E05.md); hàng đợi admin theo hạ
 F01: [app image/Nginx HTTPS evidence](../evidence/F01.md); image web/migrate pin digest + locked restore, Nginx TLS/WSS/308, forwarded headers chỉ từ proxy đã khai báo (rỗng = tắt), readiness SQL+Redis, stack thật qua HTTPS 12/12 (TLS chain, cookie Secure, WSS handshake, Origin, XFF giả bị bỏ qua) chạy cả trong GitHub CI. **G5-N01 vẫn Pending** (HTTPS/WSS đạt; kiểm thử bảo mật F04), **OPS-01 vẫn Pending** (Nginx đạt; hai instance F02, tải F05).
 
 F02: [scale-out evidence](../evidence/F02.md); 2 replica web sau Nginx, key ring DataProtection dùng chung trên Redis (đổi instance giữ login, đối chứng key ring khác thì mất), rate limit dùng chung trên Redis cho auth/chat REST/mọi invocation Hub (429 + Retry-After; Hub `429:` giữ kết nối), dự phòng theo instance khi Redis gián đoạn; stack thật 2 upstream, XFF giả 429 nhờ bộ đếm chung. **OPS-02 Done** (F04 sẽ thử vượt giới hạn). **OPS-01 vẫn Pending**: Nginx + 2 instance đạt, chat xuyên instance đạt ở test hai host C03; đo qua stack dưới tải thuộc F05. G5-N04 Pending F05.
+
+F03: [system journeys evidence](../evidence/F03.md); Playwright trên stack thật (HTTPS, 2 replica): mua hàng, chat realtime hai chiều qua WSS, giao/nhận + feedback, return đến refund, report + admin ẩn, quyền truy cập; ma trận quyền 16 route × 6 vai trò. Hai lỗi thật đã sửa: redirect mất port, 403 body rỗng. **G5-N05 Done**: request id của Nginx = trace của app = `Message.TraceId`, không có nội dung chat trong log Nginx/web. G5-N01 Pending F04; OPS-01 xem handoff F03.

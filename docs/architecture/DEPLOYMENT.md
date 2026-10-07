@@ -61,6 +61,7 @@ Requirement:
 - **Nginx chỉ kế thừa `proxy_set_header` từ khối `server` khi `location` không khai báo header nào.** Hai location đều khai báo Upgrade/Connection, nên Host và `X-Forwarded-*` phải lặp lại trong từng location.
   - Lần chạy smoke đầu nhận 400 (host filtering) vì app nhận `Host: ebaygroup5_web`. Nếu chưa phát hiện, XFF cũng sẽ không được ghi đè.
   - Smoke đã bắt lỗi này trước khi commit.
+- **F03:** `Host` phải là `$http_host` (giữ port công khai). Với `$host`, các redirect tuyệt đối do app tạo (ví dụ về Login) bị mất port. Lỗi được journey phát hiện; smoke kiểm thêm origin của redirect.
 - **Healthcheck dùng `bash -c`** (không dùng `CMD-SHELL`): `/bin/sh` là dash, không có `/dev/tcp`.
 - **Log EF Core:** `Microsoft.EntityFrameworkCore` đặt mức Warning trong `appsettings.json`, vì ở Production EF log toàn bộ câu SQL (không kèm tham số) ở mức Information.
 - **IP gateway:** Nginx ghi nhận kết nối từ host xuất hiện từ gateway của mạng `app` (ví dụ `172.30.240.1` trong project test). Điều này xác nhận cấu hình `Security:AdminAllowedAddresses`.
