@@ -138,6 +138,14 @@ try {
         $logs = Join-Path $work 'logs.txt'
         kubectl --context $context -n ebaygroup5 get all,pvc,networkpolicy -o wide 2>&1 | Out-File -Encoding utf8 $logs
         kubectl --context $context -n ebaygroup5 describe pods 2>&1 | Out-File -Append -Encoding utf8 $logs
+        # Scheduling/volume problems only show up in events and node conditions (and the host disk on CI runners).
+        "==== events" | Out-File -Append -Encoding utf8 $logs
+        kubectl --context $context get events -A --sort-by=.lastTimestamp 2>&1 | Out-File -Append -Encoding utf8 $logs
+        "==== node" | Out-File -Append -Encoding utf8 $logs
+        kubectl --context $context describe nodes 2>&1 | Out-File -Append -Encoding utf8 $logs
+        "==== host disk" | Out-File -Append -Encoding utf8 $logs
+        if ($IsLinux) { df -h 2>&1 | Out-File -Append -Encoding utf8 $logs }
+        docker system df 2>&1 | Out-File -Append -Encoding utf8 $logs
         foreach ($target in 'deployment/web', 'deployment/nginx', 'statefulset/sqlserver', 'statefulset/redis', 'job/migrate') {
             "==== $target" | Out-File -Append -Encoding utf8 $logs
             kubectl --context $context -n ebaygroup5 logs $target --all-containers --tail 300 2>&1 | Out-File -Append -Encoding utf8 $logs
