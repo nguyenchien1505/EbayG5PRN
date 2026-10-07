@@ -37,6 +37,16 @@ public static class DemoSeedRunner
                     CROSS JOIN dbo.[User] s WHERE s.email=N''seller.a06@example.invalid'' AND o.SellerId IS NULL;');
             """;
         command.ExecuteNonQuery();
+        // G01 (UI_ACCEPTANCE.md): DbUp 0011 backfilled the estimated delivery date only for orders that existed when it ran, so on a
+        // fresh database the seeded orders had none and item-not-received could never open. Same formula as 0011, new v1 orders only.
+        command.CommandText = """
+            IF COL_LENGTH(N'dbo.OrderTable', N'EstimatedDeliveryUtc') IS NOT NULL
+                EXEC(N'UPDATE o SET EstimatedDeliveryUtc = DATEADD(day,
+                        CASE ((DATEDIFF(day, ''19000101'', o.orderDate) % 7) + 7) % 7 WHEN 5 THEN 6 WHEN 6 THEN 5 ELSE 7 END, CAST(o.orderDate AS datetime2(7)))
+                    FROM dbo.OrderTable o JOIN dbo.[User] b ON b.id=o.buyerId AND b.email=N''buyer.a06@example.invalid''
+                    WHERE o.orderDate IS NOT NULL AND o.EstimatedDeliveryUtc IS NULL;');
+            """;
+        command.ExecuteNonQuery();
         command.CommandText = "INSERT dbo.DemoSeedHistory(Version,AppliedAtUtc) VALUES(N'A06-v1',SYSUTCDATETIME());";
         command.ExecuteNonQuery();
         transaction.Commit();

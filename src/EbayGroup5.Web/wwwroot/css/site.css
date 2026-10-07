@@ -271,6 +271,8 @@ main.shell-width { flex: 1; padding-block: 32px 64px; }
 .dispute-item h2 { font-size:17px; margin:0 0 4px; }
 .dispute-banner { background:#3665f3; color:white; border-radius:12px; padding:16px 20px; margin:0 0 20px; max-width:720px; line-height:1.5; }
 .dispute-form { display:grid; gap:12px; }
+/* G01: spacing in request forms comes from the grid gap only (default <p> margins doubled it). */
+.dispute-form .field-help { margin:0; }
 .dispute-options { border:0; padding:0; margin:0 0 6px; display:grid; gap:4px; }
 .dispute-options legend { font-size:19px; font-weight:700; margin-bottom:12px; }
 .dispute-option { display:flex; gap:12px; align-items:center; padding:10px 4px; border-radius:8px; cursor:pointer; }
@@ -285,7 +287,7 @@ main.shell-width { flex: 1; padding-block: 32px 64px; }
 .dispute-step[hidden] { display:none; }
 .dispute-step-title { font-size:22px; margin:0; }
 .link-button { justify-self:start; border:0; background:transparent; color:#2448bf; text-decoration:underline; font:inherit; padding:0; cursor:pointer; }
-.dispute-draft-status { min-height:1.3em; margin:0; }
+.dispute-draft-status { font-weight:600; }
 .dispute-demo { margin:0; padding:8px 12px; border-radius:8px; background:#fff7dc; color:#604400; font-size:13px; }
 .dispute-steps h2 { font-size:19px; margin:0 0 14px; }
 .dispute-steps ol { margin:0; padding:0; list-style:none; counter-reset:step; display:grid; gap:16px; }

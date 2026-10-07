@@ -1,47 +1,36 @@
-# Handoff — F08 rolling update / rollback dưới tải
+# Handoff — G01: nghiệm thu UI-01 và rà ma trận yêu cầu
 
-08/10/2026. Baseline main `60fc6a5`; branch `task/F08-rolling-rollback`.
-Runtime `ad0ce27`; checkpoint `git log --oneline --grep=F08`.
-Handoff trước: [F07](F07.md). Dependency F05/LOAD, F07/CD có evidence thật.
+08/10/2026. Baseline main `013f7f4`; branch `task/G01-ui-acceptance`; checkpoint `git log --oneline --grep=G01`. Số run GitHub CI ghi ở [evidence](../evidence/G01.md) bằng commit docs `[skip ci]`.
+Handoff trước: [F08](F08.md).
+
+## Quyết định người dùng (08/10/2026)
+
+- Rà soát trước, không sửa; sau đó chốt **P1**: nghiệm thu UI + truy vết, sửa hiển thị nhỏ, không đổi nghiệp vụ, không làm badge tin chưa đọc (Q-UI-010 Deferred).
+- Ảnh và seed cluster: agent quyết định → ảnh commit ở `docs/evidence/ui/`; cluster `ebaygroup5` **không bị ghi**, seed demo để G02.
+- Commit kèm bản trích đề bài có khoảng trắng của người dùng (`requirements-extracted.md`); nội dung khớp ma trận.
+- Nhắc lại quy tắc: nhóm 5 giống eBay nhất có thể; phần hỗ trợ demo giản lược, không ảnh hưởng nhóm 5.
 
 ## Hoàn tất
 
-- [Contract](../architecture/ROLLING.md), [runbook](../runbooks/ROLLING.md), [evidence](../evidence/F08.md).
-- Test-RollingUpdate: cluster riêng ebaygroup5-rolling-<hex>, TLS/SQL/port riêng;
-  LoadSeed, HTTP không retry và WSS cùng chạy qua nginx HTTPS.
-- RollingLoad: automatic reconnect/rejoin/cursor catch-up, retry cùng UUID;
-  so sánh ACK/delivery và COUNT từng UUID SQL. Report không chứa secret/tin chat.
-- Warmup → set image B → rollout → undo revision A → rollout → tiếp tục đủ thời lượng;
-  xác minh 2 replica, pod UID khác, image khôi phục, migration journal giữ 14.
-- CI thêm Short/upload report; cleanup chỉ đúng cluster test. Không đổi app/schema.
+- Contract [UI_ACCEPTANCE](../architecture/UI_ACCEPTANCE.md) (phương pháp, 19 màn, nguồn, kết quả, khác biệt).
+- `Test-AppStack.ps1 -Screens <dir>` → Journeys `--screens`: dữ liệu sạch qua UI rồi chụp desktop 1280 / mobile 390, kiểm tràn ngang + CSP. 38 ảnh, 0 vấn đề.
+- Sửa nhỏ: `chat.js` (không hiện "Connected"), `Sellers/Feedback.cshtml` (bỏ dòng công thức), `_DisputeDraftStatus.cshtml` + `site.css` (khoảng trống form khiếu nại), `DemoSeedRunner` (ngày giao dự kiến cho đơn seed → INR demo được) + `DemoSeedTests`.
+- Tài liệu: evidence INDEX đủ 22 mục còn thiếu + G01; MATRIX UI-01 Done + ghi chú cũ sửa; UI_CANDIDATES; Q-UI-005 đóng; Q-DEMO-001, Q-UI-010 thêm; START_HERE rút gọn (~300 từ).
 
 ## Verification
 
-- Short local: 6.363 HTTP 0 lỗi; 1.255 ACK đủ, SQL thiếu/trùng 0/0;
-  40 reconnect max 2.165,56ms. Cluster đã dọn.
-- **Full local PASS**: 50 HTTP user +20 cặp WSS ×600s, dataset 100k tin/10k review/1k dispute;
-  152.130 HTTP 0 error/5xx/network, 12.891 ACK nhận đủ/một dòng SQL;
-  80 reconnect max **2.509,50ms**, max HTTP p95 **241,48ms**, chat p95 **27,98ms**.
-- [CI37678243173](https://github.com/Twiash/EbayGroup5/actions/runs/37678243173) **attempt 2 success** trên `ad0ce27`:
-  263/263 .NET +20/20 Node, 0 warning, compose/load/K8s và rolling Short pass.
-  Rolling CI: 4.635 HTTP 0 lỗi, 1.188 ACK đủ, 50 reconnect max 1.376,06ms.
-- Attempt 1 timeout journey J4 nút Next trước F08; cùng SHA chạy lại pass, ghi rõ trong evidence.
-- Harness sửa quoting kubectl và startup timeout: 20 cặp+50 sign-in cần285s;
-  startup600s nằm ngoài cửa sổ đo, recovery10s/p95<1s/HTTP0 lỗi giữ nguyên.
-- Full report `artifacts/rolling/18ac202e6961/report.json`, Short CI artifact `rolling-report`.
+- Test lọc 51 + 40 pass; **Test-CI local 263/263 .NET + 20/20 Node**, 0 warning; Test-AppStack và GitHub CI: xem [evidence](../evidence/G01.md).
 
-## Requirement / Jira / giới hạn
+## Requirement
 
-- **F08 Done; OPS-06/PERF-01 Done**. F05 cung cấp Full JMeter/Stress, F08 cung cấp transition.
-- **KAN-27 / TV5 Hải Lê: F03+F04+F05+F08 hoàn tất local**, chưa sync Jira live/worklog/review.
-- Single-node kind; A/B cùng binary nghiệp vụ, khác image ID/label. Không chứng minh
-  multi-node/DB failover hoặc rollback schema không tương thích.
+- **UI-01 Done.** Còn Pending: **OPS-04** (Jira live) và **DOC-01** (báo cáo/demo) → G02.
 
-## Bước tiếp theo / giữ nguyên
+## Cho G02
 
-- **G01**: rà ma trận yêu cầu/UI theo task card, chỉ làm khi người dùng yêu cầu.
-- Cluster demo `ebaygroup5` giữ nguyên web `f0b65b0`, 2 Ready; test clusters đã dọn.
-- Source SQL checksum/17 bảng giữ nguyên. Không thay secrets hoặc dữ liệu demo.
-- Thay đổi ngoài F08 trong `docs/requirements/sources/requirements-extracted.md`
-  và untracked `src/EbayGroup5.Web/Properties/launchSettings.json` giữ nguyên, không commit.
-- Lịch sử co-author backup ngoài repo: D:/WINDOWS/PRN3/EbayGroup5-backups/20261008-remove-claude.
+- **Q-DEMO-001 (Open):** seed demo gắn ngày 20–25/09/2026 → return hết 25/10, INR hết 28/10, feedback hết 24/11/2026; đơn mới cần qua ngày giao dự kiến trừ khi bật `Disputes:DemoBusinessDaySeconds`. Cần chốt cách demo trước khi seed cluster `ebaygroup5`.
+- Q-TEAM-002 (hạn nộp) vẫn Open. Jira KAN chưa sync live (OPS-04).
+- Khác biệt với eBay đã ghi (badge tin chưa đọc, ảnh đính kèm, nút ↻/nhãn Read) — nêu trong báo cáo.
+
+## Giữ nguyên
+
+- Cluster `ebaygroup5` (web `f0b65b0`, catalog trống), untracked `src/EbayGroup5.Web/Properties/launchSettings.json`.

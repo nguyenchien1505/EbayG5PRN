@@ -1,5 +1,5 @@
 @model EbayGroup5.Web.Models.DisputeFormPage
 @{ var demo = EbayGroup5.Web.Models.DisputeText.DemoNotice(Model.Timing); }
 @if (demo != null) { <p class="dispute-demo" role="note">@demo</p> }
-<p class="field-help dispute-draft-status" data-draft-status role="status" aria-live="polite">@(Model.DraftRestored ? "Draft restored" : "")</p>
-<p class="field-help">We save your answers as a draft while you type, so you can come back to them.</p>
+@* G01: the draft status sits on the same line as the note (no reserved empty line under the form). *@
+<p class="field-help">We save your answers as a draft while you type, so you can come back to them. <span class="dispute-draft-status" data-draft-status role="status" aria-live="polite">@(Model.DraftRestored ? "Draft restored" : "")</span></p>

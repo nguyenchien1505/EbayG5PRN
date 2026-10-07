@@ -19,6 +19,9 @@ public sealed class DemoSeedTests
         Assert.Equal("4", SqlFixture.Scalar(target, "SELECT COUNT(DISTINCT status) FROM dbo.OrderTable WHERE status IN ('Pending','Shipped','Delivered','Cancelled')"));
         Assert.Equal("8", SqlFixture.Scalar(target, "SELECT COUNT(*) FROM dbo.OrderItem"));
         Assert.Equal("4", SqlFixture.Scalar(target, "SELECT COUNT(*) FROM dbo.OrderTable WHERE SellerId IS NOT NULL"));
+        // G01: seeded orders carry the 0011 estimated delivery date (7 calendar days, weekend-adjusted), so item-not-received can open.
+        Assert.Equal("2026-09-25|2026-09-28|2026-09-29|2026-09-30", SqlFixture.Scalar(target,
+            "SELECT STRING_AGG(CONVERT(char(10), EstimatedDeliveryUtc, 23), '|') WITHIN GROUP (ORDER BY id) FROM dbo.OrderTable"));
         Assert.Equal("0", SqlFixture.Scalar(target, "SELECT COUNT(*) FROM dbo.OrderTable o WHERE o.totalPrice<>(SELECT SUM(quantity*unitPrice) FROM dbo.OrderItem WHERE orderId=o.id)"));
         Assert.Equal("4", SqlFixture.Scalar(target, "SELECT COUNT(*) FROM dbo.Payment p JOIN dbo.OrderTable o ON o.id=p.orderId WHERE p.amount=o.totalPrice AND p.userId=o.buyerId AND p.method='COD' AND ((o.status='Delivered' AND p.status='Paid' AND p.paidAt IS NOT NULL) OR (o.status<>'Delivered' AND p.paidAt IS NULL AND p.status=CASE WHEN o.status='Cancelled' THEN 'Cancelled' ELSE 'Pending' END))"));
         Assert.Equal("Existing", SqlFixture.Scalar(target, "SELECT username FROM dbo.[User] WHERE email='existing@example.invalid'"));

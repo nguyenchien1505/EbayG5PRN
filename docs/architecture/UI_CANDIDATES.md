@@ -42,7 +42,7 @@ Ngày tìm 02/10/2026. Người dùng yêu cầu tìm ảnh thiếu trên Intern
 
 - M1/R1/P1/D1/D2 đã được chốt ngày 02/10/2026; không hỏi lại quyền dùng bố cục này. Ngày 06/10/2026 D1 được thay bằng E1 theo ADR-002 (xem mục Rà soát). Task B06 dùng P1, C04/D02/D03/E02/E03 dùng các mẫu tương ứng cùng contract và U1; không yêu cầu mở tất cả ảnh.
 - Link ảnh M1/R1/P1/D1/D2 đã kiểm tra HTTP HEAD 200, content-type ảnh; dùng URL hiện tại vì URL Community cũ trả 410. Ảnh chỉ nhúng từ nguồn, không copy tài khoản/order/comment làm dữ liệu demo.
-- Chưa đủ bằng chứng UI mobile và trạng thái lỗi/draft. Seller feedback profile đã có F1; timeline/escalation lấy câu chữ từ Help 4042 (mục Rà soát). Khi đến task liên quan, tiếp tục tìm nguồn, trình mẫu hoặc đề xuất trạng thái clone để người dùng chốt. Admin thiết kế riêng, không mạo nhận UI admin eBay.
+- (Cập nhật G01, 08/10/2026: ảnh desktop/mobile của mọi màn nhóm 5 ở [evidence/ui](../evidence/ui/), đối chiếu tại [UI_ACCEPTANCE](UI_ACCEPTANCE.md).) Ghi chú gốc: chưa đủ bằng chứng UI mobile và trạng thái lỗi/draft. Seller feedback profile đã có F1; timeline/escalation lấy câu chữ từ Help 4042 (mục Rà soát). Khi đến task liên quan, tiếp tục tìm nguồn, trình mẫu hoặc đề xuất trạng thái clone để người dùng chốt. Admin thiết kế riêng, không mạo nhận UI admin eBay.
 
 ## C1 — checkout (B05, đã chốt 06/10/2026)
 

@@ -139,3 +139,5 @@ F08 [evidence](../evidence/F08.md): Full rolling/rollback local và
 [CI37678243173](https://github.com/Twiash/EbayGroup5/actions/runs/37678243173) attempt 2 success trên `ad0ce27`.
 **F03+F04+F05+F08 → KAN-27/TV5 Hải Lê: hoàn tất local**; OPS-06/PERF-01 Done.
 Chưa sync Jira live; giữ trạng thái thực trong bảng trên, không tạo worklog/issue/review.
+
+G01 [evidence](../evidence/G01.md): nghiệm thu UI-01 + truy vết toàn ma trận. **G01 → KAN-28/TV5 Hải Lê: hoàn tất local một phần** (KAN-28 còn G02). Không tự tạo issue/worklog; chưa sync live.

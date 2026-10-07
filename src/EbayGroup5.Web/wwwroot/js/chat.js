@@ -157,7 +157,7 @@ if (root) {
         if (connection.state === signalR.HubConnectionState.Disconnected) {
             if (!startTask) {
                 get("connection").textContent = "Connecting…";
-                startTask = connection.start().then(() => { subscriptions.clear(); if (!sessionEnded) get("connection").textContent = "Connected"; })
+                startTask = connection.start().then(() => { subscriptions.clear(); if (!sessionEnded) get("connection").textContent = ""; })
                     .finally(() => { startTask = null; });
             }
             await startTask;
