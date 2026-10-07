@@ -4,7 +4,9 @@
 # (or -KeepStack) keeps it and writes logs to artifacts/stack/<hex>/ for diagnosis. Remove kept stacks with Clear-TestArtifacts.ps1 -Apply.
 # F03 (JOURNEYS.md): also seeds demo data, runs the Playwright browser journeys (installed Chrome) and checks log/DB correlation.
 # -KeepRunning leaves a passing or failing stack running for local iteration (remove it later with Clear-TestArtifacts.ps1 -Apply).
-param([switch]$KeepStack, [switch]$KeepRunning)
+# F05 (LOAD.md): -Load Short|Full|Stress builds the same isolated stack with compose.load.yaml and runs scripts/Invoke-LoadTest.ps1
+# instead of the journeys/smoke (the smoke needs the default auth window).
+param([switch]$KeepStack, [switch]$KeepRunning, [ValidateSet('Short', 'Full', 'Stress')][string]$Load)
 $ErrorActionPreference = 'Stop'
 $repoRoot = Split-Path $PSScriptRoot -Parent
 $hex = [Guid]::NewGuid().ToString('N')
@@ -33,15 +35,17 @@ try {
     $httpsPort = Get-FreePort
     $httpPort = Get-FreePort
     $octet = Get-Random -Minimum 200 -Maximum 250
+    $sqlPort = Get-FreePort
+    $saPassword = New-Secret
     $envFile = Join-Path $work 'stack.env'
     # Compose reads this file only for interpolation; it never enters an image (artifacts/ is ignored by git and .dockerignore).
     [IO.File]::WriteAllLines($envFile, [string[]]@(
-        "SQLSERVER_PORT=$(Get-FreePort)", "REDIS_PORT=$(Get-FreePort)",
-        "MSSQL_SA_PASSWORD=$(New-Secret)", "REDIS_PASSWORD=$(New-Secret)", "SQL_APP_PASSWORD=$(New-Secret)",
+        "SQLSERVER_PORT=$sqlPort", "REDIS_PORT=$(Get-FreePort)",
+        "MSSQL_SA_PASSWORD=$saPassword", "REDIS_PASSWORD=$(New-Secret)", "SQL_APP_PASSWORD=$(New-Secret)",
         "HTTP_PORT=$httpPort", "HTTPS_PORT=$httpsPort", "APP_IMAGE_TAG=$tag",
         "APP_SUBNET=172.30.$octet.0/24", "APP_GATEWAY=172.30.$octet.1", "APP_PROXY_ADDRESS=172.30.$octet.10",
         "TLS_DIR=$((Join-Path $work 'tls').Replace('\', '/'))"))
-    $compose = @('compose', '-p', $project, '-f', 'compose.yaml', '-f', 'compose.app.yaml', '--env-file', $envFile)
+    $compose = @('compose', '-p', $project, '-f', 'compose.yaml', '-f', 'compose.app.yaml') + $(if ($Load) { @('-f', 'compose.load.yaml') } else { @() }) + @('--env-file', $envFile)
     Write-Output "Isolated app stack: $project (https://localhost:$httpsPort)"
 
     docker @compose build
@@ -51,6 +55,14 @@ try {
     if ($LASTEXITCODE -ne 0) { throw 'Stack start failed (migrate, web health or nginx); stack retained for diagnosis.' }
     $migrateExit = docker inspect --format '{{.State.ExitCode}}' "$project-migrate-1"
     if ($LASTEXITCODE -ne 0 -or $migrateExit -ne '0') { throw 'Migration container did not exit cleanly.' }
+
+    if ($Load) {
+        $env:EBAY_LOAD_SA_PASSWORD = $saPassword
+        try { & "$PSScriptRoot/Invoke-LoadTest.ps1" -Profile $Load -Compose $compose -Work $work -HttpsPort $httpsPort -SqlPort $sqlPort }
+        finally { $env:EBAY_LOAD_SA_PASSWORD = $null }
+        $succeeded = $true
+        return
+    }
 
     # F03: demo data and private random credentials for the journeys (passed by name only, never on a command line).
     docker @compose run --rm --no-deps migrate --seed-demo

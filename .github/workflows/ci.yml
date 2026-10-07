@@ -17,7 +17,7 @@ concurrency:
 jobs:
   build-test:
     runs-on: ubuntu-24.04
-    timeout-minutes: 35
+    timeout-minutes: 50
     defaults:
       run:
         shell: pwsh
@@ -34,6 +34,25 @@ jobs:
         run: ./scripts/Test-CI.ps1
       - name: App image + Nginx HTTPS/WSS stack smoke
         run: ./scripts/Test-AppStack.ps1
+      # F05 (docs/architecture/LOAD.md): short JMeter + realtime run on its own isolated stack; the full run is local.
+      - name: Cache Apache JMeter 5.6.3 (checksum-verified)
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
+        with:
+          path: artifacts/tools/apache-jmeter-5.6.3
+          key: jmeter-5.6.3-387fadca903ee0aa
+      - name: Load test (short profile)
+        run: ./scripts/Test-AppStack.ps1 -Load Short
+      - name: Load report
+        if: ${{ always() }}
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: load-report
+          path: |
+            artifacts/load/*/report.json
+            artifacts/load/*/chat-*.json
+            artifacts/load/*/seed-deadlocks.txt
+          if-no-files-found: ignore
+          retention-days: 14
       - name: Stack smoke logs
         if: ${{ failure() }}
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2

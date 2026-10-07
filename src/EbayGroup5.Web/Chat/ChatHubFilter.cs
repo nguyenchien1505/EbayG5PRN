@@ -29,6 +29,8 @@ public sealed class ChatHubFilter(EbayDbContext db, SharedRateLimiter limiter, S
     public async Task OnConnectedAsync(HubLifetimeContext context, Func<HubLifetimeContext, Task> next)
     {
         await Validate(context.Context);
+        // F05 (LOAD.md): which instance holds whose socket (ids only, never content) — lets the load test prove cross-instance chat.
+        logger.LogInformation("Chat connection opened user={UserId}", context.Context.User!.FindFirstValue(ClaimTypes.NameIdentifier));
         await next(context);
     }
     public async ValueTask<object?> InvokeMethodAsync(HubInvocationContext context, Func<HubInvocationContext, ValueTask<object?>> next)
