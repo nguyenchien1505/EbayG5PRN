@@ -22,10 +22,16 @@ try {
     if ($LASTEXITCODE -ne 0) { throw 'Migration checksum validation failed.' }
     pwsh -NoProfile -File "$PSScriptRoot/Verify-ClientAssets.ps1"
     if ($LASTEXITCODE -ne 0) { throw 'Pinned browser assets failed.' }
+    # F04 (SECURITY_TESTS.md): no secrets in tracked files or history; no NuGet package with a known vulnerability.
+    pwsh -NoProfile -File "$PSScriptRoot/Test-Secrets.ps1"
+    if ($LASTEXITCODE -ne 0) { throw 'Secret scan failed.' }
     node --test tests/chat-client.test.mjs tests/dispute-draft.test.mjs
     if ($LASTEXITCODE -ne 0) { throw 'Chat client state tests failed; Node20+ is required.' }
     dotnet restore --locked-mode
     if ($LASTEXITCODE -ne 0) { throw 'Locked restore failed.' }
+    $audit = @(dotnet list EbayGroup5.sln package --vulnerable --include-transitive 2>&1)
+    if ($LASTEXITCODE -ne 0 -or ($audit -match 'has the following vulnerable packages')) { $audit | Write-Output; throw 'Vulnerable NuGet packages (or the audit could not run).' }
+    Write-Output 'PASS NuGet audit: no known vulnerable packages (direct and transitive).'
     dotnet build --no-restore -c Release
     if ($LASTEXITCODE -ne 0) { throw 'Release build failed.' }
 

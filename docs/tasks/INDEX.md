@@ -37,7 +37,7 @@ Trạng thái ở đây là đầu mối theo dõi. Planned = cần kiểm tra d
 | [F01](F01.md) | Docker image ứng dụng và Nginx HTTPS | C05, D05, E05 | Done |
 | [F02](F02.md) | Nhiều instance, key dùng chung, rate limit | F01 | Done |
 | [F03](F03.md) | Test tích hợp và hành trình trình duyệt | F02 | Done |
-| [F04](F04.md) | Kiểm thử bảo mật | F03 | Planned |
+| [F04](F04.md) | Kiểm thử bảo mật | F03 | Done |
 | [F05](F05.md) | JMeter và đo realtime | F03 | Planned |
 | [F06](F06.md) | Kubernetes local và migration Job | F02 | Planned |
 | [F07](F07.md) | CD GitHub Actions vào cluster local | A07, F06 | Planned |

@@ -79,6 +79,10 @@ try {
         ForEach-Object { $_.Matches[0].Groups[1].Value } | Sort-Object -Unique)
     if ($upstreams.Count -lt 2) { throw "Signed-in requests reached $($upstreams.Count) upstream(s); expected two or more." }
     Write-Output "PASS $($replicas.Count) web replicas served signed-in requests ($($upstreams.Count) distinct upstreams; login kept across instances)"
+    # F04 (SECURITY_TESTS.md): the server itself offers only TLS 1.2/1.3 (the smoke's TLS 1.0/1.1 failure could also come from the client OS).
+    $protocols = @(docker @compose exec -T nginx nginx -T 2>$null | Select-String '^\s*ssl_protocols\s+([^;]+);' | ForEach-Object { $_.Matches[0].Groups[1].Value.Trim() } | Sort-Object -Unique)
+    if ($LASTEXITCODE -ne 0 -or $protocols.Count -ne 1 -or $protocols[0] -ne 'TLSv1.2 TLSv1.3') { throw "Unexpected nginx ssl_protocols: $($protocols -join ' / ')" }
+    Write-Output 'PASS nginx -T: ssl_protocols TLSv1.2 TLSv1.3 only'
 
     # F03 / G5-N05: the journey message links nginx request id = app trace = Message.TraceId, and no content reaches any log.
     $markers = @(Get-Content -LiteralPath (Join-Path $work 'journeys/markers.txt'))

@@ -12,7 +12,7 @@
             @for (var i = 0; i < 5; i++)
             {
                 var stars = 5 - i; var count = Model.Distribution[i]; var percent = Model.Ratings == 0 ? 0 : count * 100m / Model.Ratings;
-                <li><span>@stars star@(stars == 1 ? "" : "s")</span><span class="rating-bar" aria-hidden="true"><span style="width:@percent.ToString("0.##", CultureInfo.InvariantCulture)%"></span></span><span>@count</span></li>
+                <li><span>@stars star@(stars == 1 ? "" : "s")</span><span class="rating-bar" aria-hidden="true"><span class="pct-@(Math.Round(percent, MidpointRounding.AwayFromZero).ToString("0", CultureInfo.InvariantCulture))"></span></span><span>@count</span></li>
             }
         </ul>
     }

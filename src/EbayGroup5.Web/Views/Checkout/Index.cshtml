@@ -9,7 +9,7 @@
     <input type="hidden" name="Key" value="@Model.Form.Key" />
     <input type="hidden" name="ExpectedUnitPrice" value="@Model.Form.ExpectedUnitPrice.ToString(CultureInfo.InvariantCulture)" />
     <div class="checkout-sections">
-        <div asp-validation-summary="All" class="validation-errors" role="alert"></div>
+        @if (!ViewData.ModelState.IsValid) { <div asp-validation-summary="All" class="validation-errors" role="alert"></div> }
         <section class="checkout-card"><h2>Ship to</h2>
             @if (Model.Addresses.Count == 0) { <p>Add a shipping address to continue.</p> }
             @foreach (var address in Model.Addresses)
@@ -22,7 +22,7 @@
         </section>
         <section class="checkout-card"><h2>Review item</h2><p class="field-help">Seller: @Model.Product.Item.Seller</p>
             <strong>@Model.Product.Item.Title</strong><p>US $@Model.Product.Item.Price.ToString("N2", CultureInfo.InvariantCulture) each</p>
-            <label for="quantity">Quantity</label><input class="quantity-input" id="quantity" name="Quantity" type="number" min="1" max="99" value="@Model.Form.Quantity" required />
+            <label for="quantity">Quantity</label><input class="quantity-input" id="quantity" name="Quantity" data-unit-price="@Model.Product.Item.Price.ToString(CultureInfo.InvariantCulture)" type="number" min="1" max="99" value="@Model.Form.Quantity" required />
             <p class="field-help">@Model.Product.Quantity available. Availability is checked when you place your order.</p>
         </section>
         <section class="checkout-card"><h2>Pay with</h2><strong>Cash on delivery (demo)</strong><p>No money is collected. Payment stays pending.</p></section>
@@ -34,17 +34,4 @@
         <p class="field-help">Review your address and quantity before placing your order.</p>
     </aside>
 </form>
-<script>
-    const quantity = document.getElementById('quantity');
-    quantity.addEventListener('input', () => {
-        const count = Number(quantity.value);
-        document.getElementById('summary-quantity').textContent = quantity.value;
-        document.getElementById('summary-total').textContent = 'US $' + (count * @Model.Product.Item.Price.ToString(CultureInfo.InvariantCulture)).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-        if (Number.isInteger(count) && count >= 1 && count <= 99) {
-            const addressLink = document.getElementById('add-address');
-            const addressUrl = new URL(addressLink.href);
-            addressUrl.searchParams.set('quantity', String(count));
-            addressLink.href = addressUrl.toString();
-        }
-    });
-</script>
+@section Scripts { <script src="~/js/checkout.js" asp-append-version="true"></script> }

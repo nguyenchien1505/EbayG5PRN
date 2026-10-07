@@ -112,7 +112,62 @@ catch (Exception ex) { Check(false, "WSS /hubs/chat SignalR handshake through ng
 try { await Handshake("https://attacker.example"); Check(false, "Foreign Origin is refused on WSS"); }
 catch (WebSocketException) { Check(true, "Foreign Origin is refused on WSS"); }
 
-// 5. Client-supplied X-Forwarded-For is overwritten by nginx: varied spoofed addresses still share one rate-limit partition.
+// 5. F04 (SECURITY_TESTS.md): hardening as a browser sees it through nginx.
+var page = await https.GetAsync("Account/Login");
+string Header(HttpResponseMessage response, string name) => response.Headers.TryGetValues(name, out var values) ? string.Join(",", values) : "";
+var csp = Header(page, "Content-Security-Policy");
+Check(csp.Contains("script-src 'self';") && csp.Contains("frame-ancestors 'none'") && !csp.Contains("unsafe"), "CSP through nginx: scripts from self only, no framing, no unsafe-*");
+Check(Header(page, "X-Content-Type-Options") == "nosniff" && Header(page, "X-Frame-Options") == "DENY" && Header(page, "Referrer-Policy") == "strict-origin-when-cross-origin",
+    "nosniff, X-Frame-Options DENY and Referrer-Policy through nginx");
+Check(Header(page, "Strict-Transport-Security") == "" && Header(page, "X-Powered-By") == "" && Header(page, "X-AspNet-Version") == "",
+    "No HSTS on localhost (needs a real domain) and no framework banners");
+
+async Task<System.Security.Authentication.SslProtocols?> TlsHandshake(System.Security.Authentication.SslProtocols protocol)
+{
+    using var tcp = new System.Net.Sockets.TcpClient();
+    await tcp.ConnectAsync("localhost", httpsPort);
+    await using var tls = new SslStream(tcp.GetStream(), false, Validate);
+    try
+    {
+        await tls.AuthenticateAsClientAsync(new SslClientAuthenticationOptions { TargetHost = "localhost", EnabledSslProtocols = protocol });
+        return tls.SslProtocol;
+    }
+    catch (Exception ex) when (ex is System.Security.Authentication.AuthenticationException or IOException) { return null; }
+}
+#pragma warning disable SYSLIB0039 // TLS 1.0/1.1 are requested on purpose: the server must refuse them.
+Check(await TlsHandshake(System.Security.Authentication.SslProtocols.Tls12) == System.Security.Authentication.SslProtocols.Tls12, "TLS 1.2 handshake");
+Check(await TlsHandshake(System.Security.Authentication.SslProtocols.Tls13) == System.Security.Authentication.SslProtocols.Tls13, "TLS 1.3 handshake");
+Check(await TlsHandshake(System.Security.Authentication.SslProtocols.Tls11 | System.Security.Authentication.SslProtocols.Tls) == null, "TLS 1.0/1.1 handshake fails (server list checked with nginx -T)");
+#pragma warning restore SYSLIB0039
+
+// Chat never runs over plaintext: ws:// on the HTTP port only gets the HTTPS redirect, not an upgrade.
+try
+{
+    using var plainSocket = new ClientWebSocket();
+    plainSocket.Options.SetRequestHeader("Origin", origin);
+    using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(15));
+    await plainSocket.ConnectAsync(new Uri($"ws://localhost:{httpPort}/hubs/chat"), timeout.Token);
+    Check(false, "ws:// (plaintext) chat is refused");
+}
+catch (WebSocketException) { Check(true, "ws:// (plaintext) chat is refused"); }
+
+// Oversized bodies stop at nginx (1 MiB) before reaching the app.
+using (var large = new HttpRequestMessage(HttpMethod.Post, "Account/Login") { Content = new ByteArrayContent(new byte[(1 << 20) + 4096]) })
+{
+    large.Content.Headers.ContentType = new("application/x-www-form-urlencoded");
+    large.Headers.ExpectContinue = true;
+    HttpStatusCode? status = null;
+    try { status = (await https.SendAsync(large)).StatusCode; } catch (HttpRequestException) { }
+    Check(status == HttpStatusCode.RequestEntityTooLarge, $"Body over 1 MiB is refused with 413 ({(status == null ? "no response" : (int)status)})");
+}
+
+// Error pages carry no stack trace, paths or framework detail.
+var missing = await https.GetAsync("Catalog/Details/2147483647");
+var missingBody = await missing.Content.ReadAsStringAsync();
+Check(missing.StatusCode == HttpStatusCode.NotFound && !new[] { "Exception", "   at ", "/app/", "Microsoft.AspNetCore", "StackTrace" }.Any(missingBody.Contains),
+    "404 page reveals no internals");
+
+// 6. Client-supplied X-Forwarded-For is overwritten by nginx: varied spoofed addresses still share one rate-limit partition.
 var limited = false;
 var loginPage = await https.GetStringAsync("Account/Login");
 for (var i = 0; i < 12 && !limited; i++)

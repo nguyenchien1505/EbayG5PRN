@@ -84,11 +84,4 @@
         }
     </form>
 </section>
-@section Scripts {
-    <script>
-        document.querySelectorAll('[data-count-target]').forEach(box => {
-            const count = document.getElementById(box.dataset.countTarget);
-            if (count) box.addEventListener('input', () => { count.textContent = box.value.length; });
-        });
-    </script>
-}
+@section Scripts { <script src="~/js/review-form.js" asp-append-version="true"></script> }

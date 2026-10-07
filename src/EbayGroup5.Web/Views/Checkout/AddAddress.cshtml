@@ -4,7 +4,7 @@
 <section class="address-form checkout-card"><h1>Add a shipping address</h1>
 <form asp-action="AddAddress" method="post">
     <input asp-for="ProductId" type="hidden" /><input asp-for="Quantity" type="hidden" />
-    <div asp-validation-summary="All" class="validation-errors" role="alert"></div>
+    @if (!ViewData.ModelState.IsValid) { <div asp-validation-summary="All" class="validation-errors" role="alert"></div> }
     <label asp-for="FullName"></label><input asp-for="FullName" autocomplete="name" required />
     <label asp-for="Phone"></label><input asp-for="Phone" autocomplete="tel" required />
     <label asp-for="Street"></label><input asp-for="Street" autocomplete="address-line1" required />
