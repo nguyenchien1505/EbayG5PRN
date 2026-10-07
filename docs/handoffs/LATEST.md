@@ -2,7 +2,7 @@
 
 07/10/2026. Repo D:/WINDOWS/PRN3/EbayGroup5.
 
-- Baseline main `695aef9`. Branch `task/F06-k8s-local`; checkpoint `git log --oneline --grep=F06`. Số run GitHub CI ghi ở [evidence](../evidence/F06.md) bằng commit docs `[skip ci]`.
+- Baseline main `695aef9`. Branch `task/F06-k8s-local`; checkpoint `git log --oneline --grep=F06`. Runtime `5936f01`, fast-forward vào main sau khi [CI37656323271](https://github.com/Twiash/EbayGroup5/actions/runs/37656323271) pass (Test-K8s chạy trên runner).
 - Handoff trước: [F05](F05.md) (gồm bổ sung Q-PERF-001: sửa deadlock ghi đơn đồng thời, DbUp 0014).
 - Người dùng chốt 07/10/2026: kind (binary chính thức + SHA-256, node image ghim digest) và YAML + kustomize.
 
@@ -19,6 +19,7 @@
 - `Test-AppStack.ps1` (compose) vẫn PASS sau khi đổi template nginx.
 - `Start-K8s.ps1`: deploy → Ready; `-Stop` → start lại → Ready, 0 migration mới. Cluster `ebaygroup5` đang **dừng** (giữ dữ liệu); `secrets/k8s/secrets.json` (ignore) giữ mật khẩu của cluster này.
 - **Test-CI local: 263/263 .NET + 20/20 Node**, build 0 warning.
+- CI: lần đầu kẹt `queued` phía GitHub; smoke XFF flaky ở ranh giới cửa sổ (sửa: thử tới 25 lần); pod SQL Pending trên runner 2 vCPU do CPU request (giảm request CPU, giữ memory). Sau đó [CI37656323271](https://github.com/Twiash/EbayGroup5/actions/runs/37656323271) success.
 
 ## Requirement
 

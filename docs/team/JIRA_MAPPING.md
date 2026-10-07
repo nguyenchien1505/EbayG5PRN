@@ -121,7 +121,7 @@ F01 [evidence](../evidence/F01.md): Docker image + Nginx HTTPS/WSS, smoke stack 
 
 F02 [evidence](../evidence/F02.md): 2 replica, key ring và rate limit dùng chung trên Redis. **F01+F02 → KAN-26/TV5 Hải Lê: hoàn tất local một phần** (còn F06, F07). Không tự tạo issue/worklog; chưa sync live. Runtime e928741/[CI37559648174](https://github.com/Twiash/EbayGroup5/actions/runs/37559648174) success.
 
-F06 [evidence](../evidence/F06.md): Kubernetes local (kind) + migration Job. **F01+F02+F06 → KAN-26/TV5 Hải Lê: hoàn tất local một phần** (còn F07). Không tự tạo issue/worklog; chưa sync live.
+F06 [evidence](../evidence/F06.md): Kubernetes local (kind) + migration Job. **F01+F02+F06 → KAN-26/TV5 Hải Lê: hoàn tất local một phần** (còn F07). Không tự tạo issue/worklog; chưa sync live. Runtime 5936f01/[CI37656323271](https://github.com/Twiash/EbayGroup5/actions/runs/37656323271) success.
 
 F03 [evidence](../evidence/F03.md): hành trình trình duyệt Playwright + ma trận quyền + log correlation. **F03 → KAN-27/TV5 Hải Lê: hoàn tất local một phần** (KAN-27 còn F04, F05, F08). Không tự tạo issue/worklog; chưa sync live. Runtime 7893e59/[CI37562193099](https://github.com/Twiash/EbayGroup5/actions/runs/37562193099) success.
 
