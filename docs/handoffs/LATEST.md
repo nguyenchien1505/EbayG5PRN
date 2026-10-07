@@ -2,7 +2,7 @@
 
 07/10/2026. Repo D:/WINDOWS/PRN3/EbayGroup5.
 
-- Baseline main `a67927b`. Branch `task/F04-security-testing`; checkpoint `git log --oneline --grep=F04`. Số run GitHub CI ghi ở [evidence](../evidence/F04.md) bằng commit docs `[skip ci]`.
+- Baseline main `a67927b`. Branch `task/F04-security-testing`; checkpoint `git log --oneline --grep=F04`. Runtime `4a20f28`, fast-forward vào main sau khi [CI37568707408](https://github.com/Twiash/EbayGroup5/actions/runs/37568707408) pass.
 - Handoff trước: [F03](F03.md).
 
 ## Hoàn tất
@@ -20,6 +20,7 @@
 
 - [Evidence](../evidence/F04.md): SecurityTests 7/7; stack Journeys 8/8 (0 vi phạm CSP), smoke 23/23, `nginx -T` pass, correlation pass; secret scan sạch (393 file, 71 commit) và bắt đủ 5 secret giả; NuGet 0 lỗ hổng; mutation 5/5 bị bắt.
 - **Test-CI local: 258/258 .NET + 20/20 Node**, build 0 warning.
+- **GitHub [CI37568707408](https://github.com/Twiash/EbayGroup5/actions/runs/37568707408) trên runtime `4a20f28` success**: 258 .NET + 20 Node, Journeys J1–J7 pass trên runner, secret scan toàn lịch sử. Run đầu (`3af2c58`) fail vì `Get-Item` bỏ qua dotfile trên Linux; đã sửa.
 - Lỗi thật đã sửa: thiếu header (clickjacking), inline script, `style=` ở sao (J7 bắt), `<li style>` của validation summary, JSON relaxed.
 - Không đụng `launchSettings.json`.
 
