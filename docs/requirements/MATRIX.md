@@ -20,20 +20,20 @@ Status `Pending` nghĩa là chưa triển khai/chưa nghiệm thu. Task tài li�
 | ID | Yêu cầu chuẩn hóa | Task | Nghiệm thu tối thiểu | Status |
 |---|---|---|---|---|
 | G5-N01 | Bảo mật tin nhắn, WebSocket qua SSL, mã hóa khi cần | B02, C01–C03, F01, F04 | HTTPS/WSS, kiểm tra membership; không log nội dung/secret; không tuyên bố có E2EE | Done |
-| G5-N02 | Chat mượt và realtime | C04–C05, F05 | UI không treo; có pending/error/reconnect; đo latency theo PERF-01 | Pending |
+| G5-N02 | Chat mượt và realtime | C04–C05, F05 | UI không treo; có pending/error/reconnect; đo latency theo PERF-01 | Done |
 | G5-N03 | Khiếu nại không mất dữ liệu khi reload | E02 | Nháp server và khôi phục; gửi thành công mới xóa nháp | Done |
-| G5-N04 | Mở rộng lưu trữ lịch sử, phản hồi nhanh với dữ liệu lớn | C01–C05, F02, F05 | Cursor/index, nhiều instance, đo dataset lớn | Pending |
+| G5-N04 | Mở rộng lưu trữ lịch sử, phản hồi nhanh với dữ liệu lớn | C01–C05, F02, F05 | Cursor/index, nhiều instance, đo dataset lớn | Done |
 | G5-N05 | Debug tin nhắn theo thời gian/log ID | C05, F03 | Message ID/UTC/trace ID liên kết được log và DB không lộ nội dung | Done |
 
 ## Yêu cầu khác — Nhóm 25% trong đề
 
 | ID | Yêu cầu chuẩn hóa | Task | Minh chứng nghiệm thu | Status |
 |---|---|---|---|---|
-| OPS-01 | Tăng user: load balancing, Nginx | F01–F02, F05 | Nginx phân tải ít nhất hai app instance; chat xuyên instance | Pending |
+| OPS-01 | Tăng user: load balancing, Nginx | F01–F02, F05 | Nginx phân tải ít nhất hai app instance; chat xuyên instance | Done |
 | OPS-02 | Rate limiting theo khoảng thời gian | F02, F04 | HTTP trả 429 theo policy; Hub giới hạn invocation; counter dùng chung | Done |
 | OPS-03 | CI và CD bằng GitHub Actions | A07, F07 | Log CI thật, image SHA, deploy local qua runner tin cậy, smoke test | Pending |
 | OPS-04 | Quản lý nhóm trên Jira | A01, G02 | Backlog KAN, vai trò, task/code mapping, trạng thái có bằng chứng | Pending |
-| OPS-05 | Kiểm thử tải và an ninh, JMeter | F04–F05 | Script chạy lại được; báo cáo tải, bảo mật, giới hạn thực tế | Pending |
+| OPS-05 | Kiểm thử tải và an ninh, JMeter | F04–F05 | Script chạy lại được; báo cáo tải, bảo mật, giới hạn thực tế | Done |
 | OPS-06 | Zero downtime khi cập nhật bằng K8s | F06–F08 | Rolling update/rollback dưới tải; HTTP không 5xx, chat phục hồi | Pending |
 
 ## Luồng phụ thuộc được người dùng duyệt
@@ -127,3 +127,5 @@ F02: [scale-out evidence](../evidence/F02.md); 2 replica web sau Nginx, key ring
 F03: [system journeys evidence](../evidence/F03.md); Playwright trên stack thật (HTTPS, 2 replica): mua hàng, chat realtime hai chiều qua WSS, giao/nhận + feedback, return đến refund, report + admin ẩn, quyền truy cập; ma trận quyền 16 route × 6 vai trò. Hai lỗi thật đã sửa: redirect mất port, 403 body rỗng. **G5-N05 Done**: request id của Nginx = trace của app = `Message.TraceId`, không có nội dung chat trong log Nginx/web. G5-N01 Pending F04; **OPS-01 vẫn Pending**: CI lần này giữ cả hai WebSocket chat trên một replica, nên chat xuyên instance qua stack chưa được chứng minh (chỉ có test hai host C03); giao cho F05.
 
 F04: [security evidence](../evidence/F04.md); IDOR 29 lượt (dữ liệu không đổi), CSRF đủ 18 POST, stored XSS 10 trường × 27 trang + trình duyệt dưới CSP thật (0 vi phạm), header CSP/DENY/nosniff, TLS 1.2/1.3 only, `ws://` bị từ chối, body > 1 MiB 413, secret scan toàn lịch sử + audit NuGet; mutation 5/5. **G5-N01 Done** (HTTPS/WSS + membership + CSRF + không log nội dung, không E2EE). OPS-05 Pending F05 (JMeter). Rủi ro còn lại: logout không thu hồi cookie (Q-SEC-001), key ring không mã hóa khi lưu (F06).
+
+F05: [load evidence](../evidence/F05.md); JMeter 5.6.3 + client SignalR riêng trên stack thật (Nginx HTTPS, 2 replica), dataset 100.000 tin / 10.000 review / 1.000 dispute (hội thoại 20.000 tin). Full local: 50 user × 10 phút 0 % lỗi, p95 ≤ 39 ms (lịch sử chat 7 ms); 20 cặp chat p95 20,4 ms, 11.753/11.753 tin; WS trên 2 replica, 13/20 cặp khác replica nhận đủ. Stress: tới 800 user p95 < 100 ms, 1600 user p95 inbox 1,3 s (giới hạn thực tế). **OPS-01, OPS-05, G5-N02, G5-N04 Done.** PERF-01 vẫn Pending: phần tải/latency đạt, phần rolling update thuộc F08. Phát hiện deadlock ghi đơn đồng thời (Q-PERF-001) chưa sửa.

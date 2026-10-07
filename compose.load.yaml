@@ -1,0 +1,6 @@
+# F05 (docs/architecture/LOAD.md): only for the load stack (scripts/Test-AppStack.ps1 -Load). Every load user signs in from the one
+# host address, so the per-IP auth window is raised here; chat limits keep their defaults. Start-AppStack and the smoke never use it.
+services:
+  web:
+    environment:
+      RateLimits__auth__PermitLimit: "5000"

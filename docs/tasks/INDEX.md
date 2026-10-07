@@ -38,7 +38,7 @@ Trạng thái ở đây là đầu mối theo dõi. Planned = cần kiểm tra d
 | [F02](F02.md) | Nhiều instance, key dùng chung, rate limit | F01 | Done |
 | [F03](F03.md) | Test tích hợp và hành trình trình duyệt | F02 | Done |
 | [F04](F04.md) | Kiểm thử bảo mật | F03 | Done |
-| [F05](F05.md) | JMeter và đo realtime | F03 | Planned |
+| [F05](F05.md) | JMeter và đo realtime | F03 | Done |
 | [F06](F06.md) | Kubernetes local và migration Job | F02 | Planned |
 | [F07](F07.md) | CD GitHub Actions vào cluster local | A07, F06 | Planned |
 | [F08](F08.md) | Rolling update và rollback có tải | F05, F07 | Planned |

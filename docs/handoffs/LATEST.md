@@ -1,52 +1,42 @@
-# Handoff — F04: kiểm thử bảo mật
+# Handoff — F05: JMeter và đo realtime
 
 07/10/2026. Repo D:/WINDOWS/PRN3/EbayGroup5.
 
-- Baseline main `a67927b`. Branch `task/F04-security-testing`; checkpoint `git log --oneline --grep=F04`. Runtime `4a20f28`, fast-forward vào main sau khi [CI37568707408](https://github.com/Twiash/EbayGroup5/actions/runs/37568707408) pass.
-- Handoff trước: [F03](F03.md).
+- Baseline main `1fe0a94`. Branch `task/F05-load-realtime`; checkpoint `git log --oneline --grep=F05`. Số run GitHub CI ghi ở [evidence](../evidence/F05.md) bằng commit docs `[skip ci]`.
+- Handoff trước: [F04](F04.md) (gồm bổ sung Q-SEC-001: logout thu hồi phiên qua Redis).
+- Người dùng chốt 07/10/2026: JMeter bản chính thức Apache (tải + SHA-512), đo đầy đủ ở local, CI chạy bản ngắn.
 
 ## Hoàn tất
 
-- Contract: [SECURITY_TESTS](../architecture/SECURITY_TESTS.md); dòng F04 trong [SECURITY](../architecture/SECURITY.md). **Không có migration.**
-- **App:**
-  - `Web/Security/SecurityHeaders.cs`: CSP `'self'` không `unsafe-*`, `X-Frame-Options: DENY`, `nosniff`, `Referrer-Policy`, COOP, `Permissions-Policy` trên mọi response; `UseHsts()` ngoài Development (ASP.NET bỏ qua localhost).
-  - JSON API: `JavaScriptEncoder.Create(UnicodeRanges.All)` (escape `<>&'"`).
-  - Không còn inline script/style: `wwwroot/js/checkout.js`, `review-form.js`; sao/thanh rating dùng class `pct-N` trong `site.css`; validation summary chỉ render khi có lỗi.
-- **`tests/EbayGroup5.Database.Tests/SecurityTests.cs`** (7 test): kiểm kê endpoint (endpoint mới phải được phân loại trong bảng `Inventory` và có mặt ở sweep CSRF), IDOR 29 lượt + dấu vân tay 17 bảng, CSRF 18 POST + đối chứng, stored XSS 10 trường × 27 trang + cấm `style=`/inline script, header/HSTS, auth/open redirect/brute force.
-- **Stack:** smoke thêm header, TLS 1.2/1.3, TLS cũ thất bại, `ws://` bị từ chối, 413, 404 sạch; `Test-AppStack.ps1` kiểm `nginx -T`; Journeys theo dõi vi phạm CSP + dialog trên mọi trang và thêm **J7** (payload hiện nguyên văn).
-- **`scripts/Test-Secrets.ps1`** (file + toàn lịch sử, không công cụ ngoài) và audit NuGet `--vulnerable` trong Test-CI; CI `fetch-depth: 0`.
+- Contract: [LOAD](../architecture/LOAD.md). **Không có migration.**
+- `scripts/Install-JMeter.ps1`: JMeter 5.6.3 từ dlcdn (dự phòng archive), kiểm SHA-512, giải nén vào `artifacts/tools/` (ignore), chmod trên Linux.
+- `tests/load/ebaygroup5.jmx`: mỗi thread đăng nhập một lần (CSV trong Once Only Controller), lặp catalog/product/reviews/seller feedback/purchases/disputes/chat inbox/history (2 trang theo cursor)/send; think time 0,5–1,5 s.
+- `tests/EbayGroup5.Load`: `seed` (đơn/review/dispute qua service thật, 100.000 tin bằng SqlBulkCopy kiểm constraint; ghi tuần tự mặc định, `EBAY_LOAD_WRITERS` để tái hiện deadlock), `chat` (N cặp WSS, đo gửi → nhận cùng đồng hồ).
+- `scripts/Test-AppStack.ps1 -Load Short|Full|Stress` → `scripts/Invoke-LoadTest.ps1` (stack cô lập + `compose.load.yaml` nâng giới hạn auth chỉ cho stack tải; seed, JMeter + chat song song, p95 theo nhãn, replica từ log, deadlock từ `system_health`, gate, báo cáo `artifacts/load/<utc>-<profile>/`).
+- App: `ChatHubFilter` log `Chat connection opened user=<id>` (chỉ id).
+- CI: bước `Test-AppStack.ps1 -Load Short`, cache JMeter, artifact `load-report`; timeout job 50 phút.
 
 ## Verification
 
-- [Evidence](../evidence/F04.md): SecurityTests 7/7; stack Journeys 8/8 (0 vi phạm CSP), smoke 23/23, `nginx -T` pass, correlation pass; secret scan sạch (393 file, 71 commit) và bắt đủ 5 secret giả; NuGet 0 lỗ hổng; mutation 5/5 bị bắt.
-- **Test-CI local: 258/258 .NET + 20/20 Node**, build 0 warning.
-- **GitHub [CI37568707408](https://github.com/Twiash/EbayGroup5/actions/runs/37568707408) trên runtime `4a20f28` success**: 258 .NET + 20 Node, Journeys J1–J7 pass trên runner, secret scan toàn lịch sử. Run đầu (`3af2c58`) fail vì `Get-Item` bỏ qua dotfile trên Linux; đã sửa.
-- Lỗi thật đã sửa: thiếu header (clickjacking), inline script, `style=` ở sao (J7 bắt), `<li style>` của validation summary, JSON relaxed.
-- Không đụng `launchSettings.json`.
+- [Evidence](../evidence/F05.md). Full local: 50 user × 600 s, 28.817 mẫu, **0 % lỗi, p95 ≤ 39 ms** (login 190 ms); lịch sử chat trên hội thoại 20.000 tin p95 7 ms; **20 cặp chat 11.753/11.753, p95 20,4 ms**; WS trên 2 replica, **13/20 cặp khác replica**.
+- Stress: 50 → 1600 user; tới 800 user (~680 req/s) p95 < 100 ms; 1600 user (~1.075 req/s) p95 inbox 1,3 s, 429 do giới hạn theo user, không 5xx; realtime p95 < 25 ms mọi bậc.
+- **Test-CI local: 262/262 .NET + 20/20 Node**, build 0 warning.
 
 ## Requirement
 
-- **G5-N01: Done.**
-- OPS-05 Pending (F05 JMeter). OPS-01 Pending (F05): lần chạy stack này WebSocket chat nằm trên 2 replica nhưng chỉ là INFO, chưa khẳng định.
-
-## Bổ sung Q-SEC-001 (branch `task/F04-session-revocation`)
-
-- Người dùng chốt thêm danh sách phiên bị thu hồi trên Redis (Answered 07/10/2026). Làm như phần bổ sung F04 (PLAN cố định 40 task).
-- `SessionRevocation`: claim `eg5:sid`; logout ghi `{prefix}:revoked-session:{sid}` (TTL còn lại của cookie); cookie và Hub từ chối phiên thiếu `sid` hoặc đã thu hồi; Redis lỗi → chỉ instance logout biết.
-- `SessionRevocationTests` 4/4, mutation 3/3; Test-CI local 262 .NET + 20 Node; GitHub [CI37602106781](https://github.com/Twiash/EbayGroup5/actions/runs/37602106781) success trên runtime `11b3cec`, fast-forward vào main; smoke stack 25/25 ("copied cookie refused on every replica after logout 0/12"). Chi tiết ở [evidence](../evidence/F04.md#bổ-sung-q-sec-001-thu-hồi-phiên-khi-logout-07102026).
+- **OPS-01, OPS-05, G5-N02, G5-N04: Done.**
+- PERF-01 Pending (phần rolling update/rollback thuộc F08; phần tải/latency đạt).
 
 ## Câu hỏi / rủi ro
 
-- Q-SEC-001 Answered (đã làm). Cookie cũ không có `sid` phải đăng nhập lại một lần.
-- Key ring DataProtection chưa mã hóa khi lưu → F06 (`ProtectKeysWithCertificate` + K8s Secret).
-- HSTS chỉ hiệu lực khi có domain thật trong `AllowedHosts`.
+- **Q-PERF-001 (Open):** ship/receive đồng thời deadlock (5.141 deadlock khi seed 8 luồng: Dispute quét theo orderId dưới UPDLOCK/HOLDLOCK, Payment/ShippingInfo khóa phạm vi). Đề xuất task sửa: index `Dispute(orderId)` (DbUp 0014) + đổi khóa + test đồng thời. Luồng ghi đơn chưa được kiểm tải.
+- JMeter chạy cùng máy với stack; giới hạn đo được gồm tải của máy sinh tải.
 
 ## Cho task sau
 
-- Thêm endpoint mới: cập nhật `Inventory` + sweep CSRF/IDOR trong `SecurityTests`; không dùng `style=`/inline script (CSP sẽ chặn, J7 và test sẽ fail).
-- **F05:** JMeter qua Nginx, nhiều WebSocket và khẳng định phân bố ≥ 2 replica (OPS-01); seed demo + credential ngẫu nhiên như `Test-AppStack.ps1`.
-- Khôi phục file sau mutation bằng `cp`, không dùng `Copy-Item`.
+- **F06:** K8s local + migration Job; F08 dùng lại `Invoke-LoadTest.ps1`/`ChatLoad` để đo khi rolling update (chat phục hồi ≤ 10 s, không 5xx).
+- Chạy `-Load Full` không song song với Test-CI (tranh RAM SQL).
 
 ## Tiếp theo / Jira
 
-- F03+F04 → **KAN-27 / TV5 Hải Lê: hoàn tất local một phần** (còn F05, F08). Chưa sync live; không tạo worklog/review/issue.
+- F03+F04+F05 → **KAN-27 / TV5 Hải Lê: hoàn tất local một phần** (còn F08). Chưa sync live; không tạo worklog/review/issue.
