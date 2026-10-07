@@ -2,7 +2,7 @@
 
 07/10/2026. Repo D:/WINDOWS/PRN3/EbayGroup5.
 
-- Baseline main `df34f1a`. Runtime trên `task/F01-app-image-nginx-https`; checkpoint `git log --oneline --grep=F01`. GitHub CI: xem mục Verification.
+- Baseline main `df34f1a`. Runtime `a6dd65b` trên `task/F01-app-image-nginx-https`, fast-forward vào main sau khi [CI37558156027](https://github.com/Twiash/EbayGroup5/actions/runs/37558156027) pass. Checkpoint `git log --oneline --grep=F01`.
 - Handoff trước: [E05](E05.md) (nhóm E xong).
 
 ## Hoàn tất
@@ -38,7 +38,7 @@
 - [Evidence](../evidence/F01.md):
   - Test tích hợp 26/26; mutation "tin mọi nguồn" bị bắt.
   - Stack thật PASS 12/12 sau khi sửa 3 lỗi do smoke phát hiện: healthcheck dash, log EF, kế thừa header Nginx.
-- **Test-CI local pass: 245/245 .NET + 20/20 Node**, build 0 warnings. GitHub CI (gồm stack smoke): ghi sau khi chạy (commit docs-only `[skip ci]`).
+- **Test-CI local pass: 245/245 .NET + 20/20 Node**, build 0 warnings. **GitHub [CI37558156027](https://github.com/Twiash/EbayGroup5/actions/runs/37558156027) exact runtime `a6dd65b` success**: 5m09s, 245/245 .NET + 20/20 Node, **stack smoke 12/12**. Docs-only `[skip ci]` sau CI.
 - **Chưa chạy `Start-AppStack.ps1` trên dữ liệu thật của người dùng** (port 8080/8443 cố định); để người dùng chạy khi cần. Smoke cô lập đã kiểm đầu cuối cùng image và cấu hình đó.
 - Không kiểm bằng browser: CA local chưa được tin, và việc cài CA thuộc quyền người dùng.
 - Không đụng `launchSettings.json`.

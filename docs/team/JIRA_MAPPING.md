@@ -117,4 +117,4 @@ E04 [evidence](../evidence/E04.md): job phản hồi tự động và chuyển q
 
 E05 [evidence](../evidence/E05.md): hàng đợi và phân xử của admin, audit (không migration). **E05 → KAN-24/TV4 Nguyên Nguyễn: hoàn tất local.** Không tự tạo issue/worklog; chưa sync live. Runtime 69fe292/[CI37501792548](https://github.com/Twiash/EbayGroup5/actions/runs/37501792548) success.
 
-F01 [evidence](../evidence/F01.md): Docker image + Nginx HTTPS/WSS, smoke stack trong CI. **F01 → KAN-26/TV5 Hải Lê: hoàn tất local một phần** (KAN-26 còn F02, F06, F07). Không tự tạo issue/worklog; chưa sync live. GitHub CI: xem handoff.
+F01 [evidence](../evidence/F01.md): Docker image + Nginx HTTPS/WSS, smoke stack trong CI. **F01 → KAN-26/TV5 Hải Lê: hoàn tất local một phần** (KAN-26 còn F02, F06, F07). Không tự tạo issue/worklog; chưa sync live. Runtime a6dd65b/[CI37558156027](https://github.com/Twiash/EbayGroup5/actions/runs/37558156027) success.
