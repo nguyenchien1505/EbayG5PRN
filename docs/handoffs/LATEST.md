@@ -2,7 +2,7 @@
 
 07/10/2026. Repo D:/WINDOWS/PRN3/EbayGroup5.
 
-- Baseline main `774e7f5`. Runtime trên `task/F02-multi-instance-shared-keys`; checkpoint `git log --oneline --grep=F02`. GitHub CI: xem mục Verification.
+- Baseline main `774e7f5`. Runtime `e928741` trên `task/F02-multi-instance-shared-keys`, fast-forward vào main sau khi [CI37559648174](https://github.com/Twiash/EbayGroup5/actions/runs/37559648174) pass. Checkpoint `git log --oneline --grep=F02`.
 - Handoff trước: [F01](F01.md).
 
 ## Hoàn tất
@@ -36,7 +36,7 @@
   - Test tập trung 94/94.
   - Mutation 2/2 bị bắt.
   - Stack thật 2 replica PASS: 2 upstream, XFF giả nhận 429 nhờ bộ đếm chung.
-- **Test-CI local pass: 250/250 .NET + 20/20 Node**, build 0 warnings. GitHub CI: ghi sau khi chạy (commit docs-only `[skip ci]`).
+- **Test-CI local pass: 250/250 .NET + 20/20 Node**, build 0 warnings. **GitHub [CI37559648174](https://github.com/Twiash/EbayGroup5/actions/runs/37559648174) exact runtime `e928741` success**: 250/250 .NET + 20/20 Node, stack smoke 2 replica PASS. Test SQL trên CI chậm khoảng 2,1 lần ở mọi test do runner (xem evidence). Docs-only `[skip ci]` sau CI.
 - Không đụng `launchSettings.json`.
 
 ## Requirement
