@@ -32,6 +32,10 @@ Người dùng chốt runner **tạm thời trên máy hiện tại**, một job
 - `Invoke-CdDeployment.ps1`: xác minh artifact + image, dùng secrets/TLS có sẵn,
   gọi Deploy-K8s, kiểm job migration complete, image đúng SHA, 2 replica ready,
   HTTP redirect và HTTPS ready/catalog qua CA thật. Smoke không ghi dữ liệu demo.
+  Docker classic dùng config digest, Docker Desktop/containerd có thể dùng manifest digest cho `.Id`;
+  `Get-CdArchiveIdentities.ps1` ánh xạ cả hai từ archive đã kiểm checksum, theo đúng tag.
+  CI ID và loaded ID đều phải thuộc ánh xạ đó; revision/OS/architecture vẫn kiểm riêng,
+  stamp/report giữ loaded ID. Không đổi backend Docker hoặc bỏ kiểm tra identity.
 - `Start-CdRunner.ps1`: cài runner đã kiểm checksum vào artifacts riêng từng lần,
   nối toolchain local vào PATH của process, đăng ký runner ephemeral rồi chạy một job.
   Khi kết thúc/fail, gỡ registration còn sót bằng API và xoá credential config của
