@@ -42,5 +42,5 @@ Trạng thái ở đây là đầu mối theo dõi. Planned = cần kiểm tra d
 | [F06](F06.md) | Kubernetes local và migration Job | F02 | Done |
 | [F07](F07.md) | CD GitHub Actions vào cluster local | A07, F06 | Done |
 | [F08](F08.md) | Rolling update và rollback có tải | F05, F07 | Done |
-| [G01](G01.md) | Rà ma trận yêu cầu và tinh chỉnh UI | F04, F08 | Planned |
+| [G01](G01.md) | Rà ma trận yêu cầu và tinh chỉnh UI | F04, F08 | Done |
 | [G02](G02.md) | Báo cáo, hướng dẫn demo và bàn giao | G01 | Planned |

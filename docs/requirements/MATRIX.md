@@ -55,7 +55,7 @@ Status `Pending` nghĩa là chưa triển khai/chưa nghiệm thu. Task tài li�
 | CON-03 | Git riêng, commit theo checkpoint | A00 và xuyên suốt | Git local, ignore, commit thật; không secret/giả tác giả | Established |
 | CON-04 | Task nhỏ, đọc theo nhu cầu, bàn giao | A00–A01 và xuyên suốt | AGENTS, START_HERE, task cards, handoff, kiểm tra docs | Established |
 | CON-05 | Báo thông tin UI/nghiệp vụ không tự lấy được | A02 và xuyên suốt | Câu hỏi cụ thể, nguồn đã kiểm tra, câu trả lời lưu bền vững | Established |
-| UI-01 | Bám hành trình eBay thực tế, UI tiếng Anh responsive | A02, B03, C04, D02–D04, E02–E03, G01 | Có nguồn/ảnh tham chiếu truy cập được, khác biệt ghi rõ, desktop/mobile | Pending |
+| UI-01 | Bám hành trình eBay thực tế, UI tiếng Anh responsive | A02, B03, C04, D02–D04, E02–E03, G01 | Có nguồn/ảnh tham chiếu truy cập được, khác biệt ghi rõ, desktop/mobile | Done |
 | PERF-01 | Ngưỡng tải/latency nội bộ | F05, F08 | Theo mục tiêu bên dưới, ghi cấu hình máy và dữ liệu đo | Done |
 | DOC-01 | Báo cáo, demo và bàn giao | G01–G02 | Mỗi yêu cầu có bằng chứng; setup từ clone sạch; mỗi thành viên giải thích module | Pending |
 
@@ -78,7 +78,7 @@ Không full auction, coupon, cart, seller product CRUD, quản trị toàn sàn,
 
 G5/G5-N/OPS xuất phát từ [nguồn giảng viên](sources/requirements-extracted.md); SUP/CON/PERF là lựa chọn người dùng và quy tắc trong [kế hoạch](../PLAN.md). UI-01 thực hiện lưu ý trải nghiệm hệ thống thực tế của đề. Không coi mọi quy tắc giản lược trong kế hoạch là chính sách eBay thật.
 
-Ghi nhận A02: [EBAY_JOURNEYS](EBAY_JOURNEYS.md) và [UI_REFERENCE](../architecture/UI_REFERENCE.md) là bằng chứng khảo sát một phần. UI-01 vẫn Pending, Q-UI-001–003 chưa có câu trả lời.
+Ghi nhận A02: [EBAY_JOURNEYS](EBAY_JOURNEYS.md) và [UI_REFERENCE](../architecture/UI_REFERENCE.md) là bằng chứng khảo sát một phần (Q-UI-001–003 đã trả lời sau đó; UI-01 nghiệm thu ở G01).
 
 SUP-01: evidence [B01](../evidence/B01.md) và [B02](../evidence/B02.md); quyền trên order/chat/dispute kiểm chứng ở module tương ứng, SUP-05 còn Pending.
 
@@ -144,3 +144,5 @@ trên ad0ce27, rolling Short 4.635 request/1.188 ACK, 0 thiếu/trùng, recovery
 Revision/image/pod UID xác nhận update và undo thật; 14 migration giữ nguyên.
 **OPS-06 Done** (F06 K8s +F07 CD +F08 transition), **PERF-01 Done** (F05 Full/Stress +F08).
 Giới hạn: single-node kind, image tương thích/cùng binary nghiệp vụ, không chứng minh DB/node failover.
+
+G01: [UI acceptance evidence](../evidence/G01.md); 19 màn nhóm 5 + điểm vào × desktop/mobile ([ảnh](../evidence/ui/)), đối chiếu nguồn U1/M1/R1/P1/P2/F1/E1/E0/H1/D2, khác biệt ghi rõ ([UI_ACCEPTANCE](../architecture/UI_ACCEPTANCE.md)); sửa nhỏ: nhãn Connected, công thức feedback, khoảng trống form khiếu nại, ngày giao dự kiến của đơn seed (INR demo). **UI-01 Done.** Còn Pending: OPS-04 (Jira live) và DOC-01 (báo cáo/demo) thuộc G02.

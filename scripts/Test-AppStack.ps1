@@ -6,7 +6,8 @@
 # -KeepRunning leaves a passing or failing stack running for local iteration (remove it later with Clear-TestArtifacts.ps1 -Apply).
 # F05 (LOAD.md): -Load Short|Full|Stress builds the same isolated stack with compose.load.yaml and runs scripts/Invoke-LoadTest.ps1
 # instead of the journeys/smoke (the smoke needs the default auth window).
-param([switch]$KeepStack, [switch]$KeepRunning, [ValidateSet('Short', 'Full', 'Stress')][string]$Load)
+# G01 (UI_ACCEPTANCE.md): -Screens <dir> seeds the demo, captures the group 5 screens (desktop + mobile) into <dir> and stops there.
+param([switch]$KeepStack, [switch]$KeepRunning, [ValidateSet('Short', 'Full', 'Stress')][string]$Load, [string]$Screens)
 $ErrorActionPreference = 'Stop'
 $repoRoot = Split-Path $PSScriptRoot -Parent
 $hex = [Guid]::NewGuid().ToString('N')
@@ -76,6 +77,14 @@ try {
     if ($LASTEXITCODE -ne 0) { throw 'Demo credentials failed.' }
     $server = [Security.Cryptography.X509Certificates.X509Certificate2]::CreateFromPem([IO.File]::ReadAllText((Join-Path $work 'tls/server.crt')))
     $spki = [Convert]::ToBase64String([Security.Cryptography.SHA256]::HashData($server.PublicKey.ExportSubjectPublicKeyInfo()))
+    if ($Screens) {
+        $target = if ([IO.Path]::IsPathRooted($Screens)) { $Screens } else { Join-Path $repoRoot $Screens }
+        dotnet run --project tests/EbayGroup5.Journeys -c Release --no-launch-profile -- `
+            --base "https://localhost:$httpsPort" --spki $spki --out (Join-Path $work 'journeys') --screens $target
+        if ($LASTEXITCODE -ne 0) { throw 'Screen capture failed; screenshots in artifacts/stack/<hex>/journeys, stack retained.' }
+        $succeeded = $true
+        return
+    }
     # Journeys run before the smoke: the smoke's spoofing check deliberately exhausts the host's auth window.
     dotnet run --project tests/EbayGroup5.Journeys -c Release --no-launch-profile -- `
         --base "https://localhost:$httpsPort" --spki $spki --out (Join-Path $work 'journeys')

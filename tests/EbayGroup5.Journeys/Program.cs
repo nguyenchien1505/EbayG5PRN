@@ -1,5 +1,5 @@
 // F03 browser journeys (docs/architecture/JOURNEYS.md) on the Docker stack: Nginx HTTPS, two web replicas, seeded demo data.
-// Usage: EbayGroup5.Journeys --base https://localhost:N --spki <base64 SHA-256 of the server SPKI> --out <dir>
+// Usage: EbayGroup5.Journeys --base https://localhost:N --spki <base64 SHA-256 of the server SPKI> --out <dir> [--screens <dir>]
 // Passwords come from EBAY_JOURNEY_{BUYER,SELLER,ADMIN}_PASSWORD (never arguments). Writes chat markers to <out>/markers.txt.
 using System.Text.RegularExpressions;
 using Microsoft.Playwright;
@@ -69,6 +69,155 @@ async Task Step(string name, Func<Task> body)
         foreach (var (role, page) in pages)
             try { await page.ScreenshotAsync(new() { Path = Path.Combine(output, $"fail-{role}.png"), FullPage = true }); } catch { }
     }
+}
+
+// G01 (docs/architecture/UI_ACCEPTANCE.md): --screens <dir> builds clean demo data through the UI (no test markup) and captures every
+// group 5 screen and entry point at desktop 1280x900 and mobile 390x844 instead of running J1-J7. Overflow and CSP problems are listed.
+if (options.TryGetValue("--screens", out var screensDir)) return await CaptureScreens(Directory.CreateDirectory(screensDir).FullName);
+
+async Task<int> CaptureScreens(string dir)
+{
+    var problems = new List<string>();
+    var shots = new List<string>();
+    async Task Shot(IPage page, string id, string name, bool fullPage = true)
+    {
+        foreach (var (label, width, height) in new[] { ("desktop", 1280, 900), ("mobile", 390, 844) })
+        {
+            await page.SetViewportSizeAsync(width, height);
+            await page.WaitForTimeoutAsync(400);
+            if (await page.EvaluateAsync<bool>("() => document.documentElement.scrollWidth > document.documentElement.clientWidth + 1"))
+                problems.Add($"{id} {label}: horizontal overflow");
+            var file = $"{id}-{name}-{label}.jpg";
+            await page.ScreenshotAsync(new() { Path = Path.Combine(dir, file), FullPage = fullPage, Type = ScreenshotType.Jpeg, Quality = 70 });
+            shots.Add(file);
+        }
+        await page.SetViewportSizeAsync(1280, 900);
+    }
+    async Task<(string Delivered, string Shipped)> SeedOrders(IPage page)
+    {
+        await page.GotoAsync("/Orders/Purchases");
+        var links = await page.Locator("a[href*='/Orders/Details/']").EvaluateAllAsync<string[]>("els => [...new Set(els.map(e => e.getAttribute('href')))]");
+        string delivered = "", shipped = "";
+        foreach (var link in links)
+        {
+            await page.GotoAsync(link);
+            var status = (await page.Locator(".order-status").InnerTextAsync()).Trim();
+            if (status == "Delivered" && delivered == "") delivered = link;
+            if (status == "Shipped" && shipped == "") shipped = link;
+        }
+        if (delivered == "" || shipped == "") throw new InvalidOperationException("Seeded delivered/shipped orders not found.");
+        return (delivered, shipped);
+    }
+
+    try
+    {
+        var b = await SignIn("buyer", "buyer.a06@example.invalid", Secret("BUYER"));
+        var s = await SignIn("seller", "seller.a06@example.invalid", Secret("SELLER"));
+        var a = await SignIn("admin", "admin.a06@example.invalid", Secret("ADMIN"));
+
+        // Catalog, item page and the chat panel (U1); a short buyer/seller exchange for the Messages screens.
+        await b.GotoAsync("/Catalog");
+        await b.GetByRole(AriaRole.Link, new() { Name = "Wireless Headphones" }).First.ClickAsync();
+        var product = b.Url;
+        await b.Locator("button.seller-message").ClickAsync();
+        var panel = b.Locator("#chat-panel");
+        await Expect(panel.Locator("textarea[data-input]")).ToBeEnabledAsync();
+        await panel.Locator("textarea[data-input]").FillAsync("Hi, are spare ear cushions included?");
+        await panel.Locator("button.chat-send").ClickAsync();
+        await Expect(panel.Locator("[data-message-list]").GetByText("Hi, are spare ear cushions included?")).ToBeVisibleAsync();
+        // The panel is fixed to the viewport, so this one is a viewport capture.
+        await Shot(b, "S03", "item-chat-panel", fullPage: false);
+        await s.GotoAsync("/Messages");
+        await s.Locator("[data-conversations]").GetByText("Wireless Headphones").First.ClickAsync();
+        await s.Locator("#chat-app textarea[data-input]").FillAsync("Yes, one spare pair comes in the box.");
+        await s.Locator("#chat-app button.chat-send").ClickAsync();
+        await Expect(s.Locator("[data-message-list]").GetByText("Yes, one spare pair comes in the box.")).ToBeVisibleAsync();
+
+        // Seeded orders: one delivered (two lines), one shipped. Feedback on line 1, return on line 2, item not received on the shipped one.
+        var (delivered, shipped) = await SeedOrders(b);
+        await b.GotoAsync("/Orders/Purchases");
+        await Shot(b, "S06", "purchases");
+        await b.GotoAsync(delivered);
+        await Shot(b, "S07", "order-details");
+        var lines = await b.Locator("[id^=line-]").EvaluateAllAsync<string[]>("els => els.map(e => e.id)");
+        await b.Locator("#" + lines[0]).GetByRole(AriaRole.Link, new() { Name = "Leave feedback" }).ClickAsync();
+        await b.Locator("label[for=sentiment-Positive]").ClickAsync();
+        await b.Locator("#seller-comment").FillAsync("Fast shipping and quick answers. Thank you!");
+        await b.Locator("label[for=rating-5]").ClickAsync();
+        await b.Locator("#review-comment").FillAsync("Great sound and comfortable for long calls.");
+        await Shot(b, "S08", "leave-feedback");
+        await b.GetByRole(AriaRole.Button, new() { Name = "Leave feedback" }).ClickAsync();
+        await Expect(b.GetByText("You rated this item 5 out of 5.")).ToBeVisibleAsync();
+
+        await b.GotoAsync(delivered);
+        await b.Locator("#" + lines[1]).GetByRole(AriaRole.Link, new() { Name = "Return this item" }).ClickAsync();
+        await Shot(b, "S09", "return-reason");
+        await b.GetByText("Item damaged", new() { Exact = true }).ClickAsync();
+        await b.GetByRole(AriaRole.Button, new() { Name = "Next" }).ClickAsync();
+        await b.Locator("textarea[name=Details]").FillAsync("The connector is loose and the cable stops charging.");
+        await Shot(b, "S10", "return-details");
+        await b.GetByRole(AriaRole.Button, new() { Name = "Confirm return" }).ClickAsync();
+        await Expect(b.Locator(".account-notice")).ToContainTextAsync("Your request was sent.");
+
+        await b.GotoAsync(shipped);
+        await b.Locator("[id^=line-]").First.GetByRole(AriaRole.Link, new() { Name = "I didn't receive it" }).ClickAsync();
+        await b.GetByText("I'd like a refund", new() { Exact = true }).ClickAsync();
+        await b.Locator("#dispute-details").FillAsync("Tracking has not updated for a week.");
+        await Shot(b, "S11", "item-not-received");
+        await b.GetByRole(AriaRole.Button, new() { Name = "Send request" }).ClickAsync();
+        await Expect(b.Locator(".account-notice")).ToContainTextAsync("Your request was sent.");
+
+        // Catalog card and item page after the feedback: stars, rating count and seller % positive (entry points A1/A2).
+        await b.GotoAsync("/Catalog");
+        await Shot(b, "S01", "catalog");
+        await b.GotoAsync(product);
+        await Shot(b, "S02", "item");
+
+        // Requests, reviews, feedback profile, Messages.
+        await b.GotoAsync("/Disputes");
+        await Shot(b, "S12", "returns-and-requests");
+        await b.GetByRole(AriaRole.Link, new() { NameRegex = new Regex("^See (request )?details$") }).First.ClickAsync();
+        await Shot(b, "S13", "request-buyer");
+        await b.GotoAsync(product);
+        var reviews = await b.Locator("a[href*='/Catalog/Reviews/']").First.GetAttributeAsync("href");
+        await b.GotoAsync(reviews!);
+        await Shot(b, "S04", "item-reviews");
+        await b.GotoAsync(product);
+        var profile = await b.Locator("a.seller-feedback-link").First.GetAttributeAsync("href");
+        await b.GotoAsync(profile!);
+        await Shot(b, "S05", "seller-feedback");
+        await b.GotoAsync("/Messages");
+        await b.Locator("[data-conversations]").GetByText("Wireless Headphones").First.ClickAsync();
+        await Expect(b.Locator("[data-message-list]").GetByText("Yes, one spare pair comes in the box.")).ToBeVisibleAsync();
+        await Shot(b, "S14", "messages-buyer");
+
+        await s.GotoAsync("/Messages");
+        await s.Locator("[data-conversations]").GetByText("Wireless Headphones").First.ClickAsync();
+        await Shot(s, "S15", "messages-seller");
+        await s.GotoAsync("/Disputes?kind=Return");
+        await s.GetByRole(AriaRole.Link, new() { NameRegex = new Regex("^See (request )?details$") }).First.ClickAsync();
+        await Shot(s, "S16", "request-seller");
+        await s.GotoAsync(profile!);
+        await Shot(s, "S17", "seller-feedback-owner");
+
+        await a.GotoAsync("/Admin/Moderation");
+        await Shot(a, "S18", "admin-moderation");
+        await a.GotoAsync("/Admin/Disputes");
+        await Shot(a, "S19", "admin-disputes");
+    }
+    catch (Exception ex)
+    {
+        var detail = string.Join(" | ", ex.Message.Split('\n').Select(x => x.Trim()).Where(x => x.Length > 0).Take(4));
+        Console.WriteLine($"FAIL screens: {ex.GetType().Name}: {detail}");
+        foreach (var (role, page) in pages)
+            try { await page.ScreenshotAsync(new() { Path = Path.Combine(output, $"fail-{role}.png"), FullPage = true }); } catch { }
+        return 1;
+    }
+    problems.AddRange(violations);
+    await File.WriteAllLinesAsync(Path.Combine(dir, "screens.txt"), shots.Concat(problems.Select(p => "PROBLEM " + p)));
+    Console.WriteLine($"Screens: {shots.Count} files in {dir}; {problems.Count} problem(s)");
+    foreach (var problem in problems) Console.WriteLine("PROBLEM " + problem);
+    return 0;
 }
 
 IPage buyer = null!, seller = null!, admin = null!;
