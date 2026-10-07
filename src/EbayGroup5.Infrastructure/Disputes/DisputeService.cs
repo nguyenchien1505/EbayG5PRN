@@ -178,8 +178,10 @@ public sealed class DisputeService(EbayDbContext db, TimeProvider clock, Dispute
     /// <summary>B06 Confirm received: closes the order's open item-not-received requests inside the caller's transaction (caller saves).</summary>
     internal static async Task ItemReceivedAsync(EbayDbContext db, int buyerId, int orderId, DateTime nowUtc, DisputeTiming timing, CancellationToken ct)
     {
+        // Q-PERF-001: the caller holds the order row's UPDLOCK (as does OpenAsync), so no new request can appear for this order; seek the
+        // order's rows (DbUp 0014) and lock just them instead of range-locking dbo.Dispute.
         var rows = await db.Set<Dispute>().FromSqlInterpolated(
-                $"SELECT * FROM dbo.Dispute WITH (UPDLOCK,HOLDLOCK) WHERE orderId={orderId} AND OrderItemId IS NOT NULL AND ClosedAtUtc IS NULL AND Kind='ItemNotReceived'")
+                $"SELECT * FROM dbo.Dispute WITH (UPDLOCK, FORCESEEK(IX_Dispute_Order(orderId))) WHERE orderId={orderId} AND OrderItemId IS NOT NULL AND ClosedAtUtc IS NULL AND Kind='ItemNotReceived'")
             .ToListAsync(ct);
         foreach (var row in rows)
         {

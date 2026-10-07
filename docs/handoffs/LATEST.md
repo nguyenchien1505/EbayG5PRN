@@ -27,9 +27,15 @@
 - **OPS-01, OPS-05, G5-N02, G5-N04: Done.**
 - PERF-01 Pending (phần rolling update/rollback thuộc F08; phần tải/latency đạt).
 
+## Bổ sung Q-PERF-001 (branch `task/F05-order-deadlocks`)
+
+- Người dùng yêu cầu sửa (Answered 07/10/2026). **DbUp 0014** `IX_Dispute_Order`; `OrderService.Load` bỏ `HOLDLOCK` theo `orderId` ở bảng con (đơn đã `UPDLOCK`); `DisputeService.ItemReceivedAsync` `UPDLOCK + FORCESEEK`; Feedback đọc Payment `FORCESEEK`.
+- `OrderConcurrencyTests`: 85 → **0 deadlock** / 200 đơn; Test-CI local 263 .NET + 20 Node; seed Full 8 luồng 11.000 đơn **146 s, 0 deadlock**; Full load vẫn PASS. Seed mặc định 8 luồng, `Invoke-LoadTest.ps1` gate 0 deadlock. Chi tiết [evidence](../evidence/F05.md#bổ-sung-q-perf-001-sửa-deadlock-ghi-đơn-đồng-thời-07102026).
+- DB dev `EbayGroup5` chưa chạy 0014: `Start-AppStack.ps1`/`Initialize-Database.ps1` sẽ áp dụng khi chạy lại.
+
 ## Câu hỏi / rủi ro
 
-- **Q-PERF-001 (Open):** ship/receive đồng thời deadlock (5.141 deadlock khi seed 8 luồng: Dispute quét theo orderId dưới UPDLOCK/HOLDLOCK, Payment/ShippingInfo khóa phạm vi). Đề xuất task sửa: index `Dispute(orderId)` (DbUp 0014) + đổi khóa + test đồng thời. Luồng ghi đơn chưa được kiểm tải.
+- Q-PERF-001 Answered (đã sửa).
 - JMeter chạy cùng máy với stack; giới hạn đo được gồm tải của máy sinh tải.
 
 ## Cho task sau

@@ -220,7 +220,7 @@ public sealed class FeedbackService(EbayDbContext db, TimeProvider clock) : IFee
         var item = await db.Set<OrderItem>().FromSqlInterpolated($"SELECT * FROM dbo.OrderItem WITH (HOLDLOCK) WHERE id={orderItemId} AND orderId={order.Id}").AsNoTracking().SingleOrDefaultAsync(ct);
         if (item == null) return new(LeaveFeedbackOutcome.NotFound);
         var deliveredAt = order.Status == Delivered
-            ? DeliveredAt(await db.Set<Payment>().FromSqlInterpolated($"SELECT * FROM dbo.Payment WITH (HOLDLOCK) WHERE orderId={order.Id}").AsNoTracking().Take(2).ToListAsync(ct))
+            ? DeliveredAt(await db.Set<Payment>().FromSqlInterpolated($"SELECT * FROM dbo.Payment WITH (HOLDLOCK, FORCESEEK(IX_Payment_Order(orderId))) WHERE orderId={order.Id}").AsNoTracking().Take(2).ToListAsync(ct))
             : null;
         var existing = await db.Set<SellerFeedback>().FromSqlInterpolated($"SELECT * FROM dbo.SellerFeedback WITH (UPDLOCK,HOLDLOCK) WHERE OrderItemId={orderItemId}")
             .AsNoTracking().Select(x => x.Sentiment).FirstOrDefaultAsync(ct);
