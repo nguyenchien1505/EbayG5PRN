@@ -2,7 +2,7 @@
 
 07/10/2026. Repo D:/WINDOWS/PRN3/EbayGroup5.
 
-- Baseline main `1fe0a94`. Branch `task/F05-load-realtime`; checkpoint `git log --oneline --grep=F05`. Số run GitHub CI ghi ở [evidence](../evidence/F05.md) bằng commit docs `[skip ci]`.
+- Baseline main `1fe0a94`. Branch `task/F05-load-realtime`; checkpoint `git log --oneline --grep=F05`. Runtime `1be91ce`, fast-forward vào main sau khi [CI37620564985](https://github.com/Twiash/EbayGroup5/actions/runs/37620564985) pass (Load Short trên runner: 0 % lỗi, chat 583/583, 9/10 cặp khác replica).
 - Handoff trước: [F04](F04.md) (gồm bổ sung Q-SEC-001: logout thu hồi phiên qua Redis).
 - Người dùng chốt 07/10/2026: JMeter bản chính thức Apache (tải + SHA-512), đo đầy đủ ở local, CI chạy bản ngắn.
 
