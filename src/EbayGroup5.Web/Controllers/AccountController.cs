@@ -1,6 +1,7 @@
 using System.Security.Claims;
 using EbayGroup5.Infrastructure.Authentication;
 using EbayGroup5.Web.Models;
+using EbayGroup5.Web.Security;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
@@ -8,7 +9,6 @@ using Microsoft.AspNetCore.Mvc;
 using EbayGroup5.Infrastructure.Persistence;
 using EbayGroup5.Core.Entities;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.AspNetCore.RateLimiting;
 
 namespace EbayGroup5.Web.Controllers;
 
@@ -18,7 +18,7 @@ public sealed class AccountController(AccountService accounts) : Controller
     [HttpGet]
     public IActionResult Login(string? returnUrl) => View(new LoginForm { ReturnUrl = Url.IsLocalUrl(returnUrl) ? returnUrl : null });
 
-    [HttpPost, EnableRateLimiting("Auth")]
+    [HttpPost, SharedRateLimit(SharedRateLimiter.Auth)]
     public async Task<IActionResult> Login(LoginForm form)
     {
         var account = ModelState.IsValid ? await accounts.LoginAsync(form.Email, form.Password) : null;
@@ -42,7 +42,7 @@ public sealed class AccountController(AccountService accounts) : Controller
     [HttpGet]
     public IActionResult Register() => View(new RegisterForm());
 
-    [HttpPost, EnableRateLimiting("Auth")]
+    [HttpPost, SharedRateLimit(SharedRateLimiter.Auth)]
     public async Task<IActionResult> Register(RegisterForm form)
     {
         if (ModelState.IsValid && await accounts.RegisterAsync(form.Name, form.Email, form.Password))

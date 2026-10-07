@@ -80,6 +80,11 @@ var flags = authCookie?.ToLowerInvariant() ?? "";
 Check(flags.Contains("; secure") && flags.Contains("; httponly") && flags.Contains("samesite=lax"), "Auth cookie is Secure, HttpOnly and SameSite=Lax");
 var me = await https.GetAsync("Account/Me");
 Check(me.StatusCode == HttpStatusCode.OK && (await me.Content.ReadAsStringAsync()).Contains("Stack smoke " + id), "Signed-in page over HTTPS");
+// F02: nginx round-robins across the web replicas; with a shared key ring every request stays signed in.
+// Test-AppStack.ps1 then checks the nginx log for at least two different upstreams on these requests.
+var signedIn = 0;
+for (var i = 0; i < 12; i++) if ((await https.GetAsync("Account/Me")).StatusCode == HttpStatusCode.OK) signedIn++;
+Check(signedIn == 12, $"Signed in on every request across replicas ({signedIn}/12)");
 
 // 4. Chat over WSS through nginx: SignalR JSON handshake with the right Origin; a foreign Origin is refused.
 async Task<string> Handshake(string requestOrigin)

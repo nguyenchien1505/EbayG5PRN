@@ -110,6 +110,39 @@
           "System.IO.Pipelines": "8.0.0"
         }
       },
+      "Microsoft.AspNetCore.Cryptography.Internal": {
+        "type": "Transitive",
+        "resolved": "8.0.31",
+        "contentHash": "CnnMYle9GDJJq0/PkfhAwfU6nEb/xUGAt26vPojvOlhSqmuNw+ocTbIVFnp5X2f5dHjaC/kzHdxzwn3h5ggjWA=="
+      },
+      "Microsoft.AspNetCore.DataProtection": {
+        "type": "Transitive",
+        "resolved": "8.0.31",
+        "contentHash": "58NhPyAR+ej51qNarzHuE7z5T+QG/r6v6sq5HQF9PliI5vToGap1HOA55lOXbF2ey2DWX2DLz8/evwKCEPRmBg==",
+        "dependencies": {
+          "Microsoft.AspNetCore.Cryptography.Internal": "8.0.31",
+          "Microsoft.AspNetCore.DataProtection.Abstractions": "8.0.31",
+          "Microsoft.Extensions.DependencyInjection.Abstractions": "8.0.2",
+          "Microsoft.Extensions.Hosting.Abstractions": "8.0.1",
+          "Microsoft.Extensions.Logging.Abstractions": "8.0.3",
+          "Microsoft.Extensions.Options": "8.0.2",
+          "System.Security.Cryptography.Xml": "8.0.4"
+        }
+      },
+      "Microsoft.AspNetCore.DataProtection.Abstractions": {
+        "type": "Transitive",
+        "resolved": "8.0.31",
+        "contentHash": "J+rHIknFUh6zPBiPpIE3+AbVzk/q/CnPdN+Ez91US7xMMJKaujljApmgtINIxEiAwUA0/054EuSC43Q83Kh8EQ=="
+      },
+      "Microsoft.AspNetCore.DataProtection.StackExchangeRedis": {
+        "type": "Transitive",
+        "resolved": "8.0.31",
+        "contentHash": "0qaZVoK0ShIWKFRGoY22xgfSLu1pdXlXLYVwTocI1672xcz1O0vtvqbo0x9Ijh7vZQSgCk0rfN+Vov6SLL6Kfw==",
+        "dependencies": {
+          "Microsoft.AspNetCore.DataProtection": "8.0.31",
+          "StackExchange.Redis": "2.7.27"
+        }
+      },
       "Microsoft.AspNetCore.Http.Connections.Client": {
         "type": "Transitive",
         "resolved": "8.0.31",
@@ -746,6 +779,14 @@
         "resolved": "8.0.0",
         "contentHash": "+TUFINV2q2ifyXauQXRwy4CiBhqvDEDZeVJU7qfxya4aRYOKzVBpN+4acx25VcPB9ywUN6C0n8drWl110PhZEg=="
       },
+      "System.Security.Cryptography.Xml": {
+        "type": "Transitive",
+        "resolved": "8.0.4",
+        "contentHash": "1y+ROEEmEOACrQWqRi37GkGHOThPc31m7vezOySpPE9xXN2nTN6ndLYjylvy42aCtQq4owlYhcqaKpQKMDFKFg==",
+        "dependencies": {
+          "System.Security.Cryptography.Pkcs": "8.0.1"
+        }
+      },
       "System.Threading.Channels": {
         "type": "Transitive",
         "resolved": "8.0.0",
@@ -824,6 +865,7 @@
         "dependencies": {
           "EbayGroup5.Application": "[1.0.0, )",
           "EbayGroup5.Infrastructure": "[1.0.0, )",
+          "Microsoft.AspNetCore.DataProtection.StackExchangeRedis": "[8.0.31, )",
           "Microsoft.AspNetCore.SignalR.StackExchangeRedis": "[8.0.31, )"
         }
       }

@@ -18,7 +18,7 @@ public sealed class ChatApiController(IChatService chat, ChatRealtime realtime, 
     [HttpGet("antiforgery")]
     public IActionResult Token() => Ok(new { requestToken = antiforgery.GetAndStoreTokens(HttpContext).RequestToken });
 
-    [HttpPost("conversations"), Authorize(Policy = "Buyer"), RequestSizeLimit(ChatLimits.MaxBodyBytes)]
+    [HttpPost("conversations"), Authorize(Policy = "Buyer"), RequestSizeLimit(ChatLimits.MaxBodyBytes), SharedRateLimit(SharedRateLimiter.ChatApi)]
     public async Task<IActionResult> Open(OpenRequest request, CancellationToken ct)
     {
         if ((request.ProductId == null) == (request.OrderItemId == null)) throw new ChatException(ChatError.Invalid);
@@ -41,9 +41,9 @@ public sealed class ChatApiController(IChatService chat, ChatRealtime realtime, 
     [HttpGet("conversations/{id:int}")]
     public async Task<IActionResult> Conversation(int id, CancellationToken ct) => Ok(await chat.ConversationAsync(ActorId, id, ct));
 
-    [HttpPost("conversations/{id:int}/messages"), RequestSizeLimit(ChatLimits.MaxBodyBytes)]
+    [HttpPost("conversations/{id:int}/messages"), RequestSizeLimit(ChatLimits.MaxBodyBytes), SharedRateLimit(SharedRateLimiter.ChatApi)]
     public async Task<IActionResult> Send(int id, ChatSendCommand command, CancellationToken ct) => Ok(await realtime.SendAsync(ActorId, id, command, ct));
 
-    [HttpPost("conversations/{id:int}/read"), RequestSizeLimit(ChatLimits.MaxBodyBytes)]
+    [HttpPost("conversations/{id:int}/read"), RequestSizeLimit(ChatLimits.MaxBodyBytes), SharedRateLimit(SharedRateLimiter.ChatApi)]
     public async Task<IActionResult> Read(int id, ReadRequest request, CancellationToken ct) => Ok(await realtime.ReadAsync(ActorId, id, request.ThroughSequence, ct));
 }

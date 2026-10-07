@@ -2,13 +2,14 @@ using System.Security.Claims;
 using EbayGroup5.Application.Chat;
 using EbayGroup5.Core.Entities;
 using EbayGroup5.Infrastructure.Persistence;
+using EbayGroup5.Web.Security;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 
 namespace EbayGroup5.Web.Chat;
 
-public sealed class ChatHubFilter(EbayDbContext db, ILogger<ChatHubFilter> logger) : IHubFilter
+public sealed class ChatHubFilter(EbayDbContext db, SharedRateLimiter limiter, ILogger<ChatHubFilter> logger) : IHubFilter
 {
     private async Task Validate(HubCallerContext context)
     {
@@ -32,6 +33,10 @@ public sealed class ChatHubFilter(EbayDbContext db, ILogger<ChatHubFilter> logge
     public async ValueTask<object?> InvokeMethodAsync(HubInvocationContext context, Func<HubInvocationContext, ValueTask<object?>> next)
     {
         await Validate(context.Context);
+        // F02: every invocation counts against the caller's shared budget (all instances); the connection stays open.
+        var user = context.Context.User!.FindFirstValue(ClaimTypes.NameIdentifier)!;
+        if (!(await limiter.AcquireAsync(SharedRateLimiter.ChatHub, "u:" + user)).Allowed)
+            throw new HubException("429: You're doing that too often. Wait a moment and try again.");
         try { return await next(context); }
         catch (ChatException exception)
         {

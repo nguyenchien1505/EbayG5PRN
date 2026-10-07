@@ -108,6 +108,7 @@ pwsh -NoProfile -File scripts/Start-AppStack.ps1 -Stop       # gỡ web/nginx/mi
 - Trình duyệt sẽ cảnh báo chứng chỉ cho tới khi người dùng **tự** tin CA local. Đây là thay đổi thiết lập bảo mật của máy, nên agent không tự chạy lệnh này:
   `Import-Certificate -FilePath secrets/tls/ca.crt -CertStoreLocation Cert:\CurrentUser\Root`.
   Muốn gỡ: xóa chứng chỉ "EbayGroup5 Local Development CA" trong `certmgr.msc`.
+- F02: mặc định 2 replica web (`WEB_REPLICAS`), key ring đăng nhập dùng chung trong Redis (mất volume `redis-data` → mọi người đăng nhập lại), rate limit dùng chung (`RateLimits:{auth|chat-api|chat-hub}:PermitLimit/WindowSeconds`). Xem replica phục vụ request: `docker compose -f compose.yaml -f compose.app.yaml logs nginx` (trường `upstream=`).
 - Admin chỉ dùng được từ chính máy chạy Docker, tức gateway `172.30.250.1` của mạng `app`. Header `X-Forwarded-For` do client tự gửi bị Nginx ghi đè.
 - Kiểm tra bằng curl: `curl --cacert secrets/tls/ca.crt https://localhost:8443/health/ready` → `Ready`.
 - **Smoke test cô lập:** `pwsh -NoProfile -File scripts/Test-AppStack.ps1` (GitHub CI cũng chạy).

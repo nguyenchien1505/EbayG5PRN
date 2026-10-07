@@ -1,56 +1,58 @@
-# Handoff — F01: Docker image ứng dụng và Nginx HTTPS
+# Handoff — F02: nhiều instance, key dùng chung, rate limit dùng chung
 
 07/10/2026. Repo D:/WINDOWS/PRN3/EbayGroup5.
 
-- Baseline main `df34f1a`. Runtime `a6dd65b` trên `task/F01-app-image-nginx-https`, fast-forward vào main sau khi [CI37558156027](https://github.com/Twiash/EbayGroup5/actions/runs/37558156027) pass. Checkpoint `git log --oneline --grep=F01`.
-- Handoff trước: [E05](E05.md) (nhóm E xong).
+- Baseline main `774e7f5`. Runtime trên `task/F02-multi-instance-shared-keys`; checkpoint `git log --oneline --grep=F02`. GitHub CI: xem mục Verification.
+- Handoff trước: [F01](F01.md).
 
 ## Hoàn tất
 
-- Contract: [DEPLOYMENT](../architecture/DEPLOYMENT.md). Runbook: [LOCAL_INFRA](../runbooks/LOCAL_INFRA.md#app-image-và-nginx-https-f01-từ-07102026). **Không có migration.**
-- **Image:**
-  - `Dockerfile` có target `web` và `migrate`; SDK 8.0.425 / ASP.NET 8.0.31 pin theo digest.
-  - Restore locked-mode; user `app`.
-  - `.dockerignore` loại secrets/.env/artifacts/tests/docs (trừ schema nguồn).
-- **Compose:**
-  - `compose.app.yaml` dùng kèm `compose.yaml`: migrate → web (healthcheck `bash` `/health/ready`) → nginx `1.28.3-alpine` pin digest.
-  - Mạng `app` có subnet cố định, Nginx dùng IP tĩnh; chỉ Nginx publish trên `127.0.0.1`.
-  - Volume `dataprotection-keys`.
-- **Nginx** `deploy/nginx/templates/default.conf.template`:
-  - 8080 → 308; 8443 TLS 1.2/1.3 + HTTP/2.
-  - WSS cho `/hubs/chat`.
-  - Ghi đè XFF/XProto/Host **trong từng location** (Nginx không kế thừa header khi location tự khai báo).
-  - `server_tokens off`; log không có query string.
+- Contract: [SCALE_OUT](../architecture/SCALE_OUT.md). **Không có migration.**
+- **Package mới:** `Microsoft.AspNetCore.DataProtection.StackExchangeRedis` 8.0.31; lock file của Web và Database.Tests được cập nhật.
 - **App:**
-  - `Security/ReverseProxy.cs`: forwarded headers chỉ khi có `ReverseProxy:KnownProxies/KnownNetworks`; rỗng = tắt, vì ASP.NET tin mọi nguồn khi danh sách rỗng.
-  - `ReadinessProbe`: SQL + Redis → `/health/ready` 200/503, `no-store`.
-  - Log `Microsoft.EntityFrameworkCore` hạ xuống Warning.
-- **Scripts:**
-  - `New-LocalTlsCertificate.ps1`: CA local không giữ khóa, server 397 ngày.
-  - `Start-AppStack.ps1 [-Stop]`.
-  - `Test-AppStack.ps1`: stack cô lập + `tests/EbayGroup5.StackSmoke`.
-  - `Clear-TestArtifacts.ps1` gỡ được các project `ebaygroup5-stack-*`.
-- **CI:** thêm bước "App image + Nginx HTTPS/WSS stack smoke" (timeout 35 phút) và upload log khi fail.
-- **Tests:** `ReverseProxyTests` (3 test); `AccountHttpTests.Factory` nhận thêm `settings`.
+  - `Security/SharedRateLimit.cs`:
+    - `RedisConnection` là singleton lazy, dùng chung cho readiness, limiter và key ring.
+    - `SharedRateLimiter`: cửa sổ cố định trên Redis (Lua), dự phòng trong bộ nhớ của instance.
+    - `[SharedRateLimit]` + middleware sau authentication, trước antiforgery.
+  - **Policy:**
+    - `auth` 10/60 giây theo IP: Login/Register.
+    - `chat-api` 120/60 giây theo user: POST chat.
+    - `chat-hub` 120/60 giây theo user: mọi invocation, trong `ChatHubFilter`.
+  - Bỏ `AddRateLimiter`/`UseRateLimiter` của ASP.NET.
+  - **DataProtection:** `SetApplicationName("EbayGroup5")`; `DataProtection:KeyStore=Redis` dùng `RedisXmlRepository`. Giá trị khác → app dừng khi khởi động.
+  - `ReadinessProbe` dùng `RedisConnection`.
+  - `chat.js` hiểu mã 429: hiện thông báo; tin chờ tự retry với backoff theo `retryableSend` của C04.
+- **Stack:**
+  - `compose.app.yaml`: `web` chạy `deploy.replicas: ${WEB_REPLICAS:-2}`, `DataProtection__KeyStore=Redis`; bỏ volume `dataprotection-keys`.
+  - Nginx: `resolver 127.0.0.11` + `server web:8080 resolve` (zone), log thêm `upstream=`.
+  - Smoke: thêm kiểm tra 12/12 `/Account/Me`. `Test-AppStack.ps1` kiểm ≥ 2 replica đang chạy và ≥ 2 upstream trong log Nginx.
+- **Tests:**
+  - `ScaleOutTests`: 5 test.
+  - `Factory` và `ChatSocketHost` có `Redis:KeyPrefix` riêng (host test cùng fixture dùng chung prefix); `ChatSocketHost` nhận thêm `settings`.
 
 ## Verification
 
-- [Evidence](../evidence/F01.md):
-  - Test tích hợp 26/26; mutation "tin mọi nguồn" bị bắt.
-  - Stack thật PASS 12/12 sau khi sửa 3 lỗi do smoke phát hiện: healthcheck dash, log EF, kế thừa header Nginx.
-- **Test-CI local pass: 245/245 .NET + 20/20 Node**, build 0 warnings. **GitHub [CI37558156027](https://github.com/Twiash/EbayGroup5/actions/runs/37558156027) exact runtime `a6dd65b` success**: 5m09s, 245/245 .NET + 20/20 Node, **stack smoke 12/12**. Docs-only `[skip ci]` sau CI.
-- **Chưa chạy `Start-AppStack.ps1` trên dữ liệu thật của người dùng** (port 8080/8443 cố định); để người dùng chạy khi cần. Smoke cô lập đã kiểm đầu cuối cùng image và cấu hình đó.
-- Không kiểm bằng browser: CA local chưa được tin, và việc cài CA thuộc quyền người dùng.
+- [Evidence](../evidence/F02.md):
+  - Test tập trung 94/94.
+  - Mutation 2/2 bị bắt.
+  - Stack thật 2 replica PASS: 2 upstream, XFF giả nhận 429 nhờ bộ đếm chung.
+- **Test-CI local pass: 250/250 .NET + 20/20 Node**, build 0 warnings. GitHub CI: ghi sau khi chạy (commit docs-only `[skip ci]`).
 - Không đụng `launchSettings.json`.
 
-## Cho task sau (F02)
+## Requirement
 
-- Chạy hai replica web sau Nginx (upstream nhiều server, hoặc scale `web` với DNS của compose).
-- DataProtection key dùng chung: hiện là volume của một instance; F02 cần key ring dùng chung (volume dùng chung hoặc Redis), có thể kèm mã hóa key.
-- Rate limit dùng chung: limiter hiện ở bộ nhớ từng process; Hub chưa bị giới hạn invocation (OPS-02).
-- Chat xuyên instance đã có Redis backplane (C03); cần smoke hai instance.
-- HSTS khi có domain (F04).
+- **OPS-02: Done** (F04 sẽ thử vượt giới hạn).
+- **Còn Pending:**
+  - OPS-01: Nginx + 2 instance + chat xuyên instance đã đạt ở test hai host; đo qua stack dưới tải thuộc F05.
+  - G5-N04 (F05). G5-N01 (F04).
+
+## Cho task sau
+
+- **F03:** test tích hợp và hành trình trình duyệt xuyên suốt. Có thể chạy trên stack của `Test-AppStack.ps1`.
+- **F04:** HSTS khi có domain; thử vượt rate limit; key ring chưa được mã hóa khi lưu.
+- **F05:** JMeter qua Nginx (2 replica); `RateLimits` có thể cần nới cho tài khoản test tải. Chỉ nới trong môi trường đo, không đổi mặc định.
+- **F06:** K8s dùng chung `Redis:KeyPrefix` cho các pod; readiness `/health/ready`.
 
 ## Tiếp theo / Jira
 
-- F01 → **KAN-26 / TV5 Hải Lê: hoàn tất local một phần** (còn F02, F06, F07). Chưa sync live; không tạo worklog/review/issue.
+- F01 + F02 → **KAN-26 / TV5 Hải Lê: hoàn tất local một phần** (còn F06, F07). Chưa sync live; không tạo worklog/review/issue.
