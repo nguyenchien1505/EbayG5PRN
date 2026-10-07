@@ -123,6 +123,12 @@ F02 [evidence](../evidence/F02.md): 2 replica, key ring và rate limit dùng chu
 
 F06 [evidence](../evidence/F06.md): Kubernetes local (kind) + migration Job. **F01+F02+F06 → KAN-26/TV5 Hải Lê: hoàn tất local một phần** (còn F07). Không tự tạo issue/worklog; chưa sync live. Runtime 5936f01/[CI37656323271](https://github.com/Twiash/EbayGroup5/actions/runs/37656323271) success.
 
+F07 [evidence](../evidence/F07.md): CD image full SHA vào kind qua runner ephemeral,
+[CI37668281294](https://github.com/Twiash/EbayGroup5/actions/runs/37668281294) và
+[CD37669952216](https://github.com/Twiash/EbayGroup5/actions/runs/37669952216) success trên `f0b65b0`.
+**F01+F02+F06+F07 → KAN-26/TV5 Hải Lê: hoàn tất local**; OPS-03 Done.
+Chưa sync Jira live, không tạo worklog/issue/review; giữ trạng thái Jira ghi trong bảng trên.
+
 F03 [evidence](../evidence/F03.md): hành trình trình duyệt Playwright + ma trận quyền + log correlation. **F03 → KAN-27/TV5 Hải Lê: hoàn tất local một phần** (KAN-27 còn F04, F05, F08). Không tự tạo issue/worklog; chưa sync live. Runtime 7893e59/[CI37562193099](https://github.com/Twiash/EbayGroup5/actions/runs/37562193099) success.
 
 F04 [evidence](../evidence/F04.md): kiểm thử bảo mật (IDOR/CSRF/XSS/header/TLS/secret scan). **F03+F04 → KAN-27/TV5 Hải Lê: hoàn tất local một phần** (KAN-27 còn F05, F08). Không tự tạo issue/worklog; chưa sync live. Runtime 4a20f28/[CI37568707408](https://github.com/Twiash/EbayGroup5/actions/runs/37568707408) success.
