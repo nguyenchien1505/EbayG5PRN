@@ -52,14 +52,17 @@ public sealed class OrderService(EbayDbContext db, TimeProvider? clock = null, D
 
     private async Task<State> Load(OrderTable order, CancellationToken ct)
     {
-        var items = await db.Set<OrderItem>().FromSqlInterpolated($"SELECT * FROM dbo.OrderItem WITH (HOLDLOCK) WHERE orderId={order.Id}")
+        // Q-PERF-001 (LOAD.md): no range locks on the order's child rows. Every writer of OrderItem/Payment/ShippingInfo for this order
+        // holds the order row's UPDLOCK first (ActAsync; checkout creates them with the order), so HOLDLOCK here only added gap locks that
+        // deadlocked unrelated orders. FindAsync is a plain read.
+        var items = await db.Set<OrderItem>().FromSqlInterpolated($"SELECT * FROM dbo.OrderItem WHERE orderId={order.Id}")
             .AsNoTracking().OrderBy(x => x.Id).Take(51).ToListAsync(ct);
         var itemCount = items.Count <= 50 ? items.Count : await db.Set<OrderItem>().CountAsync(x => x.OrderId == order.Id, ct);
         var address = await db.Set<Address>().FromSqlInterpolated($"SELECT * FROM dbo.Address WITH (HOLDLOCK) WHERE id={order.AddressId} AND userId={order.BuyerId}")
             .AsNoTracking().SingleOrDefaultAsync(ct);
-        var payments = await db.Set<Payment>().FromSqlInterpolated($"SELECT * FROM dbo.Payment WITH (HOLDLOCK) WHERE orderId={order.Id}")
+        var payments = await db.Set<Payment>().FromSqlInterpolated($"SELECT * FROM dbo.Payment WHERE orderId={order.Id}")
             .AsNoTracking().OrderBy(x => x.Id).Take(2).ToListAsync(ct);
-        var shipments = await db.Set<ShippingInfo>().FromSqlInterpolated($"SELECT * FROM dbo.ShippingInfo WITH (HOLDLOCK) WHERE orderId={order.Id}")
+        var shipments = await db.Set<ShippingInfo>().FromSqlInterpolated($"SELECT * FROM dbo.ShippingInfo WHERE orderId={order.Id}")
             .AsNoTracking().OrderBy(x => x.Id).Take(2).ToListAsync(ct);
         var seller = await db.Set<User>().FromSqlInterpolated($"SELECT * FROM dbo.[User] WITH (HOLDLOCK) WHERE id={order.SellerId}").AsNoTracking().SingleOrDefaultAsync(ct);
         var buyer = await db.Set<User>().FromSqlInterpolated($"SELECT * FROM dbo.[User] WITH (HOLDLOCK) WHERE id={order.BuyerId}").AsNoTracking().SingleOrDefaultAsync(ct);

@@ -74,4 +74,17 @@ Lần seed Full đầu tiên (8 luồng ghi song song, mỗi luồng một buyer
 
 Hệ quả cho người dùng thật: nhiều seller giao hàng hoặc nhiều buyer xác nhận nhận hàng **cùng lúc** sẽ có request bị chọn làm nạn nhân deadlock (HTTP 500), và thời gian mỗi đơn tăng dần theo kích thước bảng (seed: ~60 s / 1.000 đơn lúc đầu, ~110 s / 1.000 đơn ở mốc 6.000).
 
-F05 **không sửa** (ngoài phạm vi: thay đổi B06/E01 + migration index). Seed mặc định ghi tuần tự (`EBAY_LOAD_WRITERS=1`, có thể đặt lại để tái hiện). Kịch bản JMeter không ghi đơn nên số đo PERF-01 không bị ảnh hưởng, nhưng **luồng ghi đơn chưa được kiểm tải**. Đề xuất task sửa: index `Dispute(orderId)` (DbUp 0014, chỉ thêm), truy vấn Payment/ShippingInfo seek theo index (hoặc khóa theo đơn đã UPDLOCK thay vì HOLDLOCK theo khoảng), kèm test đồng thời. Chờ người dùng quyết định.
+**Đã sửa** sau khi người dùng chốt (mục "Sửa Q-PERF-001" bên dưới). Ghi chú gốc: F05 không sửa (ngoài phạm vi: thay đổi B06/E01 + migration index). Seed mặc định ghi tuần tự (`EBAY_LOAD_WRITERS=1`, có thể đặt lại để tái hiện). Kịch bản JMeter không ghi đơn nên số đo PERF-01 không bị ảnh hưởng, nhưng **luồng ghi đơn chưa được kiểm tải**. Đề xuất task sửa: index `Dispute(orderId)` (DbUp 0014, chỉ thêm), truy vấn Payment/ShippingInfo seek theo index (hoặc khóa theo đơn đã UPDLOCK thay vì HOLDLOCK theo khoảng), kèm test đồng thời. Chờ người dùng quyết định.
+
+### Sửa Q-PERF-001 (người dùng chốt 07/10/2026)
+
+Làm như phần bổ sung F05 (PLAN cố định 40 task), branch `task/F05-order-deadlocks`, contract soạn trước khi sửa source.
+
+- **Tái hiện trước khi sửa:** `OrderConcurrencyTests` — 8 worker, mỗi worker checkout → ship → receive 25 đơn **của riêng nó** (không retry). Trên code cũ: **85 deadlock / 200 đơn**.
+- **Nguyên tắc khóa:** mọi thao tác ghi lên dòng con của một đơn (OrderItem, Payment, ShippingInfo, dispute INR của đơn) đều đã giữ `UPDLOCK` trên dòng `OrderTable` của đơn đó (checkout tạo mới trong cùng transaction; Ship/Receive và mở dispute khóa đơn trước). Vì vậy khóa phạm vi `HOLDLOCK` theo `orderId` trên bảng con là thừa và chính nó gây gap-lock/deadlock giữa các đơn khác nhau.
+- **Thay đổi:**
+  - `OrderService.Load`: đọc OrderItem/Payment/ShippingInfo **không** `HOLDLOCK` (đơn đã `UPDLOCK,HOLDLOCK` trong `ActAsync`; `FindAsync` chỉ đọc).
+  - `DisputeService.ItemReceivedAsync`: `UPDLOCK` (giữ tới commit) + `FORCESEEK` trên index mới, bỏ `HOLDLOCK`.
+  - **DbUp 0014** (chỉ thêm): `IX_Dispute_Order ON dbo.Dispute(orderId, id)`.
+  - Các đọc `HOLDLOCK` theo khóa của bảng con ở Feedback/Review (Payment theo orderId) thêm `FORCESEEK` để không quét cả bảng dưới khóa phạm vi.
+- **Kiểm tra:** `OrderConcurrencyTests` 0 deadlock; toàn bộ test B06/D/E giữ nguyên (luật trạng thái không đổi); seed tải mặc định ghi **8 luồng** trở lại và `Invoke-LoadTest.ps1` **gate 0 deadlock** của SQL Server trong lúc seed (CI Short giữ hồi quy).

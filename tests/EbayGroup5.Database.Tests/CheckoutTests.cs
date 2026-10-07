@@ -172,7 +172,7 @@ public sealed class CheckoutTests
         Assert.True(MigrationRunner.BuildEngine(target, scripts).PerformUpgrade().Successful);
         DemoSeedRunner.Run(target);
         var before = SqlFixture.Rows(target, SqlFixture.Metadata);
-        Assert.Equal(10, MigrationRunner.Run(target));
+        Assert.Equal(11, MigrationRunner.Run(target));
         Assert.True(before.IsSubsetOf(SqlFixture.Rows(target, SqlFixture.Metadata)));
         Assert.Equal("4", SqlFixture.Scalar(target, "SELECT COUNT(*) FROM dbo.OrderTable WHERE CheckoutKey IS NULL AND CheckoutFingerprint IS NULL"));
         Assert.Equal("8", SqlFixture.Scalar(target, "SELECT COUNT(*) FROM dbo.OrderItem"));

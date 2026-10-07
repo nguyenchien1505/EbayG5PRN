@@ -93,9 +93,9 @@ public static class LoadSeed
         var total = reviews + disputes;
         var done = 0;
         var timing = new DisputeTiming();
-        // F05 finding (LOAD.md): concurrent ship/receive deadlocks on range locks (Dispute scan by orderId, Payment/ShippingInfo
-        // HOLDLOCK gaps). Writers default to one at a time so the dataset builds; EBAY_LOAD_WRITERS > 1 reproduces the deadlocks.
-        var writers = int.TryParse(Environment.GetEnvironmentVariable("EBAY_LOAD_WRITERS"), out var w) && w is >= 1 and <= 16 ? w : 1;
+        // Q-PERF-001 (LOAD.md): 8 concurrent writers used to deadlock on range locks; fixed, so the seed writes 8 orders at a time again
+        // and Invoke-LoadTest.ps1 fails on any SQL Server deadlock during the seed. EBAY_LOAD_WRITERS overrides (1-16).
+        var writers = int.TryParse(Environment.GetEnvironmentVariable("EBAY_LOAD_WRITERS"), out var w) && w is >= 1 and <= 16 ? w : 8;
         await Parallel.ForEachAsync(Enumerable.Range(1, Buyers), new ParallelOptions { MaxDegreeOfParallelism = writers }, async (b, ct) =>
         {
             for (var j = b - 1; j < total; j += Buyers)

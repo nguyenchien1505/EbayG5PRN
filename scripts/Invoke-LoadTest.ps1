@@ -63,6 +63,8 @@ docker cp $deadlockSql "${sqlContainer}:/tmp/deadlocks.sql" | Out-Null
 $deadlocks = docker @Compose exec -T sqlserver /bin/sh -c 'SQLCMDPASSWORD="$MSSQL_SA_PASSWORD" /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -C -h -1 -W -d EbayGroup5 -i /tmp/deadlocks.sql'
 $deadlocks | Set-Content -LiteralPath (Join-Path $report 'seed-deadlocks.txt')
 Write-Output "Seed deadlocks (SQL Server): $(@($deadlocks)[0])"
+# Q-PERF-001: the seed writes orders 8 at a time; any deadlock is a regression of the lock fix.
+if ("$(@($deadlocks)[0])" -notmatch '^deadlocks=0$') { throw "SQL Server recorded deadlocks while seeding: $(@($deadlocks)[0]) (see $report/seed-deadlocks.txt)." }
 
 # 3. JMeter and the realtime client together, per step.
 $jmeterBin = pwsh -NoProfile -File "$PSScriptRoot/Install-JMeter.ps1"
