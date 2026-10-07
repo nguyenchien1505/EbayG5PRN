@@ -30,7 +30,7 @@
 ## Bổ sung Q-PERF-001 (branch `task/F05-order-deadlocks`)
 
 - Người dùng yêu cầu sửa (Answered 07/10/2026). **DbUp 0014** `IX_Dispute_Order`; `OrderService.Load` bỏ `HOLDLOCK` theo `orderId` ở bảng con (đơn đã `UPDLOCK`); `DisputeService.ItemReceivedAsync` `UPDLOCK + FORCESEEK`; Feedback đọc Payment `FORCESEEK`.
-- `OrderConcurrencyTests`: 85 → **0 deadlock** / 200 đơn; Test-CI local 263 .NET + 20 Node; seed Full 8 luồng 11.000 đơn **146 s, 0 deadlock**; Full load vẫn PASS. Seed mặc định 8 luồng, `Invoke-LoadTest.ps1` gate 0 deadlock. Chi tiết [evidence](../evidence/F05.md#bổ-sung-q-perf-001-sửa-deadlock-ghi-đơn-đồng-thời-07102026).
+- `OrderConcurrencyTests`: 85 → **0 deadlock** / 200 đơn; Test-CI local 263 .NET + 20 Node; GitHub [CI37635263448](https://github.com/Twiash/EbayGroup5/actions/runs/37635263448) success trên runtime `8745b47`, fast-forward vào main; seed Full 8 luồng 11.000 đơn **146 s, 0 deadlock**; Full load vẫn PASS. Seed mặc định 8 luồng, `Invoke-LoadTest.ps1` gate 0 deadlock. Chi tiết [evidence](../evidence/F05.md#bổ-sung-q-perf-001-sửa-deadlock-ghi-đơn-đồng-thời-07102026).
 - DB dev `EbayGroup5` chưa chạy 0014: `Start-AppStack.ps1`/`Initialize-Database.ps1` sẽ áp dụng khi chạy lại.
 
 ## Câu hỏi / rủi ro
