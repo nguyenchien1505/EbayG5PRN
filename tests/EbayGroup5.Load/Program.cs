@@ -16,6 +16,9 @@ try
         case "chat":
             return await ChatLoad.RunAsync(options["--base"], options["--ca"], Env("EBAY_LOAD_PASSWORD"), options["--pairs"],
                 int.Parse(options["--count"]), int.Parse(options["--seconds"]), options["--out"]);
+        case "rolling":
+            return await RollingLoad.RunAsync(options["--base"], options["--ca"], Env("EBAY_LOAD_PASSWORD"), options["--pairs"],
+                int.Parse(options["--count"]), int.Parse(options["--workers"]), int.Parse(options["--seconds"]), options["--work"], options["--out"]);
         default:
             Console.Error.WriteLine("Usage: seed --scale <0..1> --out <dir> | chat --base <url> --ca <file> --pairs <csv> --count N --seconds S --out <file>");
             return 2;
