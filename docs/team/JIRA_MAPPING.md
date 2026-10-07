@@ -120,3 +120,5 @@ E05 [evidence](../evidence/E05.md): hàng đợi và phân xử của admin, aud
 F01 [evidence](../evidence/F01.md): Docker image + Nginx HTTPS/WSS, smoke stack trong CI. **F01 → KAN-26/TV5 Hải Lê: hoàn tất local một phần** (KAN-26 còn F02, F06, F07). Không tự tạo issue/worklog; chưa sync live. Runtime a6dd65b/[CI37558156027](https://github.com/Twiash/EbayGroup5/actions/runs/37558156027) success.
 
 F02 [evidence](../evidence/F02.md): 2 replica, key ring và rate limit dùng chung trên Redis. **F01+F02 → KAN-26/TV5 Hải Lê: hoàn tất local một phần** (còn F06, F07). Không tự tạo issue/worklog; chưa sync live. Runtime e928741/[CI37559648174](https://github.com/Twiash/EbayGroup5/actions/runs/37559648174) success.
+
+F03 [evidence](../evidence/F03.md): hành trình trình duyệt Playwright + ma trận quyền + log correlation. **F03 → KAN-27/TV5 Hải Lê: hoàn tất local một phần** (KAN-27 còn F04, F05, F08). Không tự tạo issue/worklog; chưa sync live. GitHub CI: xem handoff.

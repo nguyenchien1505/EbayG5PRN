@@ -1,0 +1,10 @@
+@{
+    ViewData["Title"] = "Access denied";
+}
+@* F03: a signed-in user without the right role sees this page instead of the browser's empty "HTTP ERROR 403". *@
+<section class="marketplace-state">
+    <span class="eyebrow">403 · Access denied</span>
+    <h1>You don't have access to this page.</h1>
+    <p>Your account can't open this page. If you think it should, sign in with a different account.</p>
+    <a class="button primary" asp-controller="Home" asp-action="Index">Back to home</a>
+</section>

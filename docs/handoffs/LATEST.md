@@ -1,58 +1,54 @@
-# Handoff — F02: nhiều instance, key dùng chung, rate limit dùng chung
+# Handoff — F03: test tích hợp xuyên suốt và hành trình trình duyệt
 
 07/10/2026. Repo D:/WINDOWS/PRN3/EbayGroup5.
 
-- Baseline main `774e7f5`. Runtime `e928741` trên `task/F02-multi-instance-shared-keys`, fast-forward vào main sau khi [CI37559648174](https://github.com/Twiash/EbayGroup5/actions/runs/37559648174) pass. Checkpoint `git log --oneline --grep=F02`.
-- Handoff trước: [F01](F01.md).
+- Baseline main `15e72bc`. Runtime trên `task/F03-system-integration-journeys`; checkpoint `git log --oneline --grep=F03`. GitHub CI: xem mục Verification.
+- Handoff trước: [F02](F02.md).
+- Người dùng chốt Playwright .NET + Chrome có sẵn ngày 07/10/2026.
 
 ## Hoàn tất
 
-- Contract: [SCALE_OUT](../architecture/SCALE_OUT.md). **Không có migration.**
-- **Package mới:** `Microsoft.AspNetCore.DataProtection.StackExchangeRedis` 8.0.31; lock file của Web và Database.Tests được cập nhật.
-- **App:**
-  - `Security/SharedRateLimit.cs`:
-    - `RedisConnection` là singleton lazy, dùng chung cho readiness, limiter và key ring.
-    - `SharedRateLimiter`: cửa sổ cố định trên Redis (Lua), dự phòng trong bộ nhớ của instance.
-    - `[SharedRateLimit]` + middleware sau authentication, trước antiforgery.
-  - **Policy:**
-    - `auth` 10/60 giây theo IP: Login/Register.
-    - `chat-api` 120/60 giây theo user: POST chat.
-    - `chat-hub` 120/60 giây theo user: mọi invocation, trong `ChatHubFilter`.
-  - Bỏ `AddRateLimiter`/`UseRateLimiter` của ASP.NET.
-  - **DataProtection:** `SetApplicationName("EbayGroup5")`; `DataProtection:KeyStore=Redis` dùng `RedisXmlRepository`. Giá trị khác → app dừng khi khởi động.
-  - `ReadinessProbe` dùng `RedisConnection`.
-  - `chat.js` hiểu mã 429: hiện thông báo; tin chờ tự retry với backoff theo `retryableSend` của C04.
-- **Stack:**
-  - `compose.app.yaml`: `web` chạy `deploy.replicas: ${WEB_REPLICAS:-2}`, `DataProtection__KeyStore=Redis`; bỏ volume `dataprotection-keys`.
-  - Nginx: `resolver 127.0.0.11` + `server web:8080 resolve` (zone), log thêm `upstream=`.
-  - Smoke: thêm kiểm tra 12/12 `/Account/Me`. `Test-AppStack.ps1` kiểm ≥ 2 replica đang chạy và ≥ 2 upstream trong log Nginx.
-- **Tests:**
-  - `ScaleOutTests`: 5 test.
-  - `Factory` và `ChatSocketHost` có `Redis:KeyPrefix` riêng (host test cùng fixture dùng chung prefix); `ChatSocketHost` nhận thêm `settings`.
+- Contract: [JOURNEYS](../architecture/JOURNEYS.md). **Không có migration.**
+- **`tests/EbayGroup5.Journeys`** (Playwright 1.63, `channel: chrome`, chỉ tin SPKI của chứng chỉ tạm): J1–J6.
+  - Mua hàng; chat realtime hai chiều qua WSS; ship/receive + feedback; return đến refund; report + admin ẩn; quyền truy cập.
+  - Khi fail thì chụp ảnh vào `artifacts/stack/<hex>/journeys/`.
+- **`scripts/Test-AppStack.ps1`:**
+  - Seed demo + credential ngẫu nhiên (qua biến môi trường).
+  - Chạy Journeys **trước** smoke, vì smoke cố ý dùng hết lượt `auth`.
+  - Kiểm correlation SQL ↔ log Nginx ↔ log web; dòng INFO về số replica giữ WebSocket chat.
+  - `-KeepRunning` để lặp nhanh.
+- **`AccessMatrixTests`:** 16 route × 6 vai trò/đối tượng, gom mọi ô lệch; kiểm thêm trang 403 và trang review không có form.
+- **Nginx:**
+  - `traceparent` lấy từ `$request_id`, bỏ `tracestate`.
+  - **`Host $http_host`**: sửa lỗi redirect mất port.
+- **Compose:** web log dạng JSON (`Logging__Console__FormatterName=json`).
+- **App:** `Views/Home/Forbidden.cshtml`; `HomeController.Status` trả 403 kèm trang lỗi.
+- **Smoke:** thêm "Sign-in redirect keeps the public origin and port".
 
 ## Verification
 
-- [Evidence](../evidence/F02.md):
-  - Test tập trung 94/94.
-  - Mutation 2/2 bị bắt.
-  - Stack thật 2 replica PASS: 2 upstream, XFF giả nhận 429 nhờ bộ đếm chung.
-- **Test-CI local pass: 250/250 .NET + 20/20 Node**, build 0 warnings. **GitHub [CI37559648174](https://github.com/Twiash/EbayGroup5/actions/runs/37559648174) exact runtime `e928741` success**: 250/250 .NET + 20/20 Node, stack smoke 2 replica PASS. Test SQL trên CI chậm khoảng 2,1 lần ở mọi test do runner (xem evidence). Docs-only `[skip ci]` sau CI.
+- [Evidence](../evidence/F03.md):
+  - Stack thật: Journeys 7/7, smoke 14/14, 2 upstream, correlation pass.
+  - Ma trận quyền pass; mutation trên ma trận bị bắt.
+  - Lỗi thật đã sửa: redirect mất port, 403 body rỗng.
+- **Test-CI local pass: 251/251 .NET + 20/20 Node**.
+  - Lần trước fail 2 test do `Copy-Item` giữ thời gian sửa cũ của file khôi phục, nên MSBuild dùng lại assembly đã bị mutate.
+  - Đã build lại và dọn container của lần fail.
+- GitHub CI: ghi sau khi chạy (commit docs-only `[skip ci]`).
 - Không đụng `launchSettings.json`.
 
 ## Requirement
 
-- **OPS-02: Done** (F04 sẽ thử vượt giới hạn).
-- **Còn Pending:**
-  - OPS-01: Nginx + 2 instance + chat xuyên instance đã đạt ở test hai host; đo qua stack dưới tải thuộc F05.
-  - G5-N04 (F05). G5-N01 (F04).
+- **G5-N05: Done.**
+- G5-N01 Pending (F04).
+- OPS-01: quyết định sau khi có dòng INFO về replica giữ WebSocket chat trên CI (xem commit docs CI).
 
 ## Cho task sau
 
-- **F03:** test tích hợp và hành trình trình duyệt xuyên suốt. Có thể chạy trên stack của `Test-AppStack.ps1`.
-- **F04:** HSTS khi có domain; thử vượt rate limit; key ring chưa được mã hóa khi lưu.
-- **F05:** JMeter qua Nginx (2 replica); `RateLimits` có thể cần nới cho tài khoản test tải. Chỉ nới trong môi trường đo, không đổi mặc định.
-- **F06:** K8s dùng chung `Redis:KeyPrefix` cho các pod; readiness `/health/ready`.
+- **F04:** IDOR (ma trận quyền là nền), XSS (journey đã dùng nội dung thật), CSRF, auth/rate limit, secret scan; HSTS khi có domain; key ring chưa được mã hóa khi lưu.
+- **F05:** JMeter qua Nginx; dùng seed demo + credential ngẫu nhiên giống `Test-AppStack.ps1`.
+- **Lưu ý:** khôi phục file sau mutation bằng `cp` (cập nhật thời gian sửa), không dùng `Copy-Item`.
 
 ## Tiếp theo / Jira
 
-- F01 + F02 → **KAN-26 / TV5 Hải Lê: hoàn tất local một phần** (còn F06, F07). Chưa sync live; không tạo worklog/review/issue.
+- F03 → **KAN-27 / TV5 Hải Lê: hoàn tất local một phần** (còn F04, F05, F08). Chưa sync live; không tạo worklog/review/issue.

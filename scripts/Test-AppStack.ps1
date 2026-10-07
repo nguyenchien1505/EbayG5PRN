@@ -2,7 +2,9 @@
 # Creates its own compose project ebaygroup5-stack-<32 hex> with random passwords, free ports, its own subnet and a throw-away
 # certificate. A passing run removes exactly that project (containers, network, its named volumes, its image tags); a failing run
 # (or -KeepStack) keeps it and writes logs to artifacts/stack/<hex>/ for diagnosis. Remove kept stacks with Clear-TestArtifacts.ps1 -Apply.
-param([switch]$KeepStack)
+# F03 (JOURNEYS.md): also seeds demo data, runs the Playwright browser journeys (installed Chrome) and checks log/DB correlation.
+# -KeepRunning leaves a passing or failing stack running for local iteration (remove it later with Clear-TestArtifacts.ps1 -Apply).
+param([switch]$KeepStack, [switch]$KeepRunning)
 $ErrorActionPreference = 'Stop'
 $repoRoot = Split-Path $PSScriptRoot -Parent
 $hex = [Guid]::NewGuid().ToString('N')
@@ -50,6 +52,23 @@ try {
     $migrateExit = docker inspect --format '{{.State.ExitCode}}' "$project-migrate-1"
     if ($LASTEXITCODE -ne 0 -or $migrateExit -ne '0') { throw 'Migration container did not exit cleanly.' }
 
+    # F03: demo data and private random credentials for the journeys (passed by name only, never on a command line).
+    docker @compose run --rm --no-deps migrate --seed-demo
+    if ($LASTEXITCODE -ne 0) { throw 'Demo seed failed.' }
+    $journeyPasswords = @{ Buyer = New-Secret; Seller = New-Secret; Admin = New-Secret }
+    foreach ($role in $journeyPasswords.Keys) {
+        [Environment]::SetEnvironmentVariable("Database__DemoPassword$role", $journeyPasswords[$role], 'Process')
+        [Environment]::SetEnvironmentVariable("EBAY_JOURNEY_$($role.ToUpperInvariant())_PASSWORD", $journeyPasswords[$role], 'Process')
+    }
+    docker @compose run --rm --no-deps -e Database__DemoPasswordBuyer -e Database__DemoPasswordSeller -e Database__DemoPasswordAdmin migrate --enable-demo-auth
+    if ($LASTEXITCODE -ne 0) { throw 'Demo credentials failed.' }
+    $server = [Security.Cryptography.X509Certificates.X509Certificate2]::CreateFromPem([IO.File]::ReadAllText((Join-Path $work 'tls/server.crt')))
+    $spki = [Convert]::ToBase64String([Security.Cryptography.SHA256]::HashData($server.PublicKey.ExportSubjectPublicKeyInfo()))
+    # Journeys run before the smoke: the smoke's spoofing check deliberately exhausts the host's auth window.
+    dotnet run --project tests/EbayGroup5.Journeys -c Release --no-launch-profile -- `
+        --base "https://localhost:$httpsPort" --spki $spki --out (Join-Path $work 'journeys')
+    if ($LASTEXITCODE -ne 0) { throw 'Browser journeys failed; screenshots in artifacts/stack/<hex>/journeys, stack retained.' }
+
     dotnet run --project tests/EbayGroup5.StackSmoke -c Release --no-launch-profile -- `
         --https-port $httpsPort --http-port $httpPort --ca (Join-Path $work 'tls/ca.crt') --wait-seconds 240
     if ($LASTEXITCODE -ne 0) { throw 'Stack smoke checks failed; stack retained for diagnosis.' }
@@ -60,10 +79,34 @@ try {
         ForEach-Object { $_.Matches[0].Groups[1].Value } | Sort-Object -Unique)
     if ($upstreams.Count -lt 2) { throw "Signed-in requests reached $($upstreams.Count) upstream(s); expected two or more." }
     Write-Output "PASS $($replicas.Count) web replicas served signed-in requests ($($upstreams.Count) distinct upstreams; login kept across instances)"
+
+    # F03 / G5-N05: the journey message links nginx request id = app trace = Message.TraceId, and no content reaches any log.
+    $markers = @(Get-Content -LiteralPath (Join-Path $work 'journeys/markers.txt'))
+    if ($markers.Count -ne 2 -or ($markers | Where-Object { $_ -notmatch '^journey (buyer note|seller reply) [0-9a-f]{10}$' })) { throw 'Unexpected journey markers.' }
+    $sql = "SET NOCOUNT ON; SELECT CONCAT(Id,'|',TraceId) FROM dbo.Message WHERE Content = N'$($markers[0])'"
+    # The SA password stays inside the SQL container environment.
+    $row = docker @compose exec -T sqlserver /bin/sh -c "SQLCMDPASSWORD=`"`$MSSQL_SA_PASSWORD`" /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -C -b -h -1 -W -d EbayGroup5 -Q `"$sql`""
+    if ($LASTEXITCODE -ne 0 -or "$row".Trim() -notmatch '^(\d+)\|([0-9a-f]{32})$') { throw 'Journey message not found in SQL.' }
+    $messageId = $Matches[1]; $trace = $Matches[2]
+    $nginxLog = (docker @compose logs --no-color nginx 2>&1) -join "`n"
+    $webLog = (docker @compose logs --no-color web 2>&1) -join "`n"
+    if ($nginxLog -notmatch "rid=$trace") { throw 'The message trace does not match any nginx request id.' }
+    if ($webLog -notmatch "message=$messageId\b[^`n]*trace=$trace") { throw 'The app log does not link the message id to its trace.' }
+    foreach ($marker in $markers) { if ($nginxLog.Contains($marker) -or $webLog.Contains($marker)) { throw 'Chat content reached a log.' } }
+    Write-Output "PASS Message $($messageId): nginx rid = app trace = Message.TraceId ($trace); no chat content in nginx or web logs"
+    # Informational (round-robin does not guarantee it): how many replicas held the journey's chat WebSockets.
+    $socketUpstreams = @($nginxLog -split "`n" | Select-String '"GET /hubs/chat" 101 .* upstream=(\S+)' | ForEach-Object { $_.Matches[0].Groups[1].Value } | Sort-Object -Unique)
+    Write-Output "INFO chat WebSockets were served by $($socketUpstreams.Count) web replica(s)"
     Write-Output 'PASS: app image + Nginx HTTPS/WSS stack smoke (isolated project).'
     $succeeded = $true
 } finally {
-    if ($started) {
+    foreach ($role in 'Buyer', 'Seller', 'Admin') {
+        [Environment]::SetEnvironmentVariable("Database__DemoPassword$role", $null, 'Process')
+        [Environment]::SetEnvironmentVariable("EBAY_JOURNEY_$($role.ToUpperInvariant())_PASSWORD", $null, 'Process')
+    }
+    if ($started -and $KeepRunning) {
+        Write-Warning "Left $project running (https://localhost:$httpsPort, CA $work/tls/ca.crt); remove it with scripts/Clear-TestArtifacts.ps1 -Apply."
+    } elseif ($started) {
         if ($succeeded -and -not $KeepStack) {
             docker @compose down --remove-orphans 2>$null | Out-Null
             # Only this project's named volumes and image tags; nothing shared with other stacks.

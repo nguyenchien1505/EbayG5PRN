@@ -31,6 +31,8 @@ services:
       Security__AdminAllowedAddresses__0: ${APP_GATEWAY:-172.30.250.1}
       # F02 (SCALE_OUT.md): every replica shares the Data Protection key ring in Redis, so switching instance keeps the login.
       DataProtection__KeyStore: Redis
+      # F03 (JOURNEYS.md): structured JSON logs, searchable by message id / trace without content.
+      Logging__Console__FormatterName: json
     deploy:
       replicas: ${WEB_REPLICAS:-2}
     depends_on:

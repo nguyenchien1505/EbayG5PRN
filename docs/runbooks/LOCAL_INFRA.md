@@ -111,7 +111,7 @@ pwsh -NoProfile -File scripts/Start-AppStack.ps1 -Stop       # gỡ web/nginx/mi
 - F02: mặc định 2 replica web (`WEB_REPLICAS`), key ring đăng nhập dùng chung trong Redis (mất volume `redis-data` → mọi người đăng nhập lại), rate limit dùng chung (`RateLimits:{auth|chat-api|chat-hub}:PermitLimit/WindowSeconds`). Xem replica phục vụ request: `docker compose -f compose.yaml -f compose.app.yaml logs nginx` (trường `upstream=`).
 - Admin chỉ dùng được từ chính máy chạy Docker, tức gateway `172.30.250.1` của mạng `app`. Header `X-Forwarded-For` do client tự gửi bị Nginx ghi đè.
 - Kiểm tra bằng curl: `curl --cacert secrets/tls/ca.crt https://localhost:8443/health/ready` → `Ready`.
-- **Smoke test cô lập:** `pwsh -NoProfile -File scripts/Test-AppStack.ps1` (GitHub CI cũng chạy).
+- **Smoke test cô lập:** `pwsh -NoProfile -File scripts/Test-AppStack.ps1` (GitHub CI cũng chạy). Từ F03 script còn seed demo, chạy hành trình Playwright trên Chrome có sẵn (cần cài Chrome), rồi kiểm correlation log/DB. `-KeepRunning` giữ stack lại để lặp nhanh; dọn bằng `Clear-TestArtifacts.ps1 -Apply`. Ảnh chụp khi journey fail nằm ở `artifacts/stack/<hex>/journeys/`.
   - Script tạo project `ebaygroup5-stack-<hex>` với mật khẩu, port, subnet và chứng chỉ riêng.
   - Pass: gỡ đúng project đó, gồm container, network, volume `<project>_*` và image tag `stack-<hex>`.
   - Fail: giữ lại và ghi log vào `artifacts/stack/<hex>/logs.txt`. Dọn bằng `Clear-TestArtifacts.ps1 -Apply`.

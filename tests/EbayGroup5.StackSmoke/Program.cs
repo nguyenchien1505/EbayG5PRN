@@ -64,6 +64,11 @@ var redirect = await http.GetAsync("Account/Login?returnUrl=%2FMessages");
 Check(redirect.StatusCode == HttpStatusCode.PermanentRedirect && redirect.Headers.Location?.ToString() == $"{origin}/Account/Login?returnUrl=%2FMessages",
     "HTTP 308 redirects to the HTTPS URL");
 
+// The app builds absolute redirects from Host: nginx must forward the client's port (F03 found the port being dropped).
+var signInRedirect = await https.GetAsync("Orders/Purchases");
+Check(signInRedirect.StatusCode == HttpStatusCode.Redirect && signInRedirect.Headers.Location?.ToString().StartsWith($"{origin}/Account/Login", StringComparison.Ordinal) == true,
+    "Sign-in redirect keeps the public origin and port");
+
 // 3. Register and sign in over HTTPS; the auth cookie is Secure, HttpOnly and SameSite=Lax.
 string Token(string html) => WebUtility.HtmlDecode(Regex.Match(html, "name=\"__RequestVerificationToken\"[^>]*value=\"([^\"]+)\"").Groups[1].Value);
 var id = Guid.NewGuid().ToString("N")[..12];
