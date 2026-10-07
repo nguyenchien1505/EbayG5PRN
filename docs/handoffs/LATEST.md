@@ -1,6 +1,6 @@
 # Handoff — G01: nghiệm thu UI-01 và rà ma trận yêu cầu
 
-08/10/2026. Baseline main `013f7f4`; branch `task/G01-ui-acceptance`; checkpoint `git log --oneline --grep=G01`. Số run GitHub CI ghi ở [evidence](../evidence/G01.md) bằng commit docs `[skip ci]`.
+08/10/2026. Baseline main `013f7f4`; branch `task/G01-ui-acceptance`; checkpoint `git log --oneline --grep=G01`. Runtime `409e05d`, fast-forward vào main sau khi [CI37689369159](https://github.com/Twiash/EbayGroup5/actions/runs/37689369159) pass.
 Handoff trước: [F08](F08.md).
 
 ## Quyết định người dùng (08/10/2026)
@@ -19,7 +19,7 @@ Handoff trước: [F08](F08.md).
 
 ## Verification
 
-- Test lọc 51 + 40 pass; **Test-CI local 263/263 .NET + 20/20 Node**, 0 warning; Test-AppStack và GitHub CI: xem [evidence](../evidence/G01.md).
+- Test lọc 51 + 40 pass; **Test-CI local 263/263 .NET + 20/20 Node**, 0 warning; Test-AppStack compose pass; GitHub [CI37689369159](https://github.com/Twiash/EbayGroup5/actions/runs/37689369159) success (compose, load, K8s, rolling).
 
 ## Requirement
 
