@@ -33,7 +33,7 @@
 
 - Người dùng chốt thêm danh sách phiên bị thu hồi trên Redis (Answered 07/10/2026). Làm như phần bổ sung F04 (PLAN cố định 40 task).
 - `SessionRevocation`: claim `eg5:sid`; logout ghi `{prefix}:revoked-session:{sid}` (TTL còn lại của cookie); cookie và Hub từ chối phiên thiếu `sid` hoặc đã thu hồi; Redis lỗi → chỉ instance logout biết.
-- `SessionRevocationTests` 4/4, mutation 3/3; Test-CI local 262 .NET + 20 Node; smoke stack 25/25 ("copied cookie refused on every replica after logout 0/12"). Chi tiết ở [evidence](../evidence/F04.md#bổ-sung-q-sec-001-thu-hồi-phiên-khi-logout-07102026).
+- `SessionRevocationTests` 4/4, mutation 3/3; Test-CI local 262 .NET + 20 Node; GitHub [CI37602106781](https://github.com/Twiash/EbayGroup5/actions/runs/37602106781) success trên runtime `11b3cec`, fast-forward vào main; smoke stack 25/25 ("copied cookie refused on every replica after logout 0/12"). Chi tiết ở [evidence](../evidence/F04.md#bổ-sung-q-sec-001-thu-hồi-phiên-khi-logout-07102026).
 
 ## Câu hỏi / rủi ro
 
