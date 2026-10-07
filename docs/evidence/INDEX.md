@@ -13,7 +13,8 @@ Minh chứng infrastructure A04: [EV-A04-01](A04.md). SQL/Redis healthy, auth v�
 
 Minh chứng database A05: [EV-A05-01](A05.md). Baseline/EF/DbUp và 8 test SQL pass; CON-01 xác minh tại A05, CON-02 Done. Chức năng nghiệp vụ/OPS còn Pending.
 
-Mọi chức năng và OPS còn Pending. Khi thêm minh chứng: ghi requirement ID, commit, môi trường, lệnh, pass/fail, artifact và giới hạn. Không đưa log tải lớn hay secret vào repo.
+Trạng thái hiện tại xem [ma trận yêu cầu](../requirements/MATRIX.md); các đoạn dưới là minh chứng theo checkpoint.
+Khi thêm minh chứng: ghi requirement ID, commit, môi trường, lệnh, pass/fail, artifact và giới hạn. Không đưa log tải lớn hay secret vào repo.
 
 Minh chứng seed A06: [EV-A06-01](A06.md). 12 SQL cases pass, seed local created/rerun skipped; auth và SUP vẫn Pending.
 
@@ -30,3 +31,8 @@ Seller feedback D03: [EV-D03-01](D03.md), 177 .NET +14 Node, browser desktop/320
 Reputation page D04: [EV-D04-01](D04.md), 183 .NET +14 Node, browser desktop/320px; G5-05 Done.
 
 Moderation D05: [EV-D05-01](D05.md), 190 .NET +14 Node, browser; G5-04 Done, SUP-05 phần review/feedback (dispute E05).
+
+CD F07: [evidence F07](F07.md), runtime `f0b65b0`, CI37668281294/CD37669952216 success:
+263 .NET +20 Node và artifact/archive checks; image SHA build hosted, deploy kind local,
+2 web Ready, migration 0 mới, read-only TLS smoke; ephemeral runner deregister/không service.
+**OPS-03 Done**. OPS-06/PERF-01 Pending F08.

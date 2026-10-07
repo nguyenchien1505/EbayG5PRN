@@ -31,7 +31,7 @@ Status `Pending` nghĩa là chưa triển khai/chưa nghiệm thu. Task tài li�
 |---|---|---|---|---|
 | OPS-01 | Tăng user: load balancing, Nginx | F01–F02, F05 | Nginx phân tải ít nhất hai app instance; chat xuyên instance | Done |
 | OPS-02 | Rate limiting theo khoảng thời gian | F02, F04 | HTTP trả 429 theo policy; Hub giới hạn invocation; counter dùng chung | Done |
-| OPS-03 | CI và CD bằng GitHub Actions | A07, F07 | Log CI thật, image SHA, deploy local qua runner tin cậy, smoke test | Pending |
+| OPS-03 | CI và CD bằng GitHub Actions | A07, F07 | Log CI thật, image SHA, deploy local qua runner tin cậy, smoke test | Done |
 | OPS-04 | Quản lý nhóm trên Jira | A01, G02 | Backlog KAN, vai trò, task/code mapping, trạng thái có bằng chứng | Pending |
 | OPS-05 | Kiểm thử tải và an ninh, JMeter | F04–F05 | Script chạy lại được; báo cáo tải, bảo mật, giới hạn thực tế | Done |
 | OPS-06 | Zero downtime khi cập nhật bằng K8s | F06–F08 | Rolling update/rollback dưới tải; HTTP không 5xx, chat phục hồi | Pending |
@@ -131,3 +131,8 @@ F04: [security evidence](../evidence/F04.md); IDOR 29 lượt (dữ liệu khôn
 F05: [load evidence](../evidence/F05.md); JMeter 5.6.3 + client SignalR riêng trên stack thật (Nginx HTTPS, 2 replica), dataset 100.000 tin / 10.000 review / 1.000 dispute (hội thoại 20.000 tin). Full local: 50 user × 10 phút 0 % lỗi, p95 ≤ 39 ms (lịch sử chat 7 ms); 20 cặp chat p95 20,4 ms, 11.753/11.753 tin; WS trên 2 replica, 13/20 cặp khác replica nhận đủ. Stress: tới 800 user p95 < 100 ms, 1600 user p95 inbox 1,3 s (giới hạn thực tế). **OPS-01, OPS-05, G5-N02, G5-N04 Done.** PERF-01 vẫn Pending: phần tải/latency đạt, phần rolling update thuộc F08. Phát hiện deadlock ghi đơn đồng thời (Q-PERF-001) đã sửa: DbUp 0014 + bỏ khóa phạm vi bảng con, `OrderConcurrencyTests` 85 → 0 deadlock, seed 11.000 đơn 8 luồng 0 deadlock.
 
 F06: [Kubernetes evidence](../evidence/F06.md); kind cluster local: web 2 replica + startup/liveness/readiness probes, SQL/Redis StatefulSet có PVC (dữ liệu và phiên đăng nhập giữ qua restart pod), migration Job (14 → 0 khi chạy lại), NetworkPolicy, journeys J1–J7 + smoke trên cluster. OPS-06 vẫn Pending (CD F07, rolling update/rollback có tải F08); OPS-03 Pending F07.
+
+F07: [CD evidence](../evidence/F07.md); CI37668281294 và CD37669952216 success trên runtime `f0b65b0`:
+GitHub-hosted build image full SHA, artifact checksum/digest mapping/revision/platform,
+Windows runner ephemeral deploy vào kind, migration 0 mới, 2 web Ready, TLS CA/hostname + read-only smoke,
+runner deregister/không service. **OPS-03 Done** (CI A07 + CD F07). OPS-06/PERF-01 vẫn Pending F08.
