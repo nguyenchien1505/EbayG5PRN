@@ -2,7 +2,7 @@
 
 07/10/2026. Repo D:/WINDOWS/PRN3/EbayGroup5.
 
-- Baseline main `15e72bc`. Runtime trên `task/F03-system-integration-journeys`; checkpoint `git log --oneline --grep=F03`. GitHub CI: xem mục Verification.
+- Baseline main `15e72bc`. Runtime `7893e59` trên `task/F03-system-integration-journeys`, fast-forward vào main sau khi [CI37562193099](https://github.com/Twiash/EbayGroup5/actions/runs/37562193099) pass. Checkpoint `git log --oneline --grep=F03`.
 - Handoff trước: [F02](F02.md).
 - Người dùng chốt Playwright .NET + Chrome có sẵn ngày 07/10/2026.
 
@@ -34,14 +34,14 @@
 - **Test-CI local pass: 251/251 .NET + 20/20 Node**.
   - Lần trước fail 2 test do `Copy-Item` giữ thời gian sửa cũ của file khôi phục, nên MSBuild dùng lại assembly đã bị mutate.
   - Đã build lại và dọn container của lần fail.
-- GitHub CI: ghi sau khi chạy (commit docs-only `[skip ci]`).
+- **GitHub [CI37562193099](https://github.com/Twiash/EbayGroup5/actions/runs/37562193099) exact runtime `7893e59` success**: 251/251 .NET + 20/20 Node, **Journeys J1–J6 PASS trên runner**, correlation pass. Docs-only `[skip ci]` sau CI.
 - Không đụng `launchSettings.json`.
 
 ## Requirement
 
 - **G5-N05: Done.**
 - G5-N01 Pending (F04).
-- OPS-01: quyết định sau khi có dòng INFO về replica giữ WebSocket chat trên CI (xem commit docs CI).
+- **OPS-01 vẫn Pending:** trên CI cả hai WebSocket chat của journey nằm trên cùng 1 replica (round-robin không bảo đảm). F05 cần nhiều kết nối WebSocket và khẳng định chúng phân bố trên ≥ 2 replica khi đo chat xuyên instance qua stack.
 
 ## Cho task sau
 
