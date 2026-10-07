@@ -8,7 +8,8 @@ param(
     [Parameter(Mandatory)][hashtable]$Secrets,   # sa-password, app-password, redis-password [+ demo-buyer/seller/admin-password]
     [Parameter(Mandatory)][string]$TlsDir,       # server.crt + server.key (New-LocalTlsCertificate.ps1)
     [Parameter(Mandatory)][string]$Work,
-    [string[]]$HelperArgs = @()                  # extra migrate-image runs after the migration, e.g. --seed-demo, --enable-demo-auth
+    [string[]]$HelperArgs = @(),                 # extra migrate-image runs after the migration, e.g. --seed-demo, --enable-demo-auth
+    [ValidatePattern('^[0-9a-f]{40}$')][string]$ImageTag # F07: verified, preloaded CI images; no build on the deployment host
 )
 $ErrorActionPreference = 'Stop'
 $repoRoot = Split-Path $PSScriptRoot -Parent
@@ -40,13 +41,30 @@ nodes:
     & $kind create cluster --name $Cluster --config $config --wait 180s
     if ($LASTEXITCODE -ne 0) { throw "kind create cluster $Cluster failed." }
 }
+elseif ((docker inspect --format '{{.State.Running}}' "$Cluster-control-plane") -ne 'true') {
+    docker start "$Cluster-control-plane" | Out-Null
+    if ($LASTEXITCODE -ne 0) { throw 'Could not start the existing kind node.' }
+    $deadline = [DateTime]::UtcNow.AddSeconds(180)
+    while ((kubectl --context $context get --raw /readyz 2>$null) -ne 'ok') {
+        if ([DateTime]::UtcNow -gt $deadline) { throw 'The restarted cluster did not become ready.' }
+        Start-Sleep -Seconds 3
+    }
+}
 
 # 2. Images tagged by commit (dirty trees get a unique suffix), loaded into the node.
-$tag = (git -C $repoRoot rev-parse --short HEAD).Trim()
-if (git -C $repoRoot status --porcelain --untracked-files=no) { $tag += '-dirty-' + [Guid]::NewGuid().ToString('N').Substring(0, 6) }
-foreach ($target in 'web', 'migrate') {
-    docker build --target $target -t "ebaygroup5-${target}:$tag" $repoRoot
-    if ($LASTEXITCODE -ne 0) { throw "docker build $target failed." }
+$tag = $ImageTag
+if ($ImageTag) {
+    foreach ($target in 'web', 'migrate') {
+        docker image inspect "ebaygroup5-${target}:$tag" --format '{{.Id}}' | Out-Null
+        if ($LASTEXITCODE -ne 0) { throw "Verified CI image $target is missing; refusing to build on the deploy host." }
+    }
+} else {
+    $tag = (git -C $repoRoot rev-parse --short HEAD).Trim()
+    if (git -C $repoRoot status --porcelain --untracked-files=no) { $tag += '-dirty-' + [Guid]::NewGuid().ToString('N').Substring(0, 6) }
+    foreach ($target in 'web', 'migrate') {
+        docker build --target $target -t "ebaygroup5-${target}:$tag" $repoRoot
+        if ($LASTEXITCODE -ne 0) { throw "docker build $target failed." }
+    }
 }
 & $kind load docker-image "ebaygroup5-web:$tag" "ebaygroup5-migrate:$tag" --name $Cluster
 if ($LASTEXITCODE -ne 0) { throw 'kind load docker-image failed.' }
@@ -74,8 +92,11 @@ $rendered = (kubectl kustomize --load-restrictor LoadRestrictionsNone (Join-Path
 if ($LASTEXITCODE -ne 0) { throw 'kustomize render failed.' }
 $rendered = $rendered.Replace('ebaygroup5-web:local', "ebaygroup5-web:$tag")
 Set-Content -LiteralPath (Join-Path $Work 'rendered.yaml') -Value $rendered
-$rendered | kubectl --context $context apply -f - | Out-Host
-if ($LASTEXITCODE -ne 0) { throw 'kubectl apply (base) failed.' }
+# Keep the existing app serving until migrations finish; first deploy infrastructure/services/policies only.
+$documents = @($rendered -split '(?m)^---\s*$' | Where-Object { $_.Trim() })
+($documents | Where-Object { $_ -notmatch '(?m)^kind: Deployment\s*$' }) -join "`n---`n" |
+    kubectl --context $context apply -f - | Out-Host
+if ($LASTEXITCODE -ne 0) { throw 'kubectl apply (infrastructure) failed.' }
 Kube -n ebaygroup5 rollout status statefulset/sqlserver --timeout 600s
 Kube -n ebaygroup5 rollout status statefulset/redis --timeout 300s
 
@@ -95,6 +116,9 @@ function Invoke-MigrateJob([string]$name, [string[]]$jobArgs) {
 }
 Invoke-MigrateJob 'migrate' @()
 foreach ($helper in $HelperArgs) { Invoke-MigrateJob ('migrate-' + $helper.TrimStart('-')) @($helper) }
+($documents | Where-Object { $_ -match '(?m)^kind: Deployment\s*$' }) -join "`n---`n" |
+    kubectl --context $context apply -f - | Out-Host
+if ($LASTEXITCODE -ne 0) { throw 'kubectl apply (app deployments) failed.' }
 Kube -n ebaygroup5 rollout status deployment/web --timeout 600s
 Kube -n ebaygroup5 rollout status deployment/nginx --timeout 300s
 
