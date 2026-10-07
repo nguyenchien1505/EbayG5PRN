@@ -71,7 +71,7 @@ Response do Nginx tự sinh (308, 413, 502) không qua app; chấp nhận, ghi g
 
 ## Rủi ro còn lại (ghi trong evidence, không sửa ở F04)
 
-- **Logout không thu hồi bản sao cookie** (đã biết từ B02): cookie copy vẫn hợp lệ tới hạn tuyệt đối 30 phút. Đề xuất: denylist phiên trên Redis. Hỏi người dùng ở Q-SEC-001.
+- ~~Logout không thu hồi bản sao cookie~~ → **đã xử lý** ở phần bổ sung bên dưới (người dùng chốt Q-SEC-001). Ghi chú gốc: cookie copy vẫn hợp lệ tới hạn tuyệt đối 30 phút. Đề xuất: denylist phiên trên Redis. Hỏi người dùng ở Q-SEC-001.
 - Key ring DataProtection trên Redis không mã hóa khi lưu (F02): giảm thiểu bằng mật khẩu Redis + mạng nội bộ; đề xuất `ProtectKeysWithCertificate` với K8s Secret ở F06.
 - HSTS chỉ hiệu lực khi có domain; không bật trên localhost để không ảnh hưởng các dev server khác trên máy.
 - Không có E2EE (đúng MATRIX); TLS kết thúc ở Nginx, mạng app nội bộ là HTTP.
@@ -79,3 +79,15 @@ Response do Nginx tự sinh (308, 413, 502) không qua app; chấp nhận, ghi g
 ## File dự kiến
 
 `Web/Security/SecurityHeaders.cs`, `WebApplicationHost.cs`, `Views/Checkout/Index.cshtml`, `Views/Reviews/Create.cshtml`, `wwwroot/js/checkout.js`, `wwwroot/js/review-form.js`, `tests/EbayGroup5.Database.Tests/SecurityTests.cs`, `tests/EbayGroup5.StackSmoke/Program.cs`, `tests/EbayGroup5.Journeys/Program.cs`, `scripts/Test-Secrets.ps1`, `scripts/Test-CI.ps1`, `scripts/Test-AppStack.ps1`, `.github/workflows/ci.yml`. Không migration.
+
+## Bổ sung: thu hồi phiên khi logout (Q-SEC-001)
+
+Người dùng chốt ngày 07/10/2026: **thêm danh sách phiên bị thu hồi trên Redis**. Làm như phần bổ sung của F04 (PLAN cố định 40 task), branch `task/F04-session-revocation`. Contract soạn trước khi code.
+
+- **Đăng nhập:** cookie mang claim `eg5:sid` = 128 bit ngẫu nhiên (32 hex). Mỗi lần đăng nhập là một phiên riêng.
+- **Logout:** ghi `{Redis:KeyPrefix}:revoked-session:{sid}` với TTL = thời gian còn lại của cookie (≤ 30 phút), rồi xóa cookie. Chỉ phiên đó bị thu hồi; phiên khác của cùng người dùng không bị ảnh hưởng.
+- **Mỗi request có cookie** (`AccessCookieEvents.ValidatePrincipal`, sau kiểm tra DB hiện có): thiếu `sid`, sai định dạng, hoặc `sid` đã bị thu hồi → từ chối như cookie hết hạn (trang → Login, API/Hub → 401). Cookie phát hành trước thay đổi này (không có `sid`) phải đăng nhập lại một lần.
+- **Hub chat:** `ChatHubFilter` kiểm cùng điều kiện ở mỗi lần gọi, nên kết nối WebSocket đang mở của phiên đã logout bị đóng ở lần gọi kế tiếp.
+- **Redis gián đoạn** (theo nguyên tắc F02: suy giảm, không khóa người dùng): instance nhận logout luôn ghi thêm vào bộ nhớ cục bộ (TTL như trên) nên phiên vẫn bị từ chối trên instance đó; ghi Redis thất bại hoặc đọc Redis lỗi → log cảnh báo (không ghi `sid`), instance khác chưa biết phiên bị thu hồi cho tới khi cookie hết hạn. Đây là rủi ro còn lại có giới hạn (≤ 30 phút, chỉ khi Redis lỗi).
+- Không thêm migration; không lưu dữ liệu cá nhân trong Redis (chỉ `sid` ngẫu nhiên).
+- **Kiểm thử** (`SessionRevocationTests`): bản sao cookie sau logout bị từ chối trên cùng host và trên host thứ hai dùng chung Redis/key ring; phiên khác vẫn dùng được; cookie hợp lệ chữ ký nhưng thiếu `sid` bị từ chối; kết nối Hub đang mở bị chặn sau logout; Redis không tới được → logout vẫn thu hồi trên instance đó và request không lỗi 500. Inventory/CSRF của F04 giữ nguyên.

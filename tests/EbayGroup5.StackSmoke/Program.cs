@@ -112,6 +112,26 @@ catch (Exception ex) { Check(false, "WSS /hubs/chat SignalR handshake through ng
 try { await Handshake("https://attacker.example"); Check(false, "Foreign Origin is refused on WSS"); }
 catch (WebSocketException) { Check(true, "Foreign Origin is refused on WSS"); }
 
+// Q-SEC-001: logout revokes the session on every replica, so a copied cookie stops working (round-robin reaches both).
+var copied = authCookie!.Split(';')[0];
+using var copyHandler = new HttpClientHandler { UseCookies = false, AllowAutoRedirect = false, ServerCertificateCustomValidationCallback = (m, c, ch, e) => Validate(m, c, ch, e) };
+using var copy = new HttpClient(copyHandler) { BaseAddress = new Uri(origin + "/"), Timeout = TimeSpan.FromSeconds(20) };
+async Task<int> CopyAccepted()
+{
+    var accepted = 0;
+    for (var i = 0; i < 12; i++)
+    {
+        using var request = new HttpRequestMessage(HttpMethod.Get, "Account/Me");
+        request.Headers.Add("Cookie", copied);
+        if ((await copy.SendAsync(request)).StatusCode == HttpStatusCode.OK) accepted++;
+    }
+    return accepted;
+}
+Check(await CopyAccepted() == 12, "A copied auth cookie works before logout");
+var logout = await https.PostAsync("Account/Logout", new FormUrlEncodedContent(new Dictionary<string, string> { ["__RequestVerificationToken"] = Token(await https.GetStringAsync("Account/Me")) }));
+var stillAccepted = await CopyAccepted();
+Check(logout.StatusCode == HttpStatusCode.Redirect && stillAccepted == 0, $"Copied cookie is refused on every replica after logout ({stillAccepted}/12 accepted)");
+
 // 5. F04 (SECURITY_TESTS.md): hardening as a browser sees it through nginx.
 var page = await https.GetAsync("Account/Login");
 string Header(HttpResponseMessage response, string name) => response.Headers.TryGetValues(name, out var values) ? string.Join(",", values) : "";

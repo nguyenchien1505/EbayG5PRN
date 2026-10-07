@@ -22,7 +22,7 @@ public sealed class AccountOwnerHandler : AuthorizationHandler<AccountOwnerRequi
     }
 }
 
-public sealed class AccessCookieEvents(EbayDbContext db) : CookieAuthenticationEvents
+public sealed class AccessCookieEvents(EbayDbContext db, SessionRevocation revocation) : CookieAuthenticationEvents
 {
     public override Task RedirectToLogin(RedirectContext<CookieAuthenticationOptions> context)
     {
@@ -40,7 +40,9 @@ public sealed class AccessCookieEvents(EbayDbContext db) : CookieAuthenticationE
         var user = int.TryParse(principal?.FindFirstValue(ClaimTypes.NameIdentifier), out var id)
             ? await db.Set<User>().AsNoTracking().SingleOrDefaultAsync(x => x.Id == id, context.HttpContext.RequestAborted) : null;
         if (user == null || string.IsNullOrEmpty(user.Password) || user.Role is not ("Buyer" or "Seller" or "Admin") ||
-            user.Role != principal?.FindFirstValue(ClaimTypes.Role))
+            user.Role != principal?.FindFirstValue(ClaimTypes.Role) ||
+            // Q-SEC-001: every cookie names its session; a logged-out session is refused on every instance.
+            SessionRevocation.SessionId(principal) is not { } sid || await revocation.IsRevokedAsync(sid))
         {
             context.RejectPrincipal();
             await context.HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);

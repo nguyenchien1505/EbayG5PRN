@@ -82,6 +82,7 @@ public static class WebApplicationHost
         // F02 (SCALE_OUT.md): one Redis connection for readiness, shared rate limits and (in deployments) the key ring.
         builder.Services.AddSingleton<RedisConnection>();
         builder.Services.AddSingleton<SharedRateLimiter>();
+        builder.Services.AddSingleton<SessionRevocation>();
         builder.Services.AddDataProtection().SetApplicationName("EbayGroup5");
         builder.Services.AddOptions<Microsoft.AspNetCore.DataProtection.KeyManagement.KeyManagementOptions>()
             .Configure<RedisConnection, IConfiguration>((options, redis, configuration) =>

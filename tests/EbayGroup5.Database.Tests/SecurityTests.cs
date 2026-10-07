@@ -500,15 +500,23 @@ public sealed class SecurityTests
         Assert.Equal(HttpStatusCode.BadRequest, bad.StatusCode);
         foreach (var leak in new[] { "Exception", "at EbayGroup5", "System.Text.Json", "LineNumber", "Path:" }) Assert.DoesNotContain(leak, problem);
 
-        // Brute force: the eleventh sign-in in a minute is refused even with the right password (shared window, B02/F02).
-        using var fresh = new AccountHttpTests.Factory(s.Target);
-        using var guesser = fresh.CreateClient(new() { AllowAutoRedirect = false, BaseAddress = new Uri("https://localhost") });
-        var statuses = new List<HttpStatusCode>();
-        for (var i = 0; i < 12; i++)
+        // Brute force: the eleventh sign-in in a window is refused even with the right password (shared window, B02/F02).
+        // Windows are fixed and clock-aligned, so a run that straddles a boundary restarts the count: use a long window and,
+        // if a boundary still falls inside the run, repeat once on a fresh host (own Redis prefix).
+        List<HttpStatusCode> statuses = [];
+        for (var attempt = 0; attempt < 2; attempt++)
         {
-            var form = new Dictionary<string, string> { ["Email"] = "otherbuyer@d01.example.invalid", ["Password"] = i < 11 ? "Wrong-password-123" : Password,
-                ["__RequestVerificationToken"] = Field(await guesser.GetStringAsync("/Account/Login")) };
-            statuses.Add((await guesser.PostAsync("/Account/Login", new FormUrlEncodedContent(form))).StatusCode);
+            using var fresh = new AccountHttpTests.Factory(s.Target, settings: new Dictionary<string, string> { ["RateLimits:auth:WindowSeconds"] = "3600" });
+            using var guesser = fresh.CreateClient(new() { AllowAutoRedirect = false, BaseAddress = new Uri("https://localhost") });
+            var window = DateTimeOffset.UtcNow.ToUnixTimeSeconds() / 3600;
+            statuses = [];
+            for (var i = 0; i < 12; i++)
+            {
+                var form = new Dictionary<string, string> { ["Email"] = "otherbuyer@d01.example.invalid", ["Password"] = i < 11 ? "Wrong-password-123" : Password,
+                    ["__RequestVerificationToken"] = Field(await guesser.GetStringAsync("/Account/Login")) };
+                statuses.Add((await guesser.PostAsync("/Account/Login", new FormUrlEncodedContent(form))).StatusCode);
+            }
+            if (DateTimeOffset.UtcNow.ToUnixTimeSeconds() / 3600 == window) break;
         }
         Assert.All(statuses.Take(10), x => Assert.Equal(HttpStatusCode.Unauthorized, x));
         Assert.All(statuses.Skip(10), x => Assert.Equal(HttpStatusCode.TooManyRequests, x));
