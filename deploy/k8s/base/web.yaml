@@ -108,8 +108,9 @@ spec:
             - name: tmp
               mountPath: /tmp
           resources:
+            # CPU requests only reserve scheduling room (no CPU limits): sized so the whole app fits a 2-vCPU kind node (CI runner).
             requests:
-              cpu: 250m
+              cpu: 100m
               memory: 256Mi
             limits:
               memory: 512Mi
