@@ -36,3 +36,9 @@ CD F07: [evidence F07](F07.md), runtime `f0b65b0`, CI37668281294/CD37669952216 s
 263 .NET +20 Node và artifact/archive checks; image SHA build hosted, deploy kind local,
 2 web Ready, migration 0 mới, read-only TLS smoke; ephemeral runner deregister/không service.
 **OPS-03 Done**. OPS-06/PERF-01 Pending F08.
+
+Rolling F08: [evidence F08](F08.md), CI37678243173 attempt 2 success trên `ad0ce27`;
+Full local 50 HTTP user +20 cặp/600s, 100k tin/10k review/1k dispute:
+152.130 request không lỗi, 12.891 ACK đủ/một dòng SQL, recovery max 2,51s,
+max HTTP p95 241,48ms/chat p95 27,98ms. Update/undo thay pod thật, journal giữ 14.
+**OPS-06/PERF-01 Done**; single-node kind, image tương thích/cùng nghiệp vụ.
