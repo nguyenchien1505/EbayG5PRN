@@ -8,7 +8,7 @@
         <p class="account-notice" role="status">@notice</p>
     }
     <form asp-action="Login" method="post">
-        <div asp-validation-summary="All" class="validation-summary" role="alert"></div>
+        @if (!ViewData.ModelState.IsValid) { <div asp-validation-summary="All" class="validation-summary" role="alert"></div> }
         <input asp-for="ReturnUrl" type="hidden" />
         <label asp-for="Email"></label>
         <input asp-for="Email" type="email" autocomplete="username" maxlength="100" required />

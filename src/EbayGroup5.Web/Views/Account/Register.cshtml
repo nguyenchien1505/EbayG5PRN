@@ -4,7 +4,7 @@
     <h1 id="account-title">Create an account</h1>
     <p>Join the marketplace with a personal account.</p>
     <form asp-action="Register" method="post">
-        <div asp-validation-summary="All" class="validation-summary" role="alert"></div>
+        @if (!ViewData.ModelState.IsValid) { <div asp-validation-summary="All" class="validation-summary" role="alert"></div> }
         <label asp-for="Name"></label>
         <input asp-for="Name" autocomplete="nickname" maxlength="100" required />
         <label asp-for="Email"></label>

@@ -51,6 +51,9 @@ public static class WebApplicationHost
         builder.Logging.AddFilter("Microsoft.AspNetCore.Http.Connections", LogLevel.Warning);
         builder.Logging.AddFilter("Microsoft.AspNetCore.Hosting", LogLevel.Warning);
         builder.Services.AddAntiforgery(options => options.HeaderName = "X-CSRF-TOKEN");
+        // F04: ASP.NET's default API encoder is "relaxed" and leaves < > & ' " raw; escape them so JSON can never be read as markup.
+        builder.Services.Configure<JsonOptions>(options =>
+            options.JsonSerializerOptions.Encoder = System.Text.Encodings.Web.JavaScriptEncoder.Create(System.Text.Unicode.UnicodeRanges.All));
         builder.Services.Configure<ApiBehaviorOptions>(options =>
         {
             var defaultFactory = options.InvalidModelStateResponseFactory;
@@ -119,6 +122,9 @@ public static class WebApplicationHost
 
         // F01: behind Nginx, client IP and scheme come from the proxy's headers, and only from configured proxy addresses.
         if (ReverseProxy.Options(app.Configuration) is { } forwarded) app.UseForwardedHeaders(forwarded);
+        // F04 (SECURITY_TESTS.md): CSP/nosniff/frame headers everywhere; HSTS only over HTTPS for real host names (ASP.NET skips localhost).
+        app.UseSecurityHeaders();
+        if (!app.Environment.IsDevelopment()) app.UseHsts();
 
         app.Use(async (context, next) =>
         {

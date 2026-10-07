@@ -19,7 +19,7 @@ Status `Pending` nghĩa là chưa triển khai/chưa nghiệm thu. Task tài li�
 
 | ID | Yêu cầu chuẩn hóa | Task | Nghiệm thu tối thiểu | Status |
 |---|---|---|---|---|
-| G5-N01 | Bảo mật tin nhắn, WebSocket qua SSL, mã hóa khi cần | B02, C01–C03, F01, F04 | HTTPS/WSS, kiểm tra membership; không log nội dung/secret; không tuyên bố có E2EE | Pending |
+| G5-N01 | Bảo mật tin nhắn, WebSocket qua SSL, mã hóa khi cần | B02, C01–C03, F01, F04 | HTTPS/WSS, kiểm tra membership; không log nội dung/secret; không tuyên bố có E2EE | Done |
 | G5-N02 | Chat mượt và realtime | C04–C05, F05 | UI không treo; có pending/error/reconnect; đo latency theo PERF-01 | Pending |
 | G5-N03 | Khiếu nại không mất dữ liệu khi reload | E02 | Nháp server và khôi phục; gửi thành công mới xóa nháp | Done |
 | G5-N04 | Mở rộng lưu trữ lịch sử, phản hồi nhanh với dữ liệu lớn | C01–C05, F02, F05 | Cursor/index, nhiều instance, đo dataset lớn | Pending |
@@ -125,3 +125,5 @@ F01: [app image/Nginx HTTPS evidence](../evidence/F01.md); image web/migrate pin
 F02: [scale-out evidence](../evidence/F02.md); 2 replica web sau Nginx, key ring DataProtection dùng chung trên Redis (đổi instance giữ login, đối chứng key ring khác thì mất), rate limit dùng chung trên Redis cho auth/chat REST/mọi invocation Hub (429 + Retry-After; Hub `429:` giữ kết nối), dự phòng theo instance khi Redis gián đoạn; stack thật 2 upstream, XFF giả 429 nhờ bộ đếm chung. **OPS-02 Done** (F04 sẽ thử vượt giới hạn). **OPS-01 vẫn Pending**: Nginx + 2 instance đạt, chat xuyên instance đạt ở test hai host C03; đo qua stack dưới tải thuộc F05. G5-N04 Pending F05.
 
 F03: [system journeys evidence](../evidence/F03.md); Playwright trên stack thật (HTTPS, 2 replica): mua hàng, chat realtime hai chiều qua WSS, giao/nhận + feedback, return đến refund, report + admin ẩn, quyền truy cập; ma trận quyền 16 route × 6 vai trò. Hai lỗi thật đã sửa: redirect mất port, 403 body rỗng. **G5-N05 Done**: request id của Nginx = trace của app = `Message.TraceId`, không có nội dung chat trong log Nginx/web. G5-N01 Pending F04; **OPS-01 vẫn Pending**: CI lần này giữ cả hai WebSocket chat trên một replica, nên chat xuyên instance qua stack chưa được chứng minh (chỉ có test hai host C03); giao cho F05.
+
+F04: [security evidence](../evidence/F04.md); IDOR 29 lượt (dữ liệu không đổi), CSRF đủ 18 POST, stored XSS 10 trường × 27 trang + trình duyệt dưới CSP thật (0 vi phạm), header CSP/DENY/nosniff, TLS 1.2/1.3 only, `ws://` bị từ chối, body > 1 MiB 413, secret scan toàn lịch sử + audit NuGet; mutation 5/5. **G5-N01 Done** (HTTPS/WSS + membership + CSRF + không log nội dung, không E2EE). OPS-05 Pending F05 (JMeter). Rủi ro còn lại: logout không thu hồi cookie (Q-SEC-001), key ring không mã hóa khi lưu (F06).

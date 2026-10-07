@@ -20,11 +20,19 @@ await using var browser = await playwright.Chromium.LaunchAsync(new()
     Channel = "chrome", Headless = true, Args = [$"--ignore-certificate-errors-spki-list={options["--spki"]}"]
 });
 var pages = new List<(string Name, IPage Page)>();
+// F04 (SECURITY_TESTS.md): every page runs under the real CSP; Chrome reports each violation on the console. Any violation or
+// JavaScript dialog (an executed payload) fails the run.
+var violations = new System.Collections.Concurrent.ConcurrentBag<string>();
 async Task<IPage> NewPage(string name)
 {
     var context = await browser.NewContextAsync(new() { BaseURL = baseUrl, Locale = "en-US" });
     context.SetDefaultTimeout(20_000);
     var page = await context.NewPageAsync();
+    page.Console += (_, message) =>
+    {
+        if (message.Text.Contains("Content Security Policy", StringComparison.OrdinalIgnoreCase)) violations.Add($"{name} {page.Url}: {message.Text}");
+    };
+    page.Dialog += async (_, dialog) => { violations.Add($"{name} {page.Url}: dialog '{dialog.Message}'"); await dialog.DismissAsync(); };
     pages.Add((name, page));
     return page;
 }
@@ -67,7 +75,9 @@ IPage buyer = null!, seller = null!, admin = null!;
 int order = 0;
 var buyerMessage = $"journey buyer note {run}";
 var sellerMessage = $"journey seller reply {run}";
-var reviewComment = $"Journey review {run}: arrived quickly.";
+// F04: user text carries markup that must stay text (the page shows it literally, nothing executes).
+const string Payload = "<img src=x onerror=\"window.__xss=1\"><script>window.__xss=1</script>";
+var reviewComment = $"Journey review {run}: arrived quickly. {Payload}";
 
 await Step("J1 sign in as demo buyer, seller and admin", async () =>
 {
@@ -140,7 +150,7 @@ await Step("J4 return: buyer opens it, seller accepts, buyer ships back, seller 
     await buyer.Locator("#line-" + await LineId(buyer)).GetByRole(AriaRole.Link, new() { Name = "Return this item" }).ClickAsync();
     await buyer.GetByText("Item damaged", new() { Exact = true }).ClickAsync();
     await buyer.GetByRole(AriaRole.Button, new() { Name = "Next" }).ClickAsync();
-    await buyer.Locator("textarea[name=Details]").FillAsync("The headband cracked in transit.");
+    await buyer.Locator("textarea[name=Details]").FillAsync("The headband cracked in transit. " + Payload);
     await buyer.GetByRole(AriaRole.Button, new() { Name = "Confirm return" }).ClickAsync();
     await Expect(buyer.Locator(".account-notice")).ToContainTextAsync("Your request was sent.");
 
@@ -203,6 +213,30 @@ await Step("J6 access control: login redirect, role 403, foreign request 404", a
     if (missing?.Status != 404) throw new InvalidOperationException($"Missing request got {missing?.Status}.");
     var adminOnChat = await admin.GotoAsync("/Messages");
     if (adminOnChat?.Status != 403) throw new InvalidOperationException($"Admin on /Messages got {adminOnChat?.Status}.");
+});
+
+await Step("J7 stored markup in chat, review and return stays text; no CSP violation or dialog anywhere (J1-J7)", async () =>
+{
+    var chatPayload = $"journey xss {run} {Payload}";
+    await buyer.GotoAsync("/Messages");
+    await buyer.Locator("[data-conversations]").GetByText("Wireless Headphones").First.ClickAsync();
+    var input = buyer.Locator("#chat-app textarea[data-input]");
+    await Expect(input).ToBeEnabledAsync();
+    await input.FillAsync(chatPayload);
+    await buyer.Locator("#chat-app button.chat-send").ClickAsync();
+    await Expect(buyer.Locator("[data-message-list]").GetByText(chatPayload)).ToBeVisibleAsync();
+    await seller.GotoAsync("/Messages");
+    // Inbox preview (client-rendered) and the open conversation show the markup literally.
+    await Expect(seller.Locator("[data-conversations]").GetByText($"journey xss {run}").First).ToBeVisibleAsync();
+    await seller.Locator("[data-conversations]").GetByText("Wireless Headphones").First.ClickAsync();
+    await Expect(seller.Locator("[data-message-list]").GetByText(chatPayload)).ToBeVisibleAsync();
+    // The return details from J4 (server-rendered) show the markup literally; the J3 review was checked the same way before J5 hid it.
+    await seller.GotoAsync("/Disputes?kind=Return");
+    await seller.GetByRole(AriaRole.Link, new() { Name = "See details" }).First.ClickAsync();
+    await Expect(seller.GetByText("The headband cracked in transit. " + Payload)).ToBeVisibleAsync();
+    foreach (var (role, page) in pages)
+        if (!await page.EvaluateAsync<bool>("() => window.__xss === undefined")) throw new InvalidOperationException($"Payload executed on {role} {page.Url}.");
+    if (!violations.IsEmpty) throw new InvalidOperationException("CSP violations or dialogs: " + string.Join(" | ", violations.Take(5)));
 });
 
 Console.WriteLine(failures == 0 ? "PASS: browser journeys" : $"FAIL: {failures} browser journey step(s)");

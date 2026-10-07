@@ -5,6 +5,7 @@
 | Q-ENV-001 | Private repo [Twiash/EbayGroup5](https://github.com/Twiash/EbayGroup5), tự tạo theo yêu cầu người dùng 03/10/2026 | Origin đã nối, main đã push | Answered: gh xác minh owner Twiash và isPrivate=true |
 | Q-TEAM-001 | Tài khoản Jira ánh xạ TV1–TV5 | Đã gán đúng account assignable | Answered 06/10/2026: Dat/Huy/Cuong/Nguyên/Hải theo phân công đã duyệt |
 | Q-TEAM-002 | Ngày nộp/mốc giảng viên | Chưa lập lịch ngày cụ thể; không chặn task kỹ thuật | Open |
+| Q-SEC-001 | F04: logout chưa thu hồi bản sao cookie (hạn tuyệt đối 30 phút, đã biết từ B02). Có thêm denylist phiên trên Redis (claim `sid`, kiểm ở `ValidatePrincipal`) không? ([SECURITY_TESTS](../architecture/SECURITY_TESTS.md#rủi-ro-còn-lại-ghi-trong-evidence-không-sửa-ở-f04)) | Không chặn F04; nếu đồng ý là task riêng (đụng auth mọi request, cần quyết định khi Redis gián đoạn) | Open 07/10/2026 |
 | Q-UI-001 | Inbox và conversation eBay | Chốt UI C04 | Answered: U1 + M1 desktop; mobile/trạng thái bổ sung khi làm C04 |
 | Q-UI-002 | Purchase history và form review/feedback | Chốt UI B06, D02–D04 | Answered 06/10/2026: R1, P1 và F1 (feedback profile, giản lược) đã chốt |
 | Q-UI-003 | Form khiếu nại và case buyer/seller | Chốt UI E02–E03 | Answered 06/10/2026 theo [ADR-002](../decisions/ADR-002-group5-fidelity.md): E1 thay D1 (D1 là giao diện cũ); giữ D2; INR và request details theo eBay Help 4042 (request details là thiết kế clone vì không có ảnh thật) |
