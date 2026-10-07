@@ -18,7 +18,7 @@ Contract do agent soạn ngày 07/10/2026 trên main `df34f1a`, trước khi s�
 Ngoài phạm vi:
 
 - Nhiều instance, DataProtection key dùng chung, rate limit cho Hub (F02).
-- K8s (F06), CD (F07).
+- K8s (F06), CD (F07). Từ F06, template Nginx nhận `${NGINX_RESOLVER}`/`${WEB_UPSTREAM}` (compose: `127.0.0.11`/`web:8080`), DNS `valid=5s`, `proxy_connect_timeout 2s` và `max_fails=1 fail_timeout=5s` để bỏ nhanh replica đã thay ([K8S](K8S.md)).
 - Đo tải (F05), kiểm thử bảo mật (F04).
 - Chứng chỉ công khai: clone chỉ chạy local.
 

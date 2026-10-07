@@ -1,48 +1,40 @@
-# Handoff — F05: JMeter và đo realtime
+# Handoff — F06: Kubernetes local và migration Job
 
 07/10/2026. Repo D:/WINDOWS/PRN3/EbayGroup5.
 
-- Baseline main `1fe0a94`. Branch `task/F05-load-realtime`; checkpoint `git log --oneline --grep=F05`. Runtime `1be91ce`, fast-forward vào main sau khi [CI37620564985](https://github.com/Twiash/EbayGroup5/actions/runs/37620564985) pass (Load Short trên runner: 0 % lỗi, chat 583/583, 9/10 cặp khác replica).
-- Handoff trước: [F04](F04.md) (gồm bổ sung Q-SEC-001: logout thu hồi phiên qua Redis).
-- Người dùng chốt 07/10/2026: JMeter bản chính thức Apache (tải + SHA-512), đo đầy đủ ở local, CI chạy bản ngắn.
+- Baseline main `695aef9`. Branch `task/F06-k8s-local`; checkpoint `git log --oneline --grep=F06`. Số run GitHub CI ghi ở [evidence](../evidence/F06.md) bằng commit docs `[skip ci]`.
+- Handoff trước: [F05](F05.md) (gồm bổ sung Q-PERF-001: sửa deadlock ghi đơn đồng thời, DbUp 0014).
+- Người dùng chốt 07/10/2026: kind (binary chính thức + SHA-256, node image ghim digest) và YAML + kustomize.
 
 ## Hoàn tất
 
-- Contract: [LOAD](../architecture/LOAD.md). **Không có migration.**
-- `scripts/Install-JMeter.ps1`: JMeter 5.6.3 từ dlcdn (dự phòng archive), kiểm SHA-512, giải nén vào `artifacts/tools/` (ignore), chmod trên Linux.
-- `tests/load/ebaygroup5.jmx`: mỗi thread đăng nhập một lần (CSV trong Once Only Controller), lặp catalog/product/reviews/seller feedback/purchases/disputes/chat inbox/history (2 trang theo cursor)/send; think time 0,5–1,5 s.
-- `tests/EbayGroup5.Load`: `seed` (đơn/review/dispute qua service thật, 100.000 tin bằng SqlBulkCopy kiểm constraint; ghi tuần tự mặc định, `EBAY_LOAD_WRITERS` để tái hiện deadlock), `chat` (N cặp WSS, đo gửi → nhận cùng đồng hồ).
-- `scripts/Test-AppStack.ps1 -Load Short|Full|Stress` → `scripts/Invoke-LoadTest.ps1` (stack cô lập + `compose.load.yaml` nâng giới hạn auth chỉ cho stack tải; seed, JMeter + chat song song, p95 theo nhãn, replica từ log, deadlock từ `system_health`, gate, báo cáo `artifacts/load/<utc>-<profile>/`).
-- App: `ChatHubFilter` log `Chat connection opened user=<id>` (chỉ id).
-- CI: bước `Test-AppStack.ps1 -Load Short`, cache JMeter, artifact `load-report`; timeout job 50 phút.
+- Contract: [K8S](../architecture/K8S.md). **Không có migration**; không đổi code app.
+- `deploy/k8s/base`: SQL/Redis StatefulSet + PVC, web Deployment 2 replica (startup/liveness `/health/live`, readiness `/health/ready`, `Host: localhost`, non-root, read-only rootfs, preStop 10 s), nginx NodePort (`externalTrafficPolicy: Local`), NetworkPolicy; `deploy/k8s/jobs/migrate.yaml` (migrate + `--seed-demo`/`--enable-demo-auth`).
+- Scripts: `Install-Kind.ps1`, `Deploy-K8s.ps1` (build + `kind load`, Secret qua stdin, ConfigMap, SQL/Redis → migrate Job → web/nginx, đo IP host cho admin), `Start-K8s.ps1` (cluster `ebaygroup5`, https://localhost:9443, `-Stop`/`-Delete`), `Test-K8s.ps1` (cluster cô lập); `Clear-TestArtifacts.ps1` dọn cluster test; CI thêm `Test-K8s.ps1` (timeout job 75 phút).
+- Template nginx dùng chung: `${NGINX_RESOLVER}`/`${WEB_UPSTREAM}`, DNS `valid=5s`, `proxy_connect_timeout 2s`, `max_fails=1 fail_timeout=5s` (lỗi thật: request treo 40 s khi pod web bị thay).
 
 ## Verification
 
-- [Evidence](../evidence/F05.md). Full local: 50 user × 600 s, 28.817 mẫu, **0 % lỗi, p95 ≤ 39 ms** (login 190 ms); lịch sử chat trên hội thoại 20.000 tin p95 7 ms; **20 cặp chat 11.753/11.753, p95 20,4 ms**; WS trên 2 replica, **13/20 cặp khác replica**.
-- Stress: 50 → 1600 user; tới 800 user (~680 req/s) p95 < 100 ms; 1600 user (~1.075 req/s) p95 inbox 1,3 s, 429 do giới hạn theo user, không 5xx; realtime p95 < 25 ms mọi bậc.
-- **Test-CI local: 262/262 .NET + 20/20 Node**, build 0 warning.
+- [Evidence](../evidence/F06.md). `Test-K8s.ps1` PASS: journeys J1–J7, 2 replica cùng nhận request, probes, PVC Bound, migration 14 → 0 khi chạy lại, dữ liệu + phiên đăng nhập giữ qua xóa pod SQL/Redis/web, NetworkPolicy chặn SQL/web/Redis, smoke F01–F04.
+- `Test-AppStack.ps1` (compose) vẫn PASS sau khi đổi template nginx.
+- `Start-K8s.ps1`: deploy → Ready; `-Stop` → start lại → Ready, 0 migration mới. Cluster `ebaygroup5` đang **dừng** (giữ dữ liệu); `secrets/k8s/secrets.json` (ignore) giữ mật khẩu của cluster này.
+- **Test-CI local: 263/263 .NET + 20/20 Node**, build 0 warning.
 
 ## Requirement
 
-- **OPS-01, OPS-05, G5-N02, G5-N04: Done.**
-- PERF-01 Pending (phần rolling update/rollback thuộc F08; phần tải/latency đạt).
+- Không requirement nào Done riêng. OPS-06 Pending (F07 CD, F08 rolling update/rollback có tải); OPS-03 Pending (F07).
 
-## Bổ sung Q-PERF-001 (branch `task/F05-order-deadlocks`)
+## Lưu ý
 
-- Người dùng yêu cầu sửa (Answered 07/10/2026). **DbUp 0014** `IX_Dispute_Order`; `OrderService.Load` bỏ `HOLDLOCK` theo `orderId` ở bảng con (đơn đã `UPDLOCK`); `DisputeService.ItemReceivedAsync` `UPDLOCK + FORCESEEK`; Feedback đọc Payment `FORCESEEK`.
-- `OrderConcurrencyTests`: 85 → **0 deadlock** / 200 đơn; Test-CI local 263 .NET + 20 Node; GitHub [CI37635263448](https://github.com/Twiash/EbayGroup5/actions/runs/37635263448) success trên runtime `8745b47`, fast-forward vào main; seed Full 8 luồng 11.000 đơn **146 s, 0 deadlock**; Full load vẫn PASS. Seed mặc định 8 luồng, `Invoke-LoadTest.ps1` gate 0 deadlock. Chi tiết [evidence](../evidence/F05.md#bổ-sung-q-perf-001-sửa-deadlock-ghi-đơn-đồng-thời-07102026).
-- DB dev `EbayGroup5` chưa chạy 0014: `Start-AppStack.ps1`/`Initialize-Database.ps1` sẽ áp dụng khi chạy lại.
-
-## Câu hỏi / rủi ro
-
-- Q-PERF-001 Answered (đã sửa).
-- JMeter chạy cùng máy với stack; giới hạn đo được gồm tải của máy sinh tải.
+- Image tag theo commit (`<sha>` hoặc `<sha>-dirty-<hex>` khi cây có thay đổi); tag `-dirty-` trên host có thể xóa sau khi load vào node.
+- Một node kind, local-path storage; TLS ở nginx trong cluster.
+- DB dev `EbayGroup5` (compose) chưa chạy 0014; `Start-AppStack.ps1` sẽ áp dụng khi chạy lại.
 
 ## Cho task sau
 
-- **F06:** K8s local + migration Job; F08 dùng lại `Invoke-LoadTest.ps1`/`ChatLoad` để đo khi rolling update (chat phục hồi ≤ 10 s, không 5xx).
-- Chạy `-Load Full` không song song với Test-CI (tranh RAM SQL).
+- **F07:** build image theo commit SHA trong GitHub Actions và deploy vào cluster local qua runner tin cậy (self-hosted trên máy người dùng cần người dùng quyết định); dùng lại `Deploy-K8s.ps1`.
+- **F08:** `kubectl rollout` dưới tải bằng `Invoke-LoadTest.ps1`/`ChatLoad` trên cluster; maxUnavailable 0 + preStop đã có.
 
 ## Tiếp theo / Jira
 
-- F03+F04+F05 → **KAN-27 / TV5 Hải Lê: hoàn tất local một phần** (còn F08). Chưa sync live; không tạo worklog/review/issue.
+- F01+F02+F06 → **KAN-26 / TV5 Hải Lê: hoàn tất local một phần** (còn F07). Chưa sync live; không tạo worklog/review/issue.

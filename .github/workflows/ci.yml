@@ -17,7 +17,7 @@ concurrency:
 jobs:
   build-test:
     runs-on: ubuntu-24.04
-    timeout-minutes: 50
+    timeout-minutes: 75
     defaults:
       run:
         shell: pwsh
@@ -53,6 +53,17 @@ jobs:
             artifacts/load/*/seed-deadlocks.txt
           if-no-files-found: ignore
           retention-days: 14
+      # F06 (docs/architecture/K8S.md): isolated kind cluster (pinned kind + node image), journeys, volumes, probes, NetworkPolicy.
+      - name: Kubernetes (kind) deployment test
+        run: ./scripts/Test-K8s.ps1
+      - name: Kubernetes logs
+        if: ${{ failure() }}
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: k8s-logs
+          path: artifacts/k8s/*/logs.txt
+          if-no-files-found: ignore
+          retention-days: 7
       - name: Stack smoke logs
         if: ${{ failure() }}
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2

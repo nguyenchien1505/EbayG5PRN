@@ -62,6 +62,9 @@ services:
     image: nginx:1.28.3-alpine@sha256:a8b39bd9cf0f83869a2162827a0caf6137ddf759d50a171451b335cecc87d236
     environment:
       PUBLIC_HTTPS_PORT: ${HTTPS_PORT:-8443}
+      # F06 (K8S.md): the shared template takes the DNS server and upstream name from the platform.
+      NGINX_RESOLVER: 127.0.0.11
+      WEB_UPSTREAM: web:8080
     ports:
       - "127.0.0.1:${HTTP_PORT:-8080}:8080"
       - "127.0.0.1:${HTTPS_PORT:-8443}:8443"
