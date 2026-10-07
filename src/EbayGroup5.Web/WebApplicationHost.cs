@@ -75,6 +75,7 @@ public static class WebApplicationHost
         builder.Services.AddScoped<EbayGroup5.Application.Catalog.ICatalogService, EbayGroup5.Infrastructure.Catalog.CatalogService>();
         builder.Services.AddScoped<AccessCookieEvents>();
         builder.Services.AddSingleton<AdminNetwork>();
+        builder.Services.AddSingleton<ReadinessProbe>();
         builder.Services.AddSingleton<IAuthorizationHandler, AccountOwnerHandler>();
         builder.Services.AddRateLimiter(options =>
         {
@@ -106,6 +107,9 @@ public static class WebApplicationHost
                 ?? throw new InvalidOperationException("DefaultConnection is required for database operations.")));
 
         var app = builder.Build();
+
+        // F01: behind Nginx, client IP and scheme come from the proxy's headers, and only from configured proxy addresses.
+        if (ReverseProxy.Options(app.Configuration) is { } forwarded) app.UseForwardedHeaders(forwarded);
 
         app.Use(async (context, next) =>
         {
@@ -148,8 +152,15 @@ public static class WebApplicationHost
             await next(context);
         });
 
-        // Process liveness only. Database/Redis readiness is added with infrastructure.
+        // Liveness: the process answers. Readiness (F01): SQL Server and Redis are reachable; no details are returned.
         app.MapGet("/health/live", () => Results.Text("Healthy", "text/plain"));
+        app.MapGet("/health/ready", async (HttpContext context, ReadinessProbe probe, EbayDbContext db) =>
+        {
+            context.Response.Headers.CacheControl = "no-store";
+            return await probe.ReadyAsync(db, context.RequestAborted)
+                ? Results.Text("Ready", "text/plain")
+                : Results.Text("Not ready", "text/plain", statusCode: StatusCodes.Status503ServiceUnavailable);
+        });
         app.MapControllers();
         app.MapHub<ChatHub>("/hubs/chat", options =>
         {

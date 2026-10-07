@@ -17,7 +17,7 @@ concurrency:
 jobs:
   build-test:
     runs-on: ubuntu-24.04
-    timeout-minutes: 20
+    timeout-minutes: 35
     defaults:
       run:
         shell: pwsh
@@ -30,6 +30,16 @@ jobs:
           global-json-file: global.json
       - name: Verify, build and test with isolated SQL
         run: ./scripts/Test-CI.ps1
+      - name: App image + Nginx HTTPS/WSS stack smoke
+        run: ./scripts/Test-AppStack.ps1
+      - name: Stack smoke logs
+        if: ${{ failure() }}
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: stack-smoke-logs
+          path: artifacts/stack/*/logs.txt
+          if-no-files-found: ignore
+          retention-days: 7
       - name: SQL test results
         if: ${{ always() }}
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2

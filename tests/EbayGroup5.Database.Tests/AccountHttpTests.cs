@@ -20,11 +20,14 @@ namespace EbayGroup5.Database.Tests;
 
 public sealed class AccountHttpTests
 {
-    internal sealed class Factory(string target, string? remoteIp = "127.0.0.1", bool automation = false) : WebApplicationFactory<EbayGroup5.Web.Controllers.AccountController>
+    internal sealed class Factory(string target, string? remoteIp = "127.0.0.1", bool automation = false, IReadOnlyDictionary<string, string>? settings = null)
+        : WebApplicationFactory<EbayGroup5.Web.Controllers.AccountController>
     {
         protected override void ConfigureWebHost(IWebHostBuilder builder)
         {
             builder.UseEnvironment("Production");
+            // F01: extra configuration (for example ReverseProxy:KnownProxies) visible to the pipeline at build time.
+            foreach (var (key, value) in settings ?? new Dictionary<string, string>()) builder.UseSetting(key, value);
             builder.ConfigureServices(services =>
             {
                 services.Configure<RedisOptions>(options => options.Configuration.ChannelPrefix = RedisChannel.Literal(

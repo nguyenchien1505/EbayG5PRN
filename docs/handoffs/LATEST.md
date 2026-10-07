@@ -1,49 +1,56 @@
-# Handoff — E05: admin xử lý request và kết quả mô phỏng
+# Handoff — F01: Docker image ứng dụng và Nginx HTTPS
 
 07/10/2026. Repo D:/WINDOWS/PRN3/EbayGroup5.
 
-- Baseline main `029674b`. Runtime `69fe292` trên `task/E05-dispute-admin`, fast-forward vào main sau khi [CI37501792548](https://github.com/Twiash/EbayGroup5/actions/runs/37501792548) pass. Checkpoint `git log --oneline --grep=E05`.
-- Handoff trước: [E04](E04.md). **Nhóm E (khiếu nại) đã xong E01–E05.**
+- Baseline main `df34f1a`. Runtime trên `task/F01-app-image-nginx-https`; checkpoint `git log --oneline --grep=F01`. GitHub CI: xem mục Verification.
+- Handoff trước: [E05](E05.md) (nhóm E xong).
 
 ## Hoàn tất
 
-- Contract: [DISPUTE_ADMIN](../architecture/DISPUTE_ADMIN.md). **Không có migration** (vẫn 0001–0013); luật E01 giữ nguyên.
-- **Application/Infrastructure:**
-  - `QueueAsync(admin, DisputeQueueQuery(State, Page))`:
-    - Waiting = `Escalated`, sắp theo hạn 48 giờ.
-    - Closed = đã từng escalate và đã đóng, sắp theo thời điểm đóng.
-    - 20 dòng/trang.
-  - `DisputeEventView.ActorName`: chỉ có khi người xem là Admin.
-  - **Siết `ViewerRole`:** Admin phải có credential (như D05). Áp dụng cho `FindAsync`/`ActAsync`.
-- **Web:**
-  - `AdminController` thêm `Disputes`, `Dispute/{id}`, `DisputeAct` (chỉ nhận Decide/Message).
-  - `Models/AdminDisputes.cs`; Views `Admin/Disputes`, `Admin/Dispute`.
-  - `DisputeText.Status` có nhãn cho admin. `DisputeRequestText.Verb`/`AuditActor` tách khỏi `Event`.
-  - Menu admin có thêm "Request reviews". CSS `.dispute-overdue`, `.dispute-summary-plain`.
-- **Tests:**
-  - `DisputeAdminTests`: 3 test (hàng đợi/quyền, quyết định song song/audit, HTTP đầu cuối).
-  - `DisputeTests`/`DisputeDetailsTests` có wrapper `Setup` cấp credential cho seed admin.
-- [SECURITY](../architecture/SECURITY.md) có thêm dòng E05.
+- Contract: [DEPLOYMENT](../architecture/DEPLOYMENT.md). Runbook: [LOCAL_INFRA](../runbooks/LOCAL_INFRA.md#app-image-và-nginx-https-f01-từ-07102026). **Không có migration.**
+- **Image:**
+  - `Dockerfile` có target `web` và `migrate`; SDK 8.0.425 / ASP.NET 8.0.31 pin theo digest.
+  - Restore locked-mode; user `app`.
+  - `.dockerignore` loại secrets/.env/artifacts/tests/docs (trừ schema nguồn).
+- **Compose:**
+  - `compose.app.yaml` dùng kèm `compose.yaml`: migrate → web (healthcheck `bash` `/health/ready`) → nginx `1.28.3-alpine` pin digest.
+  - Mạng `app` có subnet cố định, Nginx dùng IP tĩnh; chỉ Nginx publish trên `127.0.0.1`.
+  - Volume `dataprotection-keys`.
+- **Nginx** `deploy/nginx/templates/default.conf.template`:
+  - 8080 → 308; 8443 TLS 1.2/1.3 + HTTP/2.
+  - WSS cho `/hubs/chat`.
+  - Ghi đè XFF/XProto/Host **trong từng location** (Nginx không kế thừa header khi location tự khai báo).
+  - `server_tokens off`; log không có query string.
+- **App:**
+  - `Security/ReverseProxy.cs`: forwarded headers chỉ khi có `ReverseProxy:KnownProxies/KnownNetworks`; rỗng = tắt, vì ASP.NET tin mọi nguồn khi danh sách rỗng.
+  - `ReadinessProbe`: SQL + Redis → `/health/ready` 200/503, `no-store`.
+  - Log `Microsoft.EntityFrameworkCore` hạ xuống Warning.
+- **Scripts:**
+  - `New-LocalTlsCertificate.ps1`: CA local không giữ khóa, server 397 ngày.
+  - `Start-AppStack.ps1 [-Stop]`.
+  - `Test-AppStack.ps1`: stack cô lập + `tests/EbayGroup5.StackSmoke`.
+  - `Clear-TestArtifacts.ps1` gỡ được các project `ebaygroup5-stack-*`.
+- **CI:** thêm bước "App image + Nginx HTTPS/WSS stack smoke" (timeout 35 phút) và upload log khi fail.
+- **Tests:** `ReverseProxyTests` (3 test); `AccountHttpTests.Factory` nhận thêm `settings`.
 
 ## Verification
 
-- [Evidence](../evidence/E05.md):
-  - Test tập trung 46/46.
-  - Hai admin song song → chỉ 1 quyết định.
-  - Mutation 2/2 bị bắt.
-  - Browser: admin Decide, buyer thấy kết quả; desktop/390/320px.
-- **Test-CI local pass: 242/242 .NET + 20/20 Node**, build 0 warnings, container CI tự xóa.
-- **GitHub [CI37501792548](https://github.com/Twiash/EbayGroup5/actions/runs/37501792548) exact runtime `69fe292` success**: build-test 4m03s, **242/242 .NET + 20/20 Node**, build 0 warnings. Docs-only `[skip ci]` sau CI.
-- Fixture preview (bị ignore) có moderator `d02admin@example.invalid`. Request #3 của preview đã được quyết cho buyer.
+- [Evidence](../evidence/F01.md):
+  - Test tích hợp 26/26; mutation "tin mọi nguồn" bị bắt.
+  - Stack thật PASS 12/12 sau khi sửa 3 lỗi do smoke phát hiện: healthcheck dash, log EF, kế thừa header Nginx.
+- **Test-CI local pass: 245/245 .NET + 20/20 Node**, build 0 warnings. GitHub CI (gồm stack smoke): ghi sau khi chạy (commit docs-only `[skip ci]`).
+- **Chưa chạy `Start-AppStack.ps1` trên dữ liệu thật của người dùng** (port 8080/8443 cố định); để người dùng chạy khi cần. Smoke cô lập đã kiểm đầu cuối cùng image và cấu hình đó.
+- Không kiểm bằng browser: CA local chưa được tin, và việc cài CA thuộc quyền người dùng.
 - Không đụng `launchSettings.json`.
 
-## Trạng thái requirement
+## Cho task sau (F02)
 
-- **G5-01…G5-08, G5-N03, SUP-05: Done.**
-- Còn Pending, đều thuộc nhóm F: G5-N01 (TLS/WSS), G5-N02/N04 (đo hiệu năng), G5-N05 (log/trace), UI-01 project-wide (G01).
+- Chạy hai replica web sau Nginx (upstream nhiều server, hoặc scale `web` với DNS của compose).
+- DataProtection key dùng chung: hiện là volume của một instance; F02 cần key ring dùng chung (volume dùng chung hoặc Redis), có thể kèm mã hóa key.
+- Rate limit dùng chung: limiter hiện ở bộ nhớ từng process; Hub chưa bị giới hạn invocation (OPS-02).
+- Chat xuyên instance đã có Redis backplane (C03); cần smoke hai instance.
+- HSTS khi có domain (F04).
 
-## Tiếp theo
+## Tiếp theo / Jira
 
-- Nhóm F theo [task index](../tasks/INDEX.md), bắt đầu từ F01 (Docker image + Nginx HTTPS; dependency C05, D05, E05 đã đủ).
-- Không tự chuyển sang F khi người dùng chưa giao.
-- E01–E05 → KAN-21…KAN-24 / TV4 Nguyên Nguyễn: hoàn tất local. Chưa sync Jira live; không tạo worklog/review/issue.
+- F01 → **KAN-26 / TV5 Hải Lê: hoàn tất local một phần** (còn F02, F06, F07). Chưa sync live; không tạo worklog/review/issue.

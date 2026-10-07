@@ -1,5 +1,6 @@
 # Lists, and with -Apply removes, ONLY test artifacts this repo creates (runbook LOCAL_INFRA, "Vòng đời Docker"):
 #   - stopped/retained Test-CI containers named ebaygroup5-ci-<32 hex>[-redis]
+#   - retained Test-AppStack compose projects ebaygroup5-stack-<32 hex>: their containers, network, named volumes and image tags (F01)
 #   - test databases EbayGroup5_Test_<32 hex> in the local ebaygroup5-local SQL Server (preview DBs only with -IncludePreview)
 # Never touches the EbayGroup5 database, named volumes, images or other Docker projects.
 param(
@@ -23,6 +24,22 @@ try {
             # -v removes only anonymous volumes attached to these containers.
             docker rm -f -v @containers | Out-Null
             if ($LASTEXITCODE -ne 0) { throw 'Could not remove all Test-CI containers.' }
+        }
+
+        $stacks = @(docker ps -a --filter 'label=com.docker.compose.project' --format '{{.Label "com.docker.compose.project"}}' |
+            Where-Object { $_ -cmatch '^ebaygroup5-stack-[0-9a-f]{32}$' } | Sort-Object -Unique)
+        if ($LASTEXITCODE -ne 0) { throw 'Cannot list Docker compose projects.' }
+        Write-Output "Test-AppStack projects: $($stacks.Count)"
+        $stacks | ForEach-Object { Write-Output "  $_" }
+        if ($Apply) {
+            foreach ($stack in $stacks) {
+                # The name matched the strict pattern above; only that project's own resources are removed.
+                docker compose -p $stack down --remove-orphans 2>$null | Out-Null
+                $volumes = @(docker volume ls --quiet --filter "label=com.docker.compose.project=$stack")
+                if ($volumes.Count -gt 0) { docker volume rm @volumes | Out-Null }
+                $hex = $stack.Substring('ebaygroup5-stack-'.Length)
+                docker image rm "ebaygroup5-web:stack-$hex" "ebaygroup5-migrate:stack-$hex" 2>$null | Out-Null
+            }
         }
     }
 
