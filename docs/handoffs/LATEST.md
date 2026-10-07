@@ -18,6 +18,7 @@ Handoff trước: [F06](F06.md); runtime SHA trong lịch sử cũ dùng ánh x�
 - Deploy-K8s hỗ trợ image có sẵn, start node đã dừng, migration trước cập nhật web/nginx.
 - Artifact validation + 5 rejection cases pass; PowerShell/Node syntax, docs, YAML guards pass.
 - Test-CI local pass 263/263 .NET +20/20 Node; build 0 warning; chưa có CI/CD thật trên runtime F07.
+- Local prebuilt deploy + smoke pass; image ID stamp đảm bảo rebuild cùng SHA thay pod, probe thực tế pass.
 
 ## Còn lại
 

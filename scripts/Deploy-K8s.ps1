@@ -53,11 +53,14 @@ elseif ((docker inspect --format '{{.State.Running}}' "$Cluster-control-plane") 
 
 # 2. Images tagged by commit (dirty trees get a unique suffix), loaded into the node.
 $tag = $ImageTag
+$webImageId = $null
 if ($ImageTag) {
     foreach ($target in 'web', 'migrate') {
         docker image inspect "ebaygroup5-${target}:$tag" --format '{{.Id}}' | Out-Null
         if ($LASTEXITCODE -ne 0) { throw "Verified CI image $target is missing; refusing to build on the deploy host." }
     }
+    $webImageId = (docker image inspect "ebaygroup5-web:$tag" --format '{{.Id}}').Trim()
+    if ($LASTEXITCODE -ne 0 -or $webImageId -notmatch '^sha256:[0-9a-f]{64}$') { throw 'CI web image ID is invalid.' }
 } else {
     $tag = (git -C $repoRoot rev-parse --short HEAD).Trim()
     if (git -C $repoRoot status --porcelain --untracked-files=no) { $tag += '-dirty-' + [Guid]::NewGuid().ToString('N').Substring(0, 6) }
@@ -94,6 +97,17 @@ $rendered = $rendered.Replace('ebaygroup5-web:local', "ebaygroup5-web:$tag")
 Set-Content -LiteralPath (Join-Path $Work 'rendered.yaml') -Value $rendered
 # Keep the existing app serving until migrations finish; first deploy infrastructure/services/policies only.
 $documents = @($rendered -split '(?m)^---\s*$' | Where-Object { $_.Trim() })
+if ($ImageTag) {
+    # Rebuilding the same source SHA can yield a different image ID. Stamp the pod template so those pods are replaced too.
+    $documents = @($documents | ForEach-Object {
+        if ($_ -match '(?m)^kind: Deployment\s*$' -and $_ -match '(?m)^  name: web\s*$') {
+            $pattern = '(?m)^  template:\r?\n    metadata:\r?\n'
+            if ([regex]::Matches($_, $pattern).Count -ne 1) { throw 'Cannot identify the web pod template for the CI image stamp.' }
+            [regex]::Replace($_, $pattern, "  template:`n    metadata:`n      annotations:`n        ebaygroup5.io/cd-image-id: `"$webImageId`"`n")
+        } else { $_ }
+    })
+    Set-Content -LiteralPath (Join-Path $Work 'rendered.yaml') -Value ($documents -join "`n---`n")
+}
 ($documents | Where-Object { $_ -notmatch '(?m)^kind: Deployment\s*$' }) -join "`n---`n" |
     kubectl --context $context apply -f - | Out-Host
 if ($LASTEXITCODE -ne 0) { throw 'kubectl apply (infrastructure) failed.' }

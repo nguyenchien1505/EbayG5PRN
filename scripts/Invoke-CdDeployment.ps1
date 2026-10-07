@@ -47,12 +47,17 @@ function Kube { $output = kubectl --context "kind-$Cluster" -n ebaygroup5 @args;
 $web = Kube get deployment web -o json | ConvertFrom-Json
 $migration = Kube get job migrate -o json | ConvertFrom-Json
 if ($web.status.readyReplicas -ne 2 -or $web.spec.template.spec.containers[0].image -ne $manifest.images.web.name -or
+    $web.spec.template.metadata.annotations.'ebaygroup5.io/cd-image-id' -ne $manifest.images.web.id -or
     $migration.status.succeeded -ne 1 -or $migration.spec.template.spec.containers[0].image -ne $manifest.images.migrate.name) {
     throw 'Deployment replicas, image SHA or migration completion mismatch.'
+}
+$pods = @((Kube get pods -l app.kubernetes.io/name=web -o json | ConvertFrom-Json).items | Where-Object { -not $_.metadata.deletionTimestamp })
+if ($pods.Count -ne 2 -or @($pods | Where-Object { $_.metadata.annotations.'ebaygroup5.io/cd-image-id' -ne $manifest.images.web.id }).Count) {
+    throw 'Running web pods are not stamped with the CI-built image ID.'
 }
 node "$PSScriptRoot/cd-smoke.mjs" (Join-Path $tls 'ca.crt') $HttpsPort $HttpPort
 if ($LASTEXITCODE -ne 0) { throw 'Read-only CD smoke failed.' }
 @{ revision = $ExpectedSha; cluster = $Cluster; webImage = $manifest.images.web.name; migrateImage = $manifest.images.migrate.name
-   readyReplicas = $web.status.readyReplicas; migrationSucceeded = $migration.status.succeeded; smoke = 'PASS'; utc = [DateTime]::UtcNow.ToString('o') } |
+   webImageId = $manifest.images.web.id; readyReplicas = $web.status.readyReplicas; migrationSucceeded = $migration.status.succeeded; smoke = 'PASS'; utc = [DateTime]::UtcNow.ToString('o') } |
     ConvertTo-Json | Set-Content -LiteralPath (Join-Path $work 'deployment-report.json') -Encoding utf8
 Write-Output "PASS: CD deployed $ExpectedSha, migration Complete, 2 ready web replicas, verified HTTPS."

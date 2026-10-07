@@ -28,6 +28,7 @@ Người dùng chốt runner **tạm thời trên máy hiện tại**, một job
 - `Build-CdBundle.ps1`: build/export hai image từ tracked tree sạch và ExpectedSha.
 - `Deploy-K8s.ps1`: bổ sung chế độ image đã build; các caller F06 vẫn build như cũ.
   Khởi động node kind đã dừng nếu có; không xoá cluster/PVC/database.
+  Stamp image ID vào Pod template để rebuild cùng SHA vẫn thay pod; kiểm cả hai pod có stamp của image CI.
 - `Invoke-CdDeployment.ps1`: xác minh artifact + image, dùng secrets/TLS có sẵn,
   gọi Deploy-K8s, kiểm job migration complete, image đúng SHA, 2 replica ready,
   HTTP redirect và HTTPS ready/catalog qua CA thật. Smoke không ghi dữ liệu demo.
