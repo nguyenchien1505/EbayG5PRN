@@ -33,13 +33,22 @@ foreach ($key in 'sa-password', 'app-password', 'redis-password') {
     if ([string]::IsNullOrWhiteSpace($secrets[$key])) { throw 'Existing cluster credentials are incomplete.' }
     if ($env:GITHUB_ACTIONS -eq 'true') { Write-Output "::add-mask::$($secrets[$key])" }
 }
+$archiveIdentities = & "$PSScriptRoot/Get-CdArchiveIdentities.ps1" -Archive $archive
+foreach ($target in 'web', 'migrate') {
+    $expected = $manifest.images.$target
+    if ($expected.id -notin $archiveIdentities[$expected.name]) { throw 'CI image ID is not bound to its tag in the Docker archive.' }
+}
 docker image load --input $archive
 if ($LASTEXITCODE -ne 0) { throw 'Cannot import CI images.' }
+$loadedIds = @{}
 foreach ($target in 'web', 'migrate') {
     $expected = $manifest.images.$target
     $image = @(docker image inspect $expected.name | ConvertFrom-Json)[0]
-    if ($LASTEXITCODE -ne 0 -or $image.Id -ne $expected.id -or $image.Os -ne 'linux' -or $image.Architecture -ne 'amd64' -or
+    $allowed = $archiveIdentities[$expected.name]
+    if ($LASTEXITCODE -ne 0 -or -not $allowed -or $expected.id -notin $allowed -or $image.Id -notin $allowed -or
+        $image.Os -ne 'linux' -or $image.Architecture -ne 'amd64' -or
         $image.Config.Labels.'org.opencontainers.image.revision' -ne $ExpectedSha) { throw 'Imported image does not match the CI manifest/revision.' }
+    $loadedIds[$target] = $image.Id
 }
 $work = Join-Path $repoRoot "artifacts/cd/$ExpectedSha"
 & "$PSScriptRoot/Deploy-K8s.ps1" -Cluster $Cluster -HttpsPort $HttpsPort -HttpPort $HttpPort -Secrets $secrets -TlsDir $tls -Work $work -ImageTag $ExpectedSha
@@ -47,17 +56,17 @@ function Kube { $output = kubectl --context "kind-$Cluster" -n ebaygroup5 @args;
 $web = Kube get deployment web -o json | ConvertFrom-Json
 $migration = Kube get job migrate -o json | ConvertFrom-Json
 if ($web.status.readyReplicas -ne 2 -or $web.spec.template.spec.containers[0].image -ne $manifest.images.web.name -or
-    $web.spec.template.metadata.annotations.'ebaygroup5.io/cd-image-id' -ne $manifest.images.web.id -or
+    $web.spec.template.metadata.annotations.'ebaygroup5.io/cd-image-id' -ne $loadedIds.web -or
     $migration.status.succeeded -ne 1 -or $migration.spec.template.spec.containers[0].image -ne $manifest.images.migrate.name) {
     throw 'Deployment replicas, image SHA or migration completion mismatch.'
 }
 $pods = @((Kube get pods -l app.kubernetes.io/name=web -o json | ConvertFrom-Json).items | Where-Object { -not $_.metadata.deletionTimestamp })
-if ($pods.Count -ne 2 -or @($pods | Where-Object { $_.metadata.annotations.'ebaygroup5.io/cd-image-id' -ne $manifest.images.web.id }).Count) {
+if ($pods.Count -ne 2 -or @($pods | Where-Object { $_.metadata.annotations.'ebaygroup5.io/cd-image-id' -ne $loadedIds.web }).Count) {
     throw 'Running web pods are not stamped with the CI-built image ID.'
 }
 node "$PSScriptRoot/cd-smoke.mjs" (Join-Path $tls 'ca.crt') $HttpsPort $HttpPort
 if ($LASTEXITCODE -ne 0) { throw 'Read-only CD smoke failed.' }
 @{ revision = $ExpectedSha; cluster = $Cluster; webImage = $manifest.images.web.name; migrateImage = $manifest.images.migrate.name
-   webImageId = $manifest.images.web.id; readyReplicas = $web.status.readyReplicas; migrationSucceeded = $migration.status.succeeded; smoke = 'PASS'; utc = [DateTime]::UtcNow.ToString('o') } |
+   ciWebImageId = $manifest.images.web.id; loadedWebImageId = $loadedIds.web; readyReplicas = $web.status.readyReplicas; migrationSucceeded = $migration.status.succeeded; smoke = 'PASS'; utc = [DateTime]::UtcNow.ToString('o') } |
     ConvertTo-Json | Set-Content -LiteralPath (Join-Path $work 'deployment-report.json') -Encoding utf8
 Write-Output "PASS: CD deployed $ExpectedSha, migration Complete, 2 ready web replicas, verified HTTPS."

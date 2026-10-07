@@ -17,6 +17,8 @@ Script tải runner Windows x64 v2.337.0 chính thức, kiểm SHA-256, đăng k
 khởi động process ẩn, dispatch `cd.yml` trên main, đợi run (tối đa 65 phút) và in URL.
 GitHub-hosted Ubuntu build web/migrate, chuyển artifact vào job self-hosted.
 Runner chỉ import image đã kiểm manifest/checksum/OCI revision, không build app tại local.
+Identity được đối chiếu theo tag trong archive: config digest (classic) hoặc manifest digest
+(containerd). Report ghi cả CI ID và loaded ID; không cần đổi backend Docker Desktop.
 
 Mặc định state là `secrets/` của repo nơi bootstrap được chạy, không phải checkout của Actions.
 Máy khác có thể dùng `-StateRoot <thư-mục-secrets-đã-có>`. Không ghi path cá nhân/secrets vào workflow.
