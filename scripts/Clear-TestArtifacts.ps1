@@ -1,7 +1,7 @@
 # Lists, and with -Apply removes, ONLY test artifacts this repo creates (runbook LOCAL_INFRA, "Vòng đời Docker"):
 #   - stopped/retained Test-CI containers named ebaygroup5-ci-<32 hex>[-redis]
 #   - retained Test-AppStack compose projects ebaygroup5-stack-<32 hex>: their containers, network, named volumes and image tags (F01)
-#   - retained Test-K8s kind clusters ebaygroup5-k8s-<12 hex> and their image tags (F06; never the user cluster "ebaygroup5")
+#   - retained kind test clusters ebaygroup5-k8s-<12 hex> / ebaygroup5-rolling-<12 hex> (F06/F08; never the user cluster "ebaygroup5")
 #   - test databases EbayGroup5_Test_<32 hex> in the local ebaygroup5-local SQL Server (preview DBs only with -IncludePreview)
 # Never touches the EbayGroup5 database, named volumes, images or other Docker projects.
 param(
@@ -46,7 +46,7 @@ try {
 
     if (-not $DatabasesOnly) {
         # Kind clusters run as containers named <cluster>-control-plane; listing them needs no kind binary.
-        $clusters = @(docker ps -a --format '{{.Names}}' | ForEach-Object { if ($_ -cmatch '^(ebaygroup5-k8s-[0-9a-f]{12})-control-plane$') { $Matches[1] } } | Sort-Object -Unique)
+        $clusters = @(docker ps -a --format '{{.Names}}' | ForEach-Object { if ($_ -cmatch '^(ebaygroup5-(?:k8s|rolling)-[0-9a-f]{12})-control-plane$') { $Matches[1] } } | Sort-Object -Unique)
         Write-Output "Test-K8s clusters: $($clusters.Count)"
         $clusters | ForEach-Object { Write-Output "  $_" }
         if ($Apply -and $clusters.Count -gt 0) {
