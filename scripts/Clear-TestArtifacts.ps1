@@ -1,6 +1,7 @@
 # Lists, and with -Apply removes, ONLY test artifacts this repo creates (runbook LOCAL_INFRA, "Vòng đời Docker"):
 #   - stopped/retained Test-CI containers named ebaygroup5-ci-<32 hex>[-redis]
 #   - retained Test-AppStack compose projects ebaygroup5-stack-<32 hex>: their containers, network, named volumes and image tags (F01)
+#   - retained Test-K8s kind clusters ebaygroup5-k8s-<12 hex> and their image tags (F06; never the user cluster "ebaygroup5")
 #   - test databases EbayGroup5_Test_<32 hex> in the local ebaygroup5-local SQL Server (preview DBs only with -IncludePreview)
 # Never touches the EbayGroup5 database, named volumes, images or other Docker projects.
 param(
@@ -39,6 +40,21 @@ try {
                 if ($volumes.Count -gt 0) { docker volume rm @volumes | Out-Null }
                 $hex = $stack.Substring('ebaygroup5-stack-'.Length)
                 docker image rm "ebaygroup5-web:stack-$hex" "ebaygroup5-migrate:stack-$hex" 2>$null | Out-Null
+            }
+        }
+    }
+
+    if (-not $DatabasesOnly) {
+        # Kind clusters run as containers named <cluster>-control-plane; listing them needs no kind binary.
+        $clusters = @(docker ps -a --format '{{.Names}}' | ForEach-Object { if ($_ -cmatch '^(ebaygroup5-k8s-[0-9a-f]{12})-control-plane$') { $Matches[1] } } | Sort-Object -Unique)
+        Write-Output "Test-K8s clusters: $($clusters.Count)"
+        $clusters | ForEach-Object { Write-Output "  $_" }
+        if ($Apply -and $clusters.Count -gt 0) {
+            $kind = pwsh -NoProfile -File "$PSScriptRoot/Install-Kind.ps1"
+            if ($LASTEXITCODE -ne 0) { throw 'kind install failed.' }
+            foreach ($cluster in $clusters) {
+                & $kind delete cluster --name $cluster | Out-Null
+                if ($LASTEXITCODE -ne 0) { throw "Could not delete kind cluster $cluster." }
             }
         }
     }

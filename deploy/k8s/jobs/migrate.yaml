@@ -1,0 +1,71 @@
+# F06 (docs/architecture/K8S.md): DbUp migrations + runtime login grants, run before web is (re)deployed. scripts/Deploy-K8s.ps1
+# replaces the image tag and, for the demo/test helpers, the job name and the args line (--seed-demo, --enable-demo-auth).
+# Jobs are immutable, so the script deletes and recreates them.
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: migrate
+  namespace: ebaygroup5
+  labels:
+    app.kubernetes.io/part-of: ebaygroup5
+spec:
+  backoffLimit: 3
+  activeDeadlineSeconds: 600
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: migrate
+    spec:
+      restartPolicy: Never
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1654
+        runAsGroup: 1654
+      containers:
+        - name: migrate
+          image: ebaygroup5-migrate:local
+          imagePullPolicy: Never
+          args: []
+          env:
+            - name: SA_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: ebaygroup5-secrets
+                  key: sa-password
+            - name: ConnectionStrings__MigrationConnection
+              value: "Server=sqlserver,1433;Database=EbayGroup5;User ID=sa;Password=$(SA_PASSWORD);Encrypt=True;TrustServerCertificate=True"
+            - name: Database__AppPassword
+              valueFrom:
+                secretKeyRef:
+                  name: ebaygroup5-secrets
+                  key: app-password
+            # Only for --enable-demo-auth (test/demo clusters); absent keys leave the variables unset.
+            - name: Database__DemoPasswordBuyer
+              valueFrom:
+                secretKeyRef:
+                  name: ebaygroup5-secrets
+                  key: demo-buyer-password
+                  optional: true
+            - name: Database__DemoPasswordSeller
+              valueFrom:
+                secretKeyRef:
+                  name: ebaygroup5-secrets
+                  key: demo-seller-password
+                  optional: true
+            - name: Database__DemoPasswordAdmin
+              valueFrom:
+                secretKeyRef:
+                  name: ebaygroup5-secrets
+                  key: demo-admin-password
+                  optional: true
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: ["ALL"]
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
+      volumes:
+        - name: tmp
+          emptyDir: {}
