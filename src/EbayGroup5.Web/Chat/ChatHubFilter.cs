@@ -9,7 +9,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace EbayGroup5.Web.Chat;
 
-public sealed class ChatHubFilter(EbayDbContext db, SharedRateLimiter limiter, ILogger<ChatHubFilter> logger) : IHubFilter
+public sealed class ChatHubFilter(EbayDbContext db, SharedRateLimiter limiter, SessionRevocation revocation, ILogger<ChatHubFilter> logger) : IHubFilter
 {
     private async Task Validate(HubCallerContext context)
     {
@@ -19,7 +19,8 @@ public sealed class ChatHubFilter(EbayDbContext db, SharedRateLimiter limiter, I
         var actor = int.TryParse(principal?.FindFirstValue(ClaimTypes.NameIdentifier), out var id)
             ? await db.Set<User>().AsNoTracking().SingleOrDefaultAsync(x => x.Id == id, context.ConnectionAborted) : null;
         if (principal?.Identity?.IsAuthenticated != true || role is not ("Buyer" or "Seller") ||
-            actor?.Role != role || string.IsNullOrEmpty(actor.Password) || expires == null || expires <= DateTimeOffset.UtcNow)
+            actor?.Role != role || string.IsNullOrEmpty(actor.Password) || expires == null || expires <= DateTimeOffset.UtcNow ||
+            SessionRevocation.SessionId(principal) is not { } sid || await revocation.IsRevokedAsync(sid))
         {
             context.Abort();
             throw new HubException("401: Sign in is required.");

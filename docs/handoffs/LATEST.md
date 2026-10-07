@@ -29,9 +29,15 @@
 - **G5-N01: Done.**
 - OPS-05 Pending (F05 JMeter). OPS-01 Pending (F05): lần chạy stack này WebSocket chat nằm trên 2 replica nhưng chỉ là INFO, chưa khẳng định.
 
+## Bổ sung Q-SEC-001 (branch `task/F04-session-revocation`)
+
+- Người dùng chốt thêm danh sách phiên bị thu hồi trên Redis (Answered 07/10/2026). Làm như phần bổ sung F04 (PLAN cố định 40 task).
+- `SessionRevocation`: claim `eg5:sid`; logout ghi `{prefix}:revoked-session:{sid}` (TTL còn lại của cookie); cookie và Hub từ chối phiên thiếu `sid` hoặc đã thu hồi; Redis lỗi → chỉ instance logout biết.
+- `SessionRevocationTests` 4/4, mutation 3/3; Test-CI local 262 .NET + 20 Node; smoke stack 25/25 ("copied cookie refused on every replica after logout 0/12"). Chi tiết ở [evidence](../evidence/F04.md#bổ-sung-q-sec-001-thu-hồi-phiên-khi-logout-07102026).
+
 ## Câu hỏi / rủi ro
 
-- **Q-SEC-001 (Open):** logout chưa thu hồi bản sao cookie (hạn 30 phút). Đề xuất denylist phiên trên Redis là task riêng nếu người dùng đồng ý.
+- Q-SEC-001 Answered (đã làm). Cookie cũ không có `sid` phải đăng nhập lại một lần.
 - Key ring DataProtection chưa mã hóa khi lưu → F06 (`ProtectKeysWithCertificate` + K8s Secret).
 - HSTS chỉ hiệu lực khi có domain thật trong `AllowedHosts`.
 

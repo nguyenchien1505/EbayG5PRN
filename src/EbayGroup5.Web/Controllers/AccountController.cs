@@ -32,7 +32,7 @@ public sealed class AccountController(AccountService accounts) : Controller
         }
         var identity = new ClaimsIdentity(new[] {
             new Claim(ClaimTypes.NameIdentifier, account.Id.ToString(System.Globalization.CultureInfo.InvariantCulture)),
-            new Claim(ClaimTypes.Name, account.Name), new Claim(ClaimTypes.Role, account.Role)
+            new Claim(ClaimTypes.Name, account.Name), new Claim(ClaimTypes.Role, account.Role), SessionRevocation.NewClaim()
         }, CookieAuthenticationDefaults.AuthenticationScheme);
         await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(identity),
             new AuthenticationProperties { IsPersistent = false });
@@ -69,8 +69,14 @@ public sealed class AccountController(AccountService accounts) : Controller
     }
 
     [Authorize, HttpPost]
-    public async Task<IActionResult> Logout()
+    public async Task<IActionResult> Logout([FromServices] SessionRevocation revocation, [FromServices] TimeProvider clock)
     {
+        // Q-SEC-001: revoke this session everywhere, so a copied cookie stops working too (SECURITY_TESTS.md).
+        if (SessionRevocation.SessionId(User) is { } sid)
+        {
+            var ticket = await HttpContext.AuthenticateAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+            await revocation.RevokeAsync(sid, ticket.Properties?.ExpiresUtc ?? clock.GetUtcNow().AddMinutes(30));
+        }
         await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
         return RedirectToAction(nameof(Login));
     }
