@@ -115,3 +115,5 @@ pwsh -NoProfile -File scripts/Start-AppStack.ps1 -Stop       # gỡ web/nginx/mi
   - Script tạo project `ebaygroup5-stack-<hex>` với mật khẩu, port, subnet và chứng chỉ riêng.
   - Pass: gỡ đúng project đó, gồm container, network, volume `<project>_*` và image tag `stack-<hex>`.
   - Fail: giữ lại và ghi log vào `artifacts/stack/<hex>/logs.txt`. Dọn bằng `Clear-TestArtifacts.ps1 -Apply`.
+
+**H01 09/10/2026:** bộ test vượt ~220 database; 2048 MB không đủ (lỗi 701 lặp lại ổn định). `Test-CI` nâng `MSSQL_MEMORY_LIMIT_MB` lên 3072 và container 4 GB.

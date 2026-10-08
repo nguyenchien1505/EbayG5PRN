@@ -10,7 +10,7 @@ Status `Pending` nghĩa là chưa triển khai/chưa nghiệm thu. Task tài li�
 | G5-02 | Lưu lịch sử chat theo thời gian/người gửi | C01–C02, C05 | Restart/reconnect đọc lại đúng thứ tự, có phân trang | Done |
 | G5-03 | Rating và comment sau mỗi đơn đã nhận | D01–D02 | Chỉ owner đơn Delivered, một review mỗi OrderItem; mua lại được review | Done |
 | G5-04 | Trung bình đánh giá trên sản phẩm | D02, D05 | Trung bình/số lượt đúng, đổi theo kiểm duyệt, không chia cho zero | Done |
-| G5-05 | Điểm uy tín seller từ feedback tích cực | D03–D04 | Sentiment riêng, công thức đã chốt, seller reply đúng quyền | Done |
+| G5-05 | Điểm uy tín seller từ feedback tích cực | D03–D04, H01–H02 | Sentiment riêng, công thức đã chốt, seller reply đúng quyền; H01: tuần Pacific, DSR, sao | Done (H01 nâng theo eBay; hiển thị H02) |
 | G5-06 | Gửi khiếu nại có nội dung và lý do | E01–E02 | Đúng dòng hàng/owner; không tạo trùng khi gửi lại | Done |
 | G5-07 | Buyer quản lý đã gửi, seller quản lý đã nhận | E03 | Danh sách/chi tiết/timeline đúng quyền và phân trang | Done |
 | G5-08 | Phản hồi tự động kết nối hệ thống admin | E04–E05 | Tiếp nhận, hướng dẫn, chuyển quá hạn, admin phân xử có audit | Done |
@@ -154,3 +154,5 @@ CI37709417510 success (demo INR mới/worker/admin,load,K8s,rolling). Kind demo3
 provision/rerun bảo toàn credentials/TLS/data. **DOC-01 Done về tài liệu và nghiệm thu kỹ thuật**;
 checklist/phần giải thích từng thành viên đã chuẩn bị, không chứng nhận rehearsal cá nhân đã diễn ra.
 **OPS-04 Pending**, user yêu cầu hoãn Jira live; không tạo worklog/review/transition giả.
+
+H01 09/10/2026: [evidence](../evidence/H01.md) — điểm/% theo (buyer, tuần Pacific), DSR, sao, form R1 một comment; 283 .NET + 20 Node. G5-03/G5-05 giữ Done; phần hiển thị DSR/hồ sơ eBay ở H02.

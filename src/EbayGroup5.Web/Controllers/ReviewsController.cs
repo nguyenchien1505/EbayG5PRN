@@ -26,10 +26,10 @@ public sealed class ReviewsController(IReviewService reviews, IFeedbackService f
     public async Task<IActionResult> Create([FromForm] ReviewForm form, CancellationToken cancellationToken)
     {
         if (!ModelState.IsValid)
-            return await Redisplay(form, StatusCodes.Status400BadRequest,
-                ModelState.ContainsKey(nameof(ReviewForm.Sentiment)) && ModelState[nameof(ReviewForm.Sentiment)]!.Errors.Count > 0
-                    ? "Choose Positive, Neutral or Negative for the seller." : "Select a star rating from 1 to 5.", cancellationToken);
-        var result = await feedback.SubmitAsync(ActorId, new(form.OrderItemId, form.Sentiment, form.SellerComment, form.Rating, form.Comment), cancellationToken);
+            return await Redisplay(form, StatusCodes.Status400BadRequest, Invalid(nameof(ReviewForm.Sentiment)) ? "Choose Positive, Neutral or Negative for the seller."
+                : Invalid(nameof(ReviewForm.Rating)) ? "Select a star rating from 1 to 5."
+                : Invalid(nameof(ReviewForm.ArrivedOnTime)) ? "Choose Yes or No for delivery on time." : "Rate each detail from 1 to 5 stars.", cancellationToken);
+        var result = await feedback.SubmitAsync(ActorId, new(form.OrderItemId, form.Sentiment, form.Rating, form.Comment, form.Details), cancellationToken);
         switch (result.Outcome)
         {
             case LeaveFeedbackOutcome.Success:
@@ -42,6 +42,8 @@ public sealed class ReviewsController(IReviewService reviews, IFeedbackService f
             default: return await Redisplay(form, StatusCodes.Status409Conflict, result.Error, cancellationToken);
         }
     }
+
+    private bool Invalid(string field) => ModelState.TryGetValue(field, out var entry) && entry.Errors.Count > 0;
 
     private async Task<ReviewPage?> Load(ReviewForm form, CancellationToken ct)
     {

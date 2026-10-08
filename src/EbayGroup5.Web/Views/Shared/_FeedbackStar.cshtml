@@ -1,0 +1,15 @@
+@model EbayGroup5.Application.Feedback.FeedbackStar?
+@* eBay feedback star next to the score (H01): colour by score tier, shooting star from 10,000 points. *@
+@if (Model is { } star)
+{
+    var color = star.Color.ToString().ToLowerInvariant();
+    var label = $"{star.Color} {(star.Shooting ? "shooting star" : "star")}";
+    if (star.Shooting)
+    {
+        <svg class="feedback-star shooting feedback-star-@color" viewBox="0 0 22 14" role="img" aria-label="@label"><path d="M15 0l1.8 4.3 4.6.4-3.5 3 1.1 4.5L15 9.8l-4 2.4 1.1-4.5-3.5-3 4.6-.4z M0 6h7v1.4H0z M2 9h6v1.4H2z M1 3h6v1.4H1z" /></svg>
+    }
+    else
+    {
+        <svg class="feedback-star feedback-star-@color" viewBox="0 0 14 14" role="img" aria-label="@label"><path d="M7 0l1.8 4.3 4.6.4-3.5 3 1.1 4.5L7 9.8l-4 2.4 1.1-4.5-3.5-3 4.6-.4z" /></svg>
+    }
+}

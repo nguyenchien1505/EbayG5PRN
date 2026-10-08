@@ -30,7 +30,7 @@ public sealed class FeedbackTests
     private static int[] Lines(SetupData s) =>
         SqlFixture.Rows(s.Target, $"SELECT CONVERT(varchar(12),id) FROM dbo.OrderItem WHERE orderId={s.Order}").Select(int.Parse).Order().ToArray();
     private static FeedbackService Service(SetupData s, DateTime now) => new(Open(s.Target), new FixedClock(now));
-    private static LeaveFeedbackRequest Seller(int item, FeedbackSentiment sentiment, string? comment = null) => new(item, sentiment, comment, null, null);
+    private static LeaveFeedbackRequest Seller(int item, FeedbackSentiment sentiment, string? comment = null) => new(item, sentiment, null, comment);
     private static string Count(SetupData s) => SqlFixture.Scalar(s.Target, "SELECT COUNT(*) FROM dbo.SellerFeedback");
 
     [Theory]
@@ -103,13 +103,17 @@ public sealed class FeedbackTests
         Assert.Null(await Service(s, later).ListForOrderAsync(s.Seller, s.Order));
         foreach (var bad in new LeaveFeedbackRequest[]
         {
-            new(s.Item, null, null, null, null),
-            new(s.Item, null, "comment without sentiment", null, null),
-            new(s.Item, null, null, null, "item comment without stars"),
-            new(s.Item, (FeedbackSentiment)9, null, null, null),
-            new(s.Item, FeedbackSentiment.Positive, new string('x', FeedbackLimits.MaxCommentLength + 1), null, null),
-            new(s.Item, FeedbackSentiment.Positive, "bell\a", null, null),
-            new(s.Item, FeedbackSentiment.Positive, null, 6, null),
+            new(s.Item, null, null, null),
+            new(s.Item, null, null, "comment without sentiment or stars"),
+            new(s.Item, null, null, null, new FeedbackDetails(Description: 5)),
+            new(s.Item, null, 4, null, new FeedbackDetails(ArrivedOnTime: true)),
+            new(s.Item, (FeedbackSentiment)9, null, null),
+            new(s.Item, FeedbackSentiment.Positive, null, new string('x', FeedbackLimits.MaxCommentLength + 1)),
+            new(s.Item, null, 4, new string('x', FeedbackLimits.MaxCommentLength + 1)),
+            new(s.Item, FeedbackSentiment.Positive, null, "bell\a"),
+            new(s.Item, FeedbackSentiment.Positive, 6, null),
+            new(s.Item, FeedbackSentiment.Positive, null, null, new FeedbackDetails(ShippingTime: 6)),
+            new(s.Item, FeedbackSentiment.Positive, null, null, new FeedbackDetails(Communication: 0)),
         })
             Assert.Equal(LeaveFeedbackOutcome.Invalid, (await Service(s, later).SubmitAsync(s.Buyer, bad)).Outcome);
 
@@ -136,12 +140,12 @@ public sealed class FeedbackTests
         SqlFixture.Execute(s.Target, $"UPDATE dbo.Product SET sellerId={s.OtherSeller} WHERE id={s.Product}");
         await using (var db = Open(s.Target))
             Assert.Equal(EbayGroup5.Application.Reviews.ReviewOutcome.Success, (await new ReviewService(db).SubmitAsync(s.Buyer, lines[0], 5, "reviewed first")).Outcome);
-        var rolledBack = await Service(s, now).SubmitAsync(s.Buyer, new(lines[0], FeedbackSentiment.Negative, "should roll back", 1, "duplicate review"));
+        var rolledBack = await Service(s, now).SubmitAsync(s.Buyer, new(lines[0], FeedbackSentiment.Negative, 1, "should roll back"));
         Assert.Equal(LeaveFeedbackOutcome.Conflict, rolledBack.Outcome);
         Assert.Equal("0", Count(s));
         Assert.Equal("1", SqlFixture.Scalar(s.Target, "SELECT COUNT(*) FROM dbo.Review"));
 
-        var both = await Service(s, now).SubmitAsync(s.Buyer, new(lines[1], FeedbackSentiment.Positive, "Great seller", 4, "Nice item"));
+        var both = await Service(s, now).SubmitAsync(s.Buyer, new(lines[1], FeedbackSentiment.Positive, 4, "Nice item"));
         Assert.Equal(LeaveFeedbackOutcome.Success, both.Outcome);
         Assert.True(both.FeedbackPosted && both.ReviewPosted);
         Assert.Equal(s.Order, both.OrderId);
@@ -166,11 +170,11 @@ public sealed class FeedbackTests
         Assert.Equal("2", Count(s));
         var last = Lines(s)[2];
         SqlFixture.Execute(s.Target, "CREATE TRIGGER dbo.FeedbackFailure ON dbo.SellerFeedback AFTER INSERT AS THROW 51008, 'Isolated test failure', 1;");
-        await Assert.ThrowsAsync<Microsoft.EntityFrameworkCore.DbUpdateException>(() => Service(s, now).SubmitAsync(s.Buyer, new(last, FeedbackSentiment.Positive, null, 5, null)));
+        await Assert.ThrowsAsync<Microsoft.EntityFrameworkCore.DbUpdateException>(() => Service(s, now).SubmitAsync(s.Buyer, new(last, FeedbackSentiment.Positive, 5, null)));
         Assert.Equal("2", Count(s));
         Assert.Equal("0", SqlFixture.Scalar(s.Target, $"SELECT COUNT(*) FROM dbo.Review WHERE OrderItemId={last}"));
         SqlFixture.Execute(s.Target, "DISABLE TRIGGER dbo.FeedbackFailure ON dbo.SellerFeedback");
-        Assert.Equal(LeaveFeedbackOutcome.Success, (await Service(s, now).SubmitAsync(s.Buyer, new(last, FeedbackSentiment.Positive, null, 5, null))).Outcome);
+        Assert.Equal(LeaveFeedbackOutcome.Success, (await Service(s, now).SubmitAsync(s.Buyer, new(last, FeedbackSentiment.Positive, 5, null))).Outcome);
     }
 
     [Fact]
@@ -249,18 +253,18 @@ public sealed class FeedbackTests
             form["__RequestVerificationToken"] = Field(await buyer.GetStringAsync(create));
             return await buyer.PostAsync("/Reviews/Create", new FormUrlEncodedContent(form));
         }
-        var early = await Post(new() { ["Sentiment"] = "Negative", ["SellerComment"] = "keep me" });
+        var early = await Post(new() { ["Sentiment"] = "Negative", ["Comment"] = "keep me" });
         Assert.Equal((HttpStatusCode)409, early.StatusCode);
         var earlyHtml = await early.Content.ReadAsStringAsync();
         Assert.Contains("wait 7 days", earlyHtml);
         Assert.Contains("keep me", earlyHtml);
         Assert.Equal(HttpStatusCode.BadRequest, (await Post(new() { ["Sentiment"] = "Great" })).StatusCode);
-        Assert.Equal(HttpStatusCode.BadRequest, (await Post(new() { ["SellerComment"] = "no sentiment" })).StatusCode);
+        Assert.Equal(HttpStatusCode.BadRequest, (await Post(new() { ["Comment"] = "no sentiment" })).StatusCode);
         Assert.Equal("0", Count(s));
 
         SqlFixture.Execute(s.Target, $"UPDATE dbo.Payment SET paidAt=DATEADD(day,-10,SYSUTCDATETIME()) WHERE orderId={s.Order}");
         Assert.DoesNotMatch("id=\"sentiment-Negative\"[^>]*disabled", await buyer.GetStringAsync(create));
-        var posted = await Post(new() { ["Sentiment"] = "Positive", ["SellerComment"] = "Quick replies", ["SellerId"] = s.OtherSeller.ToString(), ["BuyerId"] = s.OtherBuyer.ToString() });
+        var posted = await Post(new() { ["Sentiment"] = "Positive", ["Comment"] = "Quick replies", ["SellerId"] = s.OtherSeller.ToString(), ["BuyerId"] = s.OtherBuyer.ToString() });
         Assert.Equal(HttpStatusCode.Redirect, posted.StatusCode);
         var after = WebUtility.HtmlDecode(await buyer.GetStringAsync(posted.Headers.Location!.OriginalString));
         Assert.Contains("Thanks — your feedback was posted.", after);

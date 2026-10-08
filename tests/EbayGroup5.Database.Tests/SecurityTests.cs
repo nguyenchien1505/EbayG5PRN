@@ -176,7 +176,7 @@ public sealed class SecurityTests
         w.XssAddress = int.Parse(SqlFixture.Scalar(s.Target, $"SELECT MAX(id) FROM dbo.Address WHERE userId={s.Buyer}"));
         await Expect(HttpStatusCode.Redirect, Post(w.Buyer, "/Reviews/Create", new()
         {
-            ["OrderItemId"] = s.Item.ToString(), ["Rating"] = "4", ["Comment"] = Xss("review"), ["Sentiment"] = "Positive", ["SellerComment"] = Xss("feedback")
+            ["OrderItemId"] = s.Item.ToString(), ["Rating"] = "4", ["Comment"] = Xss("review"), ["Sentiment"] = "Positive"
         }, await Token(w.Buyer)), "review + feedback");
         w.Review = int.Parse(SqlFixture.Scalar(s.Target, "SELECT MAX(id) FROM dbo.Review"));
         w.Feedback = int.Parse(SqlFixture.Scalar(s.Target, "SELECT MAX(Id) FROM dbo.SellerFeedback"));
@@ -252,7 +252,7 @@ public sealed class SecurityTests
         await Probe("other buyer opens the order confirmation", HttpStatusCode.NotFound, w.OtherBuyer.GetAsync($"/Checkout/Confirmation/{s.Order}"));
         await Probe("other buyer reviews the item", HttpStatusCode.NotFound, Post(w.OtherBuyer, "/Reviews/Create", new()
         {
-            ["OrderItemId"] = Id(s.Item), ["Rating"] = "1", ["Comment"] = "not mine", ["Sentiment"] = "Negative", ["SellerComment"] = "not mine"
+            ["OrderItemId"] = Id(s.Item), ["Rating"] = "1", ["Comment"] = "not mine", ["Sentiment"] = "Negative"
         }, otherBuyer));
         await Probe("other seller replies to the feedback", HttpStatusCode.NotFound, Post(w.OtherSeller, "/Sellers/Reply", new() { ["feedbackId"] = Id(w.Feedback), ["reply"] = "not mine" }, otherSeller));
         await Probe("other buyer opens a request on the item", HttpStatusCode.NotFound, Post(w.OtherBuyer, "/Disputes/Open", new()
@@ -410,7 +410,7 @@ public sealed class SecurityTests
         }
         Assert.True(failures.Count == 0, string.Join(Environment.NewLine, failures));
         // Each injected field really reached an HTML page (otherwise "no raw payload" would prove nothing).
-        foreach (var field in new[] { "name", "addr-name", "addr-street", "review", "feedback", "reply", "dispute", "dispute-msg", "report", "note" })
+        foreach (var field in new[] { "name", "addr-name", "addr-street", "review", "reply", "dispute", "dispute-msg", "report", "note" })
             Assert.True(seen.ContainsKey("xss-" + field), $"xss-{field} never rendered; pages checked: {string.Join(", ", pages.Select(p => p.Url))}");
         Assert.Contains($"anonymous /Catalog/Details/{s.Product}", seen["xss-review"]);
         Assert.Contains($"seller /Disputes/Details/{w.Dispute}", seen["xss-dispute"]);

@@ -18,7 +18,7 @@
 <section class="checkout-card profile-card" aria-label="Seller summary">
     <span class="seller-avatar profile-avatar" aria-hidden="true">@Model.Seller[0]</span>
     <div>
-        <p class="profile-name"><strong>@Model.Seller</strong> <span title="Feedback score: positive minus negative, all time">(@rep.Score.ToString(CultureInfo.InvariantCulture))</span></p>
+        <p class="profile-name"><strong>@Model.Seller</strong> <span title="Feedback score">(@rep.Score.ToString(CultureInfo.InvariantCulture)<partial name="_FeedbackStar" model="rep.Star" />)</span></p>
         <p><strong>Positive Feedback (last 12 months): @(rep.PositivePercent is decimal p ? p.ToString("0.#", CultureInfo.InvariantCulture) + "%" : "—")</strong></p>
     </div>
 </section>

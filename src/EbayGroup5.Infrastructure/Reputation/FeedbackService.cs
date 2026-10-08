@@ -9,12 +9,52 @@ using Microsoft.EntityFrameworkCore;
 
 namespace EbayGroup5.Infrastructure.Reputation;
 
-public sealed class FeedbackService(EbayDbContext db, TimeProvider clock) : IFeedbackService
+public sealed class FeedbackService(EbayDbContext db, TimeProvider clock, FeedbackDisplayOptions? display = null) : IFeedbackService
 {
+    private readonly int detailedMinimum = (display ?? new()).DetailedRatingsMinimum is var min and >= 1 and <= 1_000 ? min
+        : throw new ArgumentOutOfRangeException(nameof(display), "Feedback:DetailedRatingsMinimum must be 1–1000.");
     private const string Delivered = "Delivered";
     private const string WaitMessage = "You need to wait 7 days before you can leave neutral or negative feedback for this seller.";
     private const string AlreadyLeft = "You already left feedback for this seller.";
-    private sealed record WindowRow(int Seller, string Sentiment, int All, int M1, int M6, int M12);
+    private const string DetailsNeedSentiment = "Choose Positive, Neutral or Negative for the seller before rating more details.";
+    private sealed record WindowRow(int Seller, string Sentiment, int All, int M1, int M6, int M12, int UniqueAll, int Unique12);
+    private sealed record DetailRow(int Seller, decimal? Description, int DescriptionCount, decimal? ShippingTime, int ShippingTimeCount,
+        decimal? Communication, int CommunicationCount, int Feedback12);
+
+    // H01 (FEEDBACK.md): one buyer moves the score at most once per sentiment per transaction week, Monday–Sunday Pacific time.
+    // The week is computed in SQL (AT TIME ZONE) so it does not depend on the container's tzdata. 1900-01-01 was a Monday.
+    private const string VisibleWithWeek = """
+        SELECT f.SellerId, f.BuyerId, f.Sentiment, f.CreatedAtUtc, f.DescriptionRating, f.ShippingTimeRating, f.CommunicationRating,
+               DATEADD(day, -(DATEDIFF(day, '19000101', w.LocalDay) % 7), w.LocalDay) AS WeekStart
+        FROM dbo.SellerFeedback f
+        JOIN dbo.OrderItem i ON i.id = f.OrderItemId
+        JOIN dbo.OrderTable o ON o.id = i.orderId
+        CROSS APPLY (SELECT CAST(CAST(COALESCE(CAST(o.orderDate AS datetime2(7)), f.CreatedAtUtc) AS datetime2(7))
+            AT TIME ZONE 'UTC' AT TIME ZONE 'Pacific Standard Time' AS date) AS LocalDay) w
+        WHERE f.HiddenAtUtc IS NULL AND f.SellerId IN (SELECT CAST([value] AS int) FROM OPENJSON(@ids))
+        """;
+
+    // Per seller and sentiment: every feedback per window (ratings table) and distinct buyer-weeks (score and %).
+    private const string WindowSql = "WITH f AS (" + VisibleWithWeek + """
+        )
+        SELECT SellerId AS Seller, Sentiment, COUNT(*) AS [All],
+               SUM(CASE WHEN CreatedAtUtc > @m1 THEN 1 ELSE 0 END) AS M1, SUM(CASE WHEN CreatedAtUtc > @m6 THEN 1 ELSE 0 END) AS M6,
+               SUM(CASE WHEN CreatedAtUtc > @m12 THEN 1 ELSE 0 END) AS M12,
+               COUNT(DISTINCT CONCAT(BuyerId, '|', WeekStart)) AS UniqueAll,
+               COUNT(DISTINCT CASE WHEN CreatedAtUtc > @m12 THEN CONCAT(BuyerId, '|', WeekStart) END) AS Unique12
+        FROM f GROUP BY SellerId, Sentiment
+        """;
+
+    // Detailed seller ratings over the last 12 months of visible feedback.
+    private const string DetailSql = "WITH f AS (" + VisibleWithWeek + """
+        )
+        SELECT SellerId AS Seller,
+               AVG(CAST(DescriptionRating AS decimal(9,4))) AS Description, COUNT(DescriptionRating) AS DescriptionCount,
+               AVG(CAST(ShippingTimeRating AS decimal(9,4))) AS ShippingTime, COUNT(ShippingTimeRating) AS ShippingTimeCount,
+               AVG(CAST(CommunicationRating AS decimal(9,4))) AS Communication, COUNT(CommunicationRating) AS CommunicationCount,
+               COUNT(*) AS Feedback12
+        FROM f WHERE CreatedAtUtc > @m12 GROUP BY SellerId
+        """;
 
     // Single visibility rule for reputation and the public profile: not hidden by moderation (D05).
     private IQueryable<SellerFeedback> Visible() => db.Set<SellerFeedback>().AsNoTracking().Where(x => x.HiddenAtUtc == null);
@@ -29,10 +69,14 @@ public sealed class FeedbackService(EbayDbContext db, TimeProvider clock) : IFee
         if (ids.Length == 0) return new Dictionary<int, SellerReputation>();
         var now = clock.GetUtcNow().UtcDateTime;
         DateTime m1 = now.AddMonths(-1), m6 = now.AddMonths(-6), m12 = now.AddMonths(-12);
-        // One grouped query: lifetime count plus windowed counts per seller and sentiment.
-        var rows = await Visible().Where(x => ids.Contains(x.SellerId)).GroupBy(x => new { x.SellerId, x.Sentiment })
-            .Select(g => new WindowRow(g.Key.SellerId, g.Key.Sentiment, g.Count(), g.Count(x => x.CreatedAtUtc > m1), g.Count(x => x.CreatedAtUtc > m6), g.Count(x => x.CreatedAtUtc > m12)))
-            .ToListAsync(cancellationToken);
+        var json = System.Text.Json.JsonSerializer.Serialize(ids);
+        SqlParameter[] Parameters() =>
+        [
+            new("@ids", SqlDbType.NVarChar, -1) { Value = json }, new("@m1", SqlDbType.DateTime2) { Value = m1 },
+            new("@m6", SqlDbType.DateTime2) { Value = m6 }, new("@m12", SqlDbType.DateTime2) { Value = m12 }
+        ];
+        var rows = await db.Database.SqlQueryRaw<WindowRow>(WindowSql, Parameters()).ToListAsync(cancellationToken);
+        var details = (await db.Database.SqlQueryRaw<DetailRow>(DetailSql, Parameters()).ToListAsync(cancellationToken)).ToDictionary(x => x.Seller);
         SellerReputation Reputation(int seller)
         {
             FeedbackCounts Counts(Func<WindowRow, int> pick)
@@ -40,10 +84,20 @@ public sealed class FeedbackService(EbayDbContext db, TimeProvider clock) : IFee
                 int Of(FeedbackSentiment s) => rows.Where(x => x.Seller == seller && x.Sentiment == s.ToString()).Sum(pick);
                 return new(Of(FeedbackSentiment.Positive), Of(FeedbackSentiment.Neutral), Of(FeedbackSentiment.Negative));
             }
-            return new(Counts(x => x.All), Counts(x => x.M1), Counts(x => x.M6), Counts(x => x.M12));
+            return new(Counts(x => x.All), Counts(x => x.M1), Counts(x => x.M6), Counts(x => x.M12), Counts(x => x.UniqueAll), Counts(x => x.Unique12),
+                details.TryGetValue(seller, out var d) ? Details(d) : DetailedSellerRatings.Empty);
         }
         return ids.ToDictionary(x => x, Reputation);
     }
+
+    private static DetailRating Rating(decimal? average, int count) =>
+        count == 0 ? DetailRating.None : new(Math.Round(average!.Value, 1, MidpointRounding.AwayFromZero), count);
+
+    // Reasonable shipping cost: clone orders ship free, so eBay's automatic 5 stars applies to every feedback in the window.
+    private static DetailedSellerRatings Details(DetailRow d) => new(Rating(d.Description, d.DescriptionCount),
+        Rating(d.Feedback12 == 0 ? null : 5m, d.Feedback12), Rating(d.ShippingTime, d.ShippingTimeCount), Rating(d.Communication, d.CommunicationCount));
+
+    public int DetailedRatingsMinimum => detailedMinimum;
 
     public async Task<SellerFeedbackPage?> ProfileAsync(int sellerId, FeedbackSentiment? filter = null, int page = 1, CancellationToken cancellationToken = default)
     {
@@ -146,18 +200,20 @@ public sealed class FeedbackService(EbayDbContext db, TimeProvider clock) : IFee
 
     public async Task<LeaveFeedbackResult> SubmitAsync(int buyerId, LeaveFeedbackRequest request, CancellationToken cancellationToken = default)
     {
-        var sellerText = request.SellerComment?.Trim();
-        if (string.IsNullOrEmpty(sellerText)) sellerText = null;
-        var itemText = request.Comment?.Trim();
-        if (string.IsNullOrEmpty(itemText)) itemText = null;
+        // R1: one comment box ("Tell us more about this item", 500) that goes to every part being posted.
+        var text = request.Comment?.Trim();
+        if (string.IsNullOrEmpty(text)) text = null;
+        var details = request.Details is { IsEmpty: false } d ? d : null;
         if (request.Sentiment == null && request.Rating == null)
-            return Invalid(itemText != null ? "Select a star rating from 1 to 5." : sellerText != null ? "Choose Positive, Neutral or Negative for the seller." : "Rate your experience with the seller or rate the item.");
-        if (request.Rating == null && itemText != null) return Invalid("Select a star rating from 1 to 5.");
-        if (request.Sentiment == null && sellerText != null) return Invalid("Choose Positive, Neutral or Negative for the seller.");
+            return Invalid(details != null ? DetailsNeedSentiment : "Rate your experience with the seller or rate the item.");
         if (request.Sentiment is { } s && !Enum.IsDefined(s)) return Invalid("Choose Positive, Neutral or Negative for the seller.");
-        if (sellerText != null && (sellerText.Length > FeedbackLimits.MaxCommentLength || sellerText.Any(c => char.IsControl(c) && c is not ('\t' or '\r' or '\n'))))
-            return Invalid($"Seller feedback must be at most {FeedbackLimits.MaxCommentLength} characters without control characters.");
-        if (request.Rating is { } rating && ReviewService.Validate(rating, request.Comment, out _) is { } badReview) return Invalid(badReview.Error);
+        if (details != null && request.Sentiment == null) return Invalid(DetailsNeedSentiment);
+        if (details != null && new[] { details.Description, details.ShippingTime, details.Communication }
+                .Any(x => x is { } v && (v < FeedbackLimits.MinDetailRating || v > FeedbackLimits.MaxDetailRating)))
+            return Invalid("Rate each detail from 1 to 5 stars.");
+        if (text != null && (text.Length > FeedbackLimits.MaxCommentLength || text.Any(c => char.IsControl(c) && c is not ('\t' or '\r' or '\n'))))
+            return Invalid($"Feedback must be at most {FeedbackLimits.MaxCommentLength} characters without control characters.");
+        if (request.Rating is { } rating && ReviewService.Validate(rating, text, out _) is { } badReview) return Invalid(badReview.Error);
 
         await using var transaction = await db.Database.BeginTransactionAsync(IsolationLevel.ReadCommitted, cancellationToken);
         try
@@ -165,13 +221,13 @@ public sealed class FeedbackService(EbayDbContext db, TimeProvider clock) : IFee
             int? orderId = null;
             if (request.Sentiment is { } sentiment)
             {
-                var feedback = await Submit(buyerId, request.OrderItemId, sentiment, sellerText, cancellationToken);
+                var feedback = await Submit(buyerId, request.OrderItemId, sentiment, text, details, cancellationToken);
                 if (feedback.Outcome != LeaveFeedbackOutcome.Success) return await Abort(transaction, feedback);
                 orderId = feedback.OrderId;
             }
             if (request.Rating is { } stars)
             {
-                var review = await new ReviewService(db).Submit(buyerId, request.OrderItemId, stars, itemText, cancellationToken);
+                var review = await new ReviewService(db).Submit(buyerId, request.OrderItemId, stars, text, cancellationToken);
                 if (review.Outcome != ReviewOutcome.Success) return await Abort(transaction, new(Map(review.Outcome), Error: review.Error));
                 orderId = review.OrderId;
             }
@@ -208,7 +264,7 @@ public sealed class FeedbackService(EbayDbContext db, TimeProvider clock) : IFee
         return result;
     }
 
-    private async Task<LeaveFeedbackResult> Submit(int buyerId, int orderItemId, FeedbackSentiment sentiment, string? comment, CancellationToken ct)
+    private async Task<LeaveFeedbackResult> Submit(int buyerId, int orderItemId, FeedbackSentiment sentiment, string? comment, FeedbackDetails? details, CancellationToken ct)
     {
         // Lock order: User -> OrderTable -> OrderItem -> Payment (only once Delivered, when B06 can no longer write it) -> SellerFeedback.
         var orderId = await db.Set<OrderItem>().AsNoTracking().Where(x => x.Id == orderItemId).Select(x => x.OrderId).SingleOrDefaultAsync(ct);
@@ -228,7 +284,12 @@ public sealed class FeedbackService(EbayDbContext db, TimeProvider clock) : IFee
         var eligibility = Eligibility(item.Id, order, deliveredAt, existing, now);
         if (!eligibility.CanLeave) return new(LeaveFeedbackOutcome.Conflict, Error: eligibility.Reason);
         if (eligibility.PositiveOnly && sentiment != FeedbackSentiment.Positive) return new(LeaveFeedbackOutcome.Conflict, Error: WaitMessage);
-        db.Add(new SellerFeedback { OrderItemId = item.Id, BuyerId = buyerId, SellerId = order.SellerId!.Value, Sentiment = sentiment.ToString(), Comment = comment, CreatedAtUtc = now });
+        db.Add(new SellerFeedback
+        {
+            OrderItemId = item.Id, BuyerId = buyerId, SellerId = order.SellerId!.Value, Sentiment = sentiment.ToString(), Comment = comment, CreatedAtUtc = now,
+            ArrivedOnTime = details?.ArrivedOnTime, DescriptionRating = (byte?)details?.Description,
+            ShippingTimeRating = (byte?)details?.ShippingTime, CommunicationRating = (byte?)details?.Communication
+        });
         await db.SaveChangesAsync(ct);
         return new(LeaveFeedbackOutcome.Success, order.Id);
     }

@@ -6,21 +6,29 @@
     ViewData["Title"] = "Leave feedback";
     var line = Model.Context.Line;
     var seller = Model.Feedback;
+    var form = Model.Form;
     var anyForm = line.CanReview || seller.CanLeave;
+    // R1 "Rate more details about your purchase (Optional)"; the shipping-cost rating is automatic because clone orders ship free.
+    var details = new (string Name, string Label, int? Value)[]
+    {
+        (nameof(form.DescriptionRating), "Item description", form.DescriptionRating),
+        (nameof(form.ShippingTimeRating), "Shipping time", form.ShippingTimeRating),
+        (nameof(form.CommunicationRating), "Seller communication", form.CommunicationRating),
+    };
 }
 <a class="back-to-catalog" asp-controller="Orders" asp-action="Details" asp-route-id="@Model.Context.OrderId">← Back to order #@Model.Context.OrderId</a>
 <h1>Leave feedback</h1>
 @if (ViewData["ReviewError"] is string error) { <div class="validation-errors" role="alert">@error</div> }
 <section class="review-card" aria-labelledby="review-item">
-    <div class="review-item-row">
-        <div class="order-item-icon product-placeholder"><svg viewBox="0 0 64 64" aria-hidden="true"><path d="M12 20 32 10 52 20 32 30Z M12 20v24l20 10 20-10V20 M32 30v24" /></svg></div>
-        <div><h2 id="review-item">@line.Title</h2><p class="field-help">Order #@Model.Context.OrderId</p></div>
-    </div>
     <form asp-action="Create" method="post" class="review-form">
         <input type="hidden" name="OrderItemId" value="@line.OrderItemId" />
-        <div class="review-row">
-            <h3 class="review-row-title">How was your experience?<span class="field-help">Rate your overall experience with this seller.</span></h3>
+        <div class="review-row review-head">
+            <div class="review-item-row">
+                <div class="order-item-icon product-placeholder"><svg viewBox="0 0 64 64" aria-hidden="true"><path d="M12 20 32 10 52 20 32 30Z M12 20v24l20 10 20-10V20 M32 30v24" /></svg></div>
+                <div><h2 id="review-item">@line.Title</h2><p class="field-help">Order #@Model.Context.OrderId</p></div>
+            </div>
             <div>
+                <h3 class="review-row-title">How was your experience?<span class="field-help">Rate your overall experience with this seller.</span></h3>
                 @if (seller.CanLeave)
                 {
                     <fieldset class="sentiment-input">
@@ -28,16 +36,13 @@
                         @foreach (var option in Enum.GetValues<FeedbackSentiment>())
                         {
                             var disabled = seller.PositiveOnly && option != FeedbackSentiment.Positive;
-                            <input type="radio" id="sentiment-@option" name="Sentiment" value="@option" checked="@(Model.Form.Sentiment == option)" disabled="@disabled" />
+                            <input type="radio" id="sentiment-@option" name="Sentiment" value="@option" checked="@(form.Sentiment == option)" disabled="@disabled" />
                             <label for="sentiment-@option">@option</label>
                         }
                     </fieldset>
                     @if (seller.PositiveOnly && seller.NeutralNegativeFromUtc is { } opens)
-                    { <p class="field-help sentiment-note">ⓘ You need to wait 7 days before you can leave neutral or negative feedback for this seller. Available from @opens.ToString("MMM dd, yyyy HH:mm", CultureInfo.InvariantCulture) UTC.</p> }
-                    <label class="sr-only" for="seller-comment">Tell us about this seller (optional)</label>
-                    <textarea id="seller-comment" name="SellerComment" maxlength="@FeedbackLimits.MaxCommentLength" rows="3" placeholder="Tell us about this seller (optional)." data-count-target="seller-count">@Model.Form.SellerComment</textarea>
-                    <p class="field-help review-count"><span id="seller-count">@(Model.Form.SellerComment?.Length ?? 0)</span> / @FeedbackLimits.MaxCommentLength</p>
-                    @if (seller.DeadlineUtc is { } deadline) { <p class="field-help">Seller feedback is open until @deadline.ToString("MMM dd, yyyy", CultureInfo.InvariantCulture). It can't be edited after posting.</p> }
+                    { <p class="field-help sentiment-note"><span class="info-dot" aria-hidden="true">i</span> You need to wait 7 days before you can leave neutral or negative feedback for this seller. Available from @opens.ToString("MMM dd, yyyy HH:mm", CultureInfo.InvariantCulture) UTC.</p> }
+                    @if (seller.DeadlineUtc is { } deadline) { <p class="field-help">Feedback is open until @deadline.ToString("MMM dd, yyyy", CultureInfo.InvariantCulture). It can't be edited after posting.</p> }
                 }
                 else if (seller.Left && seller.Sentiment is { } left) { <p>You left @left feedback for the seller.</p> }
                 else { <p class="order-notice">@seller.Reason</p> }
@@ -50,18 +55,11 @@
                 <div class="star-input">
                     @for (var star = ReviewLimits.MaxRating; star >= ReviewLimits.MinRating; star--)
                     {
-                        <input type="radio" id="rating-@star" name="Rating" value="@star" checked="@(Model.Form.Rating == star)" />
+                        <input type="radio" id="rating-@star" name="Rating" value="@star" checked="@(form.Rating == star)" />
                         <label for="rating-@star" title="@star star@(star == 1 ? "" : "s")"><span class="sr-only">@star star@(star == 1 ? "" : "s")</span></label>
                     }
                 </div>
             </fieldset>
-            <div class="review-row">
-                <label for="review-comment">Tell us more about this item <span class="field-help">(optional)</span></label>
-                <div>
-                    <textarea id="review-comment" name="Comment" maxlength="@ReviewLimits.MaxCommentLength" rows="6" placeholder="Share your experience with this item." data-count-target="review-count">@Model.Form.Comment</textarea>
-                    <p class="field-help review-count"><span id="review-count" data-review-count>@(Model.Form.Comment?.Length ?? 0)</span> / @ReviewLimits.MaxCommentLength</p>
-                </div>
-            </div>
         }
         else
         {
@@ -75,6 +73,45 @@
                     }
                     else { <p class="order-notice">@line.Reason</p> }
                 </div>
+            </div>
+        }
+        @if (anyForm)
+        {
+            <div class="review-row">
+                <label for="feedback-comment" class="review-row-title">Tell us more about this item<span class="field-help">Help the eBay community by sharing more details about your purchase.</span></label>
+                <div>
+                    <textarea id="feedback-comment" name="Comment" maxlength="@FeedbackLimits.MaxCommentLength" rows="4" placeholder="Share your feedback here." data-count-target="feedback-count" aria-describedby="feedback-length">@form.Comment</textarea>
+                    <p class="field-help review-count"><span id="feedback-count">@(form.Comment?.Length ?? 0)</span> / @FeedbackLimits.MaxCommentLength</p>
+                    <p class="field-help review-length" id="feedback-length">Feedback length</p>
+                </div>
+            </div>
+        }
+        @if (seller.CanLeave)
+        {
+            <fieldset class="review-row">
+                <legend>Did this item arrive on time? <span class="review-optional">(Optional)</span></legend>
+                <div class="sentiment-input choice-input">
+                    <input type="radio" id="arrived-yes" name="ArrivedOnTime" value="true" checked="@(form.ArrivedOnTime == true)" />
+                    <label for="arrived-yes">Yes</label>
+                    <input type="radio" id="arrived-no" name="ArrivedOnTime" value="false" checked="@(form.ArrivedOnTime == false)" />
+                    <label for="arrived-no">No</label>
+                </div>
+            </fieldset>
+            <div class="review-details">
+                <h3>Rate more details about your purchase <span class="review-optional">(Optional)</span></h3>
+                @foreach (var detail in details)
+                {
+                    <fieldset class="review-row review-detail">
+                        <legend>@detail.Label</legend>
+                        <div class="star-input star-input-small">
+                            @for (var star = FeedbackLimits.MaxDetailRating; star >= FeedbackLimits.MinDetailRating; star--)
+                            {
+                                <input type="radio" id="@detail.Name-@star" name="@detail.Name" value="@star" checked="@(detail.Value == star)" />
+                                <label for="@detail.Name-@star" title="@star star@(star == 1 ? "" : "s")"><span class="sr-only">@detail.Label: @star star@(star == 1 ? "" : "s")</span></label>
+                            }
+                        </div>
+                    </fieldset>
+                }
             </div>
         }
         @if (anyForm)

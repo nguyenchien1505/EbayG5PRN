@@ -41,13 +41,16 @@ public sealed class SellerProfileTests
         Assert.Equal(new FeedbackCounts(1, 1, 1), rep.Month6);
         Assert.Equal(new FeedbackCounts(2, 1, 1), rep.Month12); // Exactly 12 months ago is outside the window.
         Assert.Equal(new FeedbackCounts(4, 1, 3), rep.Lifetime);
-        Assert.Equal(1, rep.Score);
-        Assert.Equal(66.7m, rep.PositivePercent);
+        // Every fixture row is one buyer on one order (one transaction week): score and % count it once per sentiment (H01).
+        Assert.Equal(new FeedbackCounts(1, 1, 1), rep.Unique);
+        Assert.Equal(new FeedbackCounts(1, 1, 1), rep.Unique12);
+        Assert.Equal(0, rep.Score);
+        Assert.Equal(50m, rep.PositivePercent);
         Assert.Equal(8, rep.Total);
         var later = await Service(s, Now.AddYears(3)).ReputationAsync(s.Seller);
         Assert.Equal(FeedbackCounts.Empty, later.Month12);
         Assert.Null(later.PositivePercent);
-        Assert.Equal(1, later.Score);
+        Assert.Equal(0, later.Score);
         Assert.Equal(SellerReputation.Empty, await Service(s).ReputationAsync(s.Buyer));
     }
 
