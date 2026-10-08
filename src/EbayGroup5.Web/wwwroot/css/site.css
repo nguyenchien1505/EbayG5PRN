@@ -351,3 +351,99 @@ main.shell-width { flex: 1; padding-block: 32px 64px; }
 .feedback-star-purple { color:#9b2fae; } .feedback-star-red { color:#e0103a; } .feedback-star-green { color:#5ba71b; } .feedback-star-silver { color:#9aa0a6; }
 .review-head .review-item-row { border-bottom:0; padding-bottom:0; margin-bottom:0; }
 .review-head .review-row-title { margin-bottom:12px; }
+/* H02: eBay classic feedback profile (F2) and mweb seller feedback (F2m). */
+.breadcrumb { display:flex; flex-wrap:wrap; gap:8px; align-items:center; font-size:13px; color:#555; margin:4px 0 12px; }
+.breadcrumb a { color:#555; }
+.fp-title { font-size:24px; margin:0 0 16px; }
+.fp-mobile, .fp-mobile-meta { display:none; }
+.fp-top { display:grid; grid-template-columns:minmax(0,2.2fr) minmax(0,1fr); gap:16px; margin-bottom:24px; }
+.fp-member, .fp-links, .fp-box { border:1px solid #ccc; border-radius:12px; }
+.fp-member { display:flex; gap:18px; padding:20px; }
+.fp-avatar { flex:none; width:88px; height:88px; border-radius:4px; background:#e5e5e5; color:#767676; display:grid; place-items:center; font-size:34px; }
+.fp-member-text p { margin:0 0 8px; }
+.fp-name a { color:#191919; }
+.fp-score { color:#555; }
+.fp-links { padding:20px; display:grid; align-content:start; gap:6px; }
+.fp-links h2 { font-size:16px; margin:0 0 8px; }
+.fp-boxes { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1.3fr); gap:16px; margin-bottom:24px; }
+.fp-boxes h2 { font-size:16px; margin:0 0 8px; }
+.fp-box { padding:8px 16px 12px; min-height:120px; }
+.fp-box .ratings-table { border:0; min-width:0; width:100%; }
+.fp-box .ratings-table a { color:#2454d6; }
+.fp-dsr-head { font-size:13px; color:#555; margin:4px 0 12px; border-bottom:1px solid #e5e5e5; padding-bottom:8px; }
+.fp-dsr-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:14px 24px; margin:0; }
+.fp-dsr-grid dt { font-size:14px; }
+.fp-dsr-grid dd { margin:2px 0 0; }
+.dsr-stars { color:#f18e00; }
+.fp-dsr-empty { text-align:center; margin:24px 12px; }
+.fp-tabs { display:flex; flex-wrap:wrap; gap:4px 20px; border-bottom:1px solid #ccc; margin:8px 0 10px; }
+.fp-tabs a { color:#191919; text-decoration:none; padding:8px 0; border-bottom:3px solid transparent; }
+.fp-tabs a.active { font-weight:700; border-bottom-color:#191919; }
+.fp-count { font-size:14px; margin:0 0 12px; }
+.fp-filters { display:flex; flex-wrap:wrap; gap:12px 24px; align-items:flex-end; margin-bottom:16px; }
+.fp-search { flex:1 1 320px; display:grid; gap:6px; font-size:14px; }
+.fp-search-box { display:flex; max-width:360px; }
+.fp-search-box input { flex:1; min-width:0; font:inherit; padding:8px 10px; border:1px solid #888; border-radius:6px 0 0 6px; }
+.fp-search-button { width:40px; border:1px solid #888; border-left:0; border-radius:0 6px 6px 0; background:#fff; cursor:pointer; }
+.fp-search-button svg { width:18px; height:18px; fill:#191919; }
+.fp-select { display:grid; gap:6px; font-size:14px; }
+.fp-select select { font:inherit; padding:8px 12px; border:1px solid #888; border-radius:20px; background:#fff; min-width:150px; }
+.fp-active-filter { font-size:14px; }
+.fp-item a { color:#555; }
+.fp-pages { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:12px; margin:20px 0; font-size:14px; }
+.fp-pagination { display:flex; gap:6px; align-items:center; margin:0; }
+.fp-pagination a, .fp-pagination span { min-width:32px; height:32px; display:inline-grid; place-items:center; color:#191919; text-decoration:none; }
+.fp-pagination a.active { font-weight:700; text-decoration:underline; text-underline-offset:8px; }
+.fp-pagination .page-arrow { border-radius:50%; background:#f2f2f2; }
+.fp-pagination .disabled { color:#c7c7c7; }
+.fp-size a { margin-left:6px; } .fp-size strong { margin-left:6px; }
+@media(max-width:700px) {
+    .fp-classic, .fp-classic-cell, .breadcrumb { display:none !important; }
+    .fp-mobile { display:block; }
+    .fp-mobile-meta { display:flex; flex-wrap:wrap; gap:4px; align-items:center; font-size:14px; color:#555; margin:0 0 8px; }
+    .fp-top { grid-template-columns:minmax(0,1fr); margin:0 0 8px; }
+    .fp-member { border:0; border-radius:0; background:#f7f7f7; margin:0 -16px; padding:14px 16px; align-items:center; }
+    .fp-avatar { width:52px; height:52px; border-radius:50%; font-size:22px; }
+    .fp-member-text p { margin:0; } .fp-name { font-size:20px; font-weight:700; } .fp-name a { text-decoration:none; }
+    .fp-mobile-title { font-size:24px; margin:16px 0 8px; }
+    .fp-tabs { gap:4px 14px; font-size:14px; }
+    .fp-filters { gap:10px; } .fp-search { flex-basis:100%; } .fp-select { flex:1 1 40%; } .fp-select select { min-width:0; width:100%; }
+    .feedback-comment { font-weight:400; }
+    .fp-pages { justify-content:center; }
+    .fp-results { text-align:center; font-weight:700; }
+}
+/* H02: item page seller card (IT-1) and About this seller / Seller feedback (SA, IT-4). */
+.seller-card-name { margin:0; font-weight:700; } .seller-card-name a { color:#191919; } .seller-card-score { font-weight:400; color:#555; }
+.seller-card-links { margin:2px 0 0; font-size:13px; color:#555; } .seller-card-links a { color:#555; }
+.link-button { background:none; border:0; padding:0; font:inherit; color:#555; text-decoration:underline; cursor:pointer; }
+.about-seller { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1.15fr); gap:0; background:#f7f7f7; border-radius:16px; padding:32px 36px; margin:40px 0; }
+.about-left { padding-right:32px; border-right:1px solid #ddd; }
+.about-right { padding-left:32px; min-width:0; }
+.about-seller h2 { font-size:22px; margin:0 0 20px; }
+.about-seller h3 { font-size:18px; margin:28px 0 12px; }
+.about-head { display:flex; gap:18px; align-items:center; }
+.about-avatar { flex:none; width:96px; height:96px; border-radius:50%; background:#e5e5e5; display:grid; place-items:center; font-size:38px; color:#555; }
+.about-name { margin:0 0 4px; font-size:20px; font-weight:700; } .about-name a { color:#191919; text-decoration:none; }
+.about-facts-line { margin:0; font-size:14px; color:#555; }
+.about-facts { list-style:none; padding:0; margin:18px 0; display:grid; gap:4px; font-size:14px; }
+.about-facts li { display:flex; gap:8px; align-items:center; } .about-facts svg { width:16px; height:16px; fill:#191919; }
+.about-actions { display:grid; gap:10px; }
+.about-actions .button { width:100%; justify-content:center; display:inline-flex; gap:6px; align-items:center; }
+.about-actions svg { width:16px; height:16px; fill:currentColor; }
+.dsr-bars { list-style:none; padding:0; margin:0 0 6px; display:grid; gap:8px; font-size:14px; }
+.dsr-bars li { display:grid; grid-template-columns:minmax(0,1fr) 72px 28px; gap:12px; align-items:center; }
+.dsr-bars .rating-bar { height:3px; } .dsr-bars li > span:last-child { text-align:right; font-size:12px; }
+.about-categories-head { display:flex; justify-content:space-between; align-items:baseline; gap:12px; } .about-categories-head a { color:#191919; font-size:14px; }
+.about-categories { list-style:none; padding:0; margin:0; display:flex; flex-wrap:wrap; gap:8px; }
+.about-categories a { display:inline-block; padding:8px 16px; border-radius:20px; background:#e5e5e5; color:#191919; text-decoration:none; font-size:14px; }
+.about-count { color:#767676; font-weight:400; }
+.about-filter { display:flex; justify-content:flex-end; margin:-8px 0 12px; }
+.about-filter select { font:inherit; font-size:14px; padding:6px 14px; border:1px solid #191919; border-radius:20px; background:#fff; }
+.about-feedback { list-style:none; padding:0; margin:0 0 16px; }
+.about-feedback li { padding:12px 0; border-bottom:1px solid #e5e5e5; }
+.about-feedback-meta { display:flex; flex-wrap:wrap; gap:4px; align-items:center; margin:0 0 6px; font-size:13px; color:#555; }
+.about-feedback-comment { margin:0 0 4px; overflow-wrap:anywhere; }
+.about-feedback-item { margin:0; font-size:12px; color:#767676; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.demo-unavailable { max-width:640px; }
+@media(max-width:800px) { .about-seller { grid-template-columns:minmax(0,1fr); padding:20px 16px; margin:24px -16px; border-radius:0; } .about-left { padding:0 0 20px; border-right:0; border-bottom:1px solid #ddd; } .about-right { padding:20px 0 0; } .about-avatar { width:64px; height:64px; font-size:26px; } }
+.about-actions .button.outline, .about-all { border-color:#3665f3; color:#3665f3; background:#fff; }

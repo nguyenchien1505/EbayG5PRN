@@ -9,18 +9,26 @@ namespace EbayGroup5.Web.Controllers;
 [ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
 public sealed class SellersController(IFeedbackService feedback) : Controller
 {
+    // F2 classic profile query string: tab, sentiment (rating links), period (months), q (item title or ID), sort, page, size.
     [HttpGet]
-    public async Task<IActionResult> Feedback(int id, string? sentiment = null, int page = 1, CancellationToken cancellationToken = default)
+    public async Task<IActionResult> Feedback(int id, string? tab = null, string? sentiment = null, int? period = null, string? q = null, string? sort = null,
+        int page = 1, int size = SellerFeedbackPage.PageSize, CancellationToken cancellationToken = default)
     {
-        var known = sentiment is null or "positive" or "neutral" or "negative";
+        FeedbackTab? feedbackTab = tab switch { null or "all" => FeedbackTab.All, "buyer" => FeedbackTab.Buyer, "seller" => FeedbackTab.Seller, "left" => FeedbackTab.Left, _ => null };
+        var knownSentiment = sentiment is null or "positive" or "neutral" or "negative";
         FeedbackSentiment? filter = sentiment switch { "positive" => FeedbackSentiment.Positive, "neutral" => FeedbackSentiment.Neutral, "negative" => FeedbackSentiment.Negative, _ => null };
-        if (!ModelState.IsValid || !known || page <= 0 || page > int.MaxValue / SellerFeedbackPage.PageSize)
+        FeedbackPeriod? feedbackPeriod = period switch { null => FeedbackPeriod.All, 1 => FeedbackPeriod.PastMonth, 6 => FeedbackPeriod.Past6Months, 12 => FeedbackPeriod.PastYear, _ => null };
+        FeedbackSort? feedbackSort = sort switch { null or "relevant" => FeedbackSort.Relevant, "recent" => FeedbackSort.Recent, _ => null };
+        if (!ModelState.IsValid || feedbackTab == null || !knownSentiment || feedbackPeriod == null || feedbackSort == null
+            || (q?.Trim().Length ?? 0) > FeedbackProfileQuery.MaxSearchLength || !FeedbackProfileQuery.PageSizes.Contains(size) || page <= 0 || page > int.MaxValue / size)
         {
             Response.StatusCode = 400;
             return View("InvalidFeedbackFilters", id);
         }
-        var profile = await feedback.ProfileAsync(id, filter, page, cancellationToken);
-        return profile == null ? NotFound() : View(profile);
+        var profile = await feedback.ProfileAsync(id, new FeedbackProfileQuery(feedbackTab.Value, filter, feedbackPeriod.Value, q, feedbackSort.Value, page, size), cancellationToken);
+        if (profile == null) return NotFound();
+        ViewData["DetailedRatingsMinimum"] = feedback.DetailedRatingsMinimum;
+        return View(profile);
     }
 
     [HttpPost, Authorize(Policy = "Seller")]

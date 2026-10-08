@@ -65,6 +65,7 @@ public sealed class AccessMatrixTests
             ("/Account/Me", [Login, Ok, Ok, Ok, Ok, Ok]),
             ($"/Catalog/Details/{s.Product}", [Ok, Ok, Ok, Ok, Ok, Ok]),
             ($"/Sellers/Feedback/{s.Seller}", [Ok, Ok, Ok, Ok, Ok, Ok]),
+            ("/Help/Unavailable/save-seller", [Ok, Ok, Ok, Ok, Ok, Ok]),
         };
         var clients = new[] { ("anonymous", anonymous), ("buyer", buyer), ("other buyer", otherBuyer), ("seller", seller), ("other seller", otherSeller), ("admin", admin) };
         var mismatches = new List<string>();

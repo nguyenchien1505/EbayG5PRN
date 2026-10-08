@@ -22,3 +22,7 @@ public sealed class ReviewForm
 
 public sealed record ReviewPage(ReviewItemContext Context, FeedbackLineEligibility Feedback, ReviewForm Form);
 public sealed record ProductReviewsView(CatalogItem Item, ProductReviewPage Reviews);
+
+/// <summary>H02 item-page "About this seller" and "Seller feedback" blocks (SA/IT-4).</summary>
+public sealed record AboutSellerView(int ProductId, SellerSummary Summary, SellerReputation Reputation, int DetailedRatingsMinimum,
+    SellerFeedbackPage Feedback, string? Filter);

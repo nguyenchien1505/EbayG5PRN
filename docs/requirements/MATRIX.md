@@ -156,3 +156,5 @@ checklist/phần giải thích từng thành viên đã chuẩn bị, không ch�
 **OPS-04 Pending**, user yêu cầu hoãn Jira live; không tạo worklog/review/transition giả.
 
 H01 09/10/2026: [evidence](../evidence/H01.md) — điểm/% theo (buyer, tuần Pacific), DSR, sao, form R1 một comment; 283 .NET + 20 Node. G5-03/G5-05 giữ Done; phần hiển thị DSR/hồ sơ eBay ở H02.
+
+H02 09/10/2026: [evidence](../evidence/H02.md) — hồ sơ feedback F2/F2m, About this seller/Seller feedback trên trang sản phẩm, DSR hiển thị theo ngưỡng; 287 .NET + 20 Node.

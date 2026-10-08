@@ -3,99 +3,185 @@
 @using System.Globalization
 @using System.Security.Claims
 @{
+    // H02: eBay classic feedback profile (F2) on desktop, mweb seller feedback (F2m) under 700 px.
     ViewData["Title"] = "Feedback profile: " + Model.Seller;
     var rep = Model.Reputation;
+    var summary = Model.Summary!;
+    var query = Model.Query;
+    var minimum = ViewData["DetailedRatingsMinimum"] as int? ?? 10;
     var isOwner = User.IsInRole("Seller") && User.FindFirstValue(ClaimTypes.NameIdentifier) == Model.SellerId.ToString(CultureInfo.InvariantCulture);
     var canReport = User.IsInRole("Buyer") || User.IsInRole("Seller");
     var me = User.FindFirstValue(ClaimTypes.NameIdentifier);
-    var filter = Model.Filter?.ToString().ToLowerInvariant();
+    string? Tab(FeedbackTab t) => t == FeedbackTab.All ? null : t.ToString().ToLowerInvariant();
+    string? Sentiment(FeedbackSentiment? s) => s?.ToString().ToLowerInvariant();
+    int? Period(FeedbackPeriod p) => p switch { FeedbackPeriod.PastMonth => 1, FeedbackPeriod.Past6Months => 6, FeedbackPeriod.PastYear => 12, _ => null };
+    string? Sort(FeedbackSort s) => s == FeedbackSort.Relevant ? null : "recent";
+    int? Size(int size) => size == SellerFeedbackPage.PageSize ? null : size;
+    string Link(FeedbackProfileQuery q) => Url.Action("Feedback", "Sellers", new { id = Model.SellerId, tab = Tab(q.Tab), sentiment = Sentiment(q.Sentiment), period = Period(q.Period),
+        q = q.Search, sort = Sort(q.Sort), page = q.Page == 1 ? (int?)null : q.Page, size = Size(q.PageSize) })!;
     string When(FeedbackRecency r) => r switch { FeedbackRecency.PastMonth => "Past month", FeedbackRecency.Past6Months => "Past 6 months", FeedbackRecency.PastYear => "Past year", _ => "More than a year ago" };
     string Icon(FeedbackSentiment s) => s switch { FeedbackSentiment.Positive => "+", FeedbackSentiment.Neutral => "•", _ => "−" };
+    var first = (query.Page - 1) * query.PageSize + 1;
+    var tabs = new (FeedbackTab Tab, string Label)[] { (FeedbackTab.All, "All received Feedback"), (FeedbackTab.Buyer, "Received as buyer"), (FeedbackTab.Seller, "Received as seller"), (FeedbackTab.Left, "Left for others") };
+    var details = new (string Label, DetailRating Rating)[] { ("Accurate description", rep.Details.Description), ("Reasonable shipping cost", rep.Details.ShippingCost), ("Shipping speed", rep.Details.ShippingSpeed), ("Communication", rep.Details.Communication) };
+    const string ScoreHelp = "Feedback score: +1 for each positive and −1 for each negative rating, counting a buyer at most once per week (Monday–Sunday, Pacific time).";
+    const string PercentHelp = "Positive Feedback percentage: positive ÷ (positive + negative) ratings left in the last 12 months, counting a buyer at most once per week.";
 }
-<h1>Feedback profile</h1>
+<nav class="breadcrumb fp-classic" aria-label="Breadcrumb"><a asp-controller="Home" asp-action="Index">Home</a><span aria-hidden="true">›</span><span aria-current="page">Feedback profile</span></nav>
+<h1 class="fp-title"><span class="fp-classic">Feedback profile</span><span class="fp-mobile sr-only">Feedback profile</span></h1>
 @if (TempData["FeedbackNotice"] is string notice) { <p class="account-notice" role="status">@notice</p> }
 @if (ViewData["ReplyError"] is string error) { <div class="validation-errors" role="alert">@error</div> }
-<section class="checkout-card profile-card" aria-label="Seller summary">
-    <span class="seller-avatar profile-avatar" aria-hidden="true">@Model.Seller[0]</span>
-    <div>
-        <p class="profile-name"><strong>@Model.Seller</strong> <span title="Feedback score">(@rep.Score.ToString(CultureInfo.InvariantCulture)<partial name="_FeedbackStar" model="rep.Star" />)</span></p>
-        <p><strong>Positive Feedback (last 12 months): @(rep.PositivePercent is decimal p ? p.ToString("0.#", CultureInfo.InvariantCulture) + "%" : "—")</strong></p>
-    </div>
-</section>
-<section aria-labelledby="ratings-title">
-    <h2 id="ratings-title">Feedback ratings</h2>
-    @if (rep.Total == 0) { <p class="rating-empty">No feedback yet.</p> }
-    <div class="table-scroll">
-        <table class="ratings-table">
-            <thead><tr><th scope="col"><span class="sr-only">Rating</span></th><th scope="col">1 month</th><th scope="col">6 months</th><th scope="col">12 months</th><th scope="col">All time</th></tr></thead>
-            <tbody>
-                @foreach (var s in Enum.GetValues<FeedbackSentiment>())
-                {
-                    int Of(FeedbackCounts c) => s switch { FeedbackSentiment.Positive => c.Positive, FeedbackSentiment.Neutral => c.Neutral, _ => c.Negative };
-                    <tr><th scope="row"><span class="sentiment-icon sentiment-@s.ToString().ToLowerInvariant()" aria-hidden="true">@Icon(s)</span> @s</th>
-                        <td>@Of(rep.Month1)</td><td>@Of(rep.Month6)</td><td>@Of(rep.Month12)</td><td>@Of(rep.Lifetime)</td></tr>
-                }
-            </tbody>
-        </table>
-    </div>
-</section>
-<section aria-labelledby="received-title" class="feedback-received">
-    <h2 id="received-title">All received feedback</h2>
-    <form class="order-filters" method="get" asp-action="Feedback" asp-route-id="@Model.SellerId">
-        <label for="feedback-filter">Show</label>
-        <select id="feedback-filter" name="sentiment">
-            <option value="" selected="@(filter == null)">All ratings</option>
-            <option value="positive" selected="@(filter == "positive")">Positive</option>
-            <option value="neutral" selected="@(filter == "neutral")">Neutral</option>
-            <option value="negative" selected="@(filter == "negative")">Negative</option>
-        </select>
-        <button class="button outline" type="submit">Apply</button>
-    </form>
-    <p class="field-help">@Model.Total feedback received@(Model.Entries.Count > 0 ? $" (viewing {(Model.Page - 1) * SellerFeedbackPage.PageSize + 1}–{(Model.Page - 1) * SellerFeedbackPage.PageSize + Model.Entries.Count})" : "")</p>
-    @if (Model.Entries.Count == 0)
-    {
-        <p class="rating-empty">@(Model.Total == 0 ? "No feedback to show." : "No feedback on this page.")</p>
-    }
-    else
-    {
-        <div class="feedback-table" role="table" aria-label="Received feedback">
-            <div class="feedback-row feedback-head" role="row"><span role="columnheader">Feedback</span><span role="columnheader">From</span><span role="columnheader">When</span></div>
-            @foreach (var entry in Model.Entries)
-            {
-                <div class="feedback-row" role="row">
-                    <div role="cell" class="feedback-main">
-                        <p class="feedback-comment"><span class="sentiment-icon sentiment-@entry.Sentiment.ToString().ToLowerInvariant()" title="@entry.Sentiment">@Icon(entry.Sentiment)</span><span class="sr-only">@entry.Sentiment:</span> @(entry.Comment ?? $"{entry.Sentiment} feedback")</p>
-                        <p class="field-help">@entry.ItemTitle</p>
-                        @if (entry.Reply != null)
-                        {
-                            <div class="feedback-reply"><strong>Reply by @Model.Seller</strong> <span class="field-help">@entry.RepliedAtUtc?.ToString("MMM dd, yyyy", CultureInfo.InvariantCulture)</span><p>@entry.Reply</p></div>
-                        }
-                        else if (isOwner)
-                        {
-                            var draft = (ViewData["ReplyDraftId"] as int?) == entry.Id ? ViewData["ReplyDraft"] as string : null;
-                            <details class="reply-box" open="@(draft != null)">
-                                <summary>Reply</summary>
-                                <form asp-action="Reply" method="post">
-                                    <input type="hidden" name="feedbackId" value="@entry.Id" />
-                                    <label class="sr-only" for="reply-@entry.Id">Reply to this feedback</label>
-                                    <textarea id="reply-@entry.Id" name="reply" maxlength="@FeedbackLimits.MaxReplyLength" rows="3" placeholder="Reply to this buyer. Replies can't be edited.">@draft</textarea>
-                                    <button class="button outline" type="submit">Post reply</button>
-                                </form>
-                            </details>
-                        }
-                    </div>
-                    <div role="cell" class="feedback-from"><span>Buyer: @entry.Buyer</span>@if (entry.UnitPrice is decimal price) { <span>US $@price.ToString("N2", CultureInfo.InvariantCulture)</span> }<span>Verified purchase</span></div>
-                    <div role="cell" class="feedback-when">@When(entry.Recency)@if (canReport && me != entry.BuyerId.ToString(CultureInfo.InvariantCulture)) { <a class="report-link" asp-controller="Reports" asp-action="Create" asp-route-kind="feedback" asp-route-id="@entry.Id">Report</a> }</div>
-                </div>
-            }
+
+<div class="fp-top">
+    <section class="fp-member" aria-label="Seller summary">
+        <span class="fp-avatar" aria-hidden="true">@Model.Seller[0]</span>
+        <div class="fp-member-text">
+            <p class="fp-name"><a asp-controller="Catalog" asp-action="Index" asp-route-seller="@Model.SellerId">@Model.Seller</a>
+                <span class="fp-score">(@rep.Score.ToString(CultureInfo.InvariantCulture)<partial name="_FeedbackStar" model="rep.Star" />)</span>
+                <span class="info-dot fp-classic" title="@ScoreHelp" aria-label="@ScoreHelp">i</span></p>
+            <p class="fp-percent"><span class="fp-classic"><strong>Positive Feedback (last 12 months): @(rep.PositivePercent is decimal p ? p.ToString("0.#", CultureInfo.InvariantCulture) + "%" : "—")</strong>
+                <span class="info-dot" title="@PercentHelp" aria-label="@PercentHelp">i</span></span>
+                <span class="fp-mobile">@(rep.PositivePercent is decimal mp ? mp.ToString("0.#", CultureInfo.InvariantCulture) + "% positive feedback" : rep.Total == 0 ? "No feedback yet" : "No feedback in the last 12 months")</span></p>
+            @if (summary.JoinedAtUtc is { } joined) { <p class="fp-classic">Member since: @joined.ToString("MMM-dd-yy", CultureInfo.InvariantCulture)</p> }
         </div>
-    }
-    @if (Model.TotalPages > 1 || Model.Page > 1)
-    {
-        <nav class="pagination" aria-label="Feedback pages">
-            @if (Model.Page > 1) { <a class="button outline" asp-action="Feedback" asp-route-id="@Model.SellerId" asp-route-sentiment="@filter" asp-route-page="@(Model.Page - 1)">Previous</a> }
-            <span>@(Model.Page <= Model.TotalPages ? $"Page {Model.Page} of {Model.TotalPages}" : $"Page {Model.Page} · {Model.TotalPages} pages available")</span>
-            @if (Model.Page < Model.TotalPages) { <a class="button outline" asp-action="Feedback" asp-route-id="@Model.SellerId" asp-route-sentiment="@filter" asp-route-page="@(Model.Page + 1)">Next</a> }
-        </nav>
-    }
-</section>
+    </section>
+    <aside class="fp-links fp-classic" aria-labelledby="quick-links">
+        <h2 id="quick-links">Member Quick Links</h2>
+        @if (summary.ContactProductId is int contact && !isOwner) { <a asp-controller="Catalog" asp-action="Details" asp-route-id="@contact" asp-route-message="true">Contact member</a> }
+        <a asp-controller="Catalog" asp-action="Index" asp-route-seller="@Model.SellerId">View items for sale</a>
+    </aside>
+</div>
+
+<div class="fp-boxes fp-classic">
+    <section aria-labelledby="ratings-title">
+        <h2 id="ratings-title">Feedback ratings <span class="info-dot" title="Ratings left in the last 1, 6 and 12 months. Select a number to see those ratings.">i</span></h2>
+        <div class="fp-box">
+            <table class="ratings-table">
+                <thead><tr><th scope="col"><span class="sr-only">Rating</span></th><th scope="col">1 month</th><th scope="col">6 months</th><th scope="col">12 months</th></tr></thead>
+                <tbody>
+                    @foreach (var s in Enum.GetValues<FeedbackSentiment>())
+                    {
+                        int Of(FeedbackCounts c) => s switch { FeedbackSentiment.Positive => c.Positive, FeedbackSentiment.Neutral => c.Neutral, _ => c.Negative };
+                        <tr><th scope="row"><span class="sentiment-icon sentiment-@s.ToString().ToLowerInvariant()" aria-hidden="true">@Icon(s)</span> @s</th>
+                            @foreach (var (counts, period) in new[] { (rep.Month1, FeedbackPeriod.PastMonth), (rep.Month6, FeedbackPeriod.Past6Months), (rep.Month12, FeedbackPeriod.PastYear) })
+                            {
+                                <td><a href="@Link(new FeedbackProfileQuery(FeedbackTab.Seller, s, period))" aria-label="@Of(counts) @s.ToString().ToLowerInvariant() in @(period == FeedbackPeriod.PastMonth ? "1 month" : period == FeedbackPeriod.Past6Months ? "6 months" : "12 months")">@Of(counts)</a></td>
+                            }
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </section>
+    <section aria-labelledby="dsr-title">
+        <h2 id="dsr-title">Detailed seller ratings <span class="info-dot" title="Buyers rate item description, shipping time and communication from 1 to 5 stars. Shipping cost is rated 5 stars automatically when shipping is free.">i</span></h2>
+        <div class="fp-box fp-dsr">
+            <p class="fp-dsr-head">Average for the last 12 months</p>
+            @if (rep.Details.BuyerRated >= minimum)
+            {
+                <dl class="fp-dsr-grid">
+                    @foreach (var (label, rating) in details)
+                    {
+                        <div><dt>@label</dt><dd>@if (rating.Average is decimal avg) { <span class="dsr-stars"><partial name="_Stars" model="avg" /></span> <span class="field-help">(@rating.Count)</span><span class="sr-only">, average @avg.ToString("0.0", CultureInfo.InvariantCulture) out of 5</span> } else { <span class="field-help">No ratings</span> }</dd></div>
+                    }
+                </dl>
+            }
+            else { <p class="fp-dsr-empty">This information will be available when this member receives at least @minimum detailed seller ratings.</p> }
+        </div>
+    </section>
+</div>
+
+<h2 class="fp-mobile fp-mobile-title">Seller feedback</h2>
+<nav class="fp-tabs" aria-label="Feedback type">
+    @foreach (var (tab, label) in tabs)
+    { <a href="@Link(new FeedbackProfileQuery(tab))" aria-current="@(query.Tab == tab ? "page" : null)" class="@(query.Tab == tab ? "active" : null)">@label</a> }
+</nav>
+<p class="fp-count">@Model.Total.ToString("N0", CultureInfo.InvariantCulture) Feedback received@(Model.Entries.Count > 0 ? $" (viewing {first}-{first + Model.Entries.Count - 1})" : "")</p>
+
+<form class="fp-filters" method="get" asp-action="Feedback" asp-route-id="@Model.SellerId" data-autosubmit>
+    @if (Tab(query.Tab) is string tabValue) { <input type="hidden" name="tab" value="@tabValue" /> }
+    @if (Sentiment(query.Sentiment) is string sentimentValue) { <input type="hidden" name="sentiment" value="@sentimentValue" /> }
+    @if (Size(query.PageSize) is int sizeValue) { <input type="hidden" name="size" value="@sizeValue" /> }
+    <div class="fp-search">
+        <label for="fp-q">Search Feedback received as seller with an item title or ID:</label>
+        <div class="fp-search-box"><input id="fp-q" type="search" name="q" maxlength="@FeedbackProfileQuery.MaxSearchLength" value="@query.Search" placeholder="e.g. Wireless Headphones" /><button type="submit" class="fp-search-button" aria-label="Search feedback"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10.5 3a7.5 7.5 0 0 1 5.9 12.1l4.8 4.8-1.4 1.4-4.8-4.8A7.5 7.5 0 1 1 10.5 3Zm0 2a5.5 5.5 0 1 0 0 11 5.5 5.5 0 0 0 0-11Z" /></svg></button></div>
+    </div>
+    <div class="fp-select"><label for="fp-period">Period:</label>
+        <select id="fp-period" name="period">
+            <option value="" selected="@(query.Period == FeedbackPeriod.All)">All</option>
+            <option value="1" selected="@(query.Period == FeedbackPeriod.PastMonth)">Past month</option>
+            <option value="6" selected="@(query.Period == FeedbackPeriod.Past6Months)">Past 6 months</option>
+            <option value="12" selected="@(query.Period == FeedbackPeriod.PastYear)">Past year</option>
+        </select></div>
+    <div class="fp-select"><label for="fp-sort">Sort By:</label>
+        <select id="fp-sort" name="sort">
+            <option value="" selected="@(query.Sort == FeedbackSort.Relevant)">Most relevant</option>
+            <option value="recent" selected="@(query.Sort == FeedbackSort.Recent)">Most recent</option>
+        </select></div>
+    <noscript><button class="button outline" type="submit">Apply</button></noscript>
+</form>
+@if (query.Sentiment is { } active)
+{ <p class="fp-active-filter">Showing @active.ToString().ToLowerInvariant() ratings. <a href="@Link(query with { Sentiment = null, Page = 1 })">Show all ratings</a></p> }
+
+@if (Model.Entries.Count == 0)
+{
+    <p class="rating-empty">@(query.Tab switch { FeedbackTab.Buyer => "No feedback received as a buyer yet.", FeedbackTab.Left => "No feedback left for others yet.",
+        _ => Model.Total == 0 && query.Search == null && query.Sentiment == null && query.Period == FeedbackPeriod.All ? "No feedback to show." : Model.Total == 0 ? "No feedback matches these filters." : "No feedback on this page." })</p>
+}
+else
+{
+    <div class="feedback-table" role="table" aria-label="Received feedback">
+        <div class="feedback-row feedback-head" role="row"><span role="columnheader">Feedback</span><span role="columnheader">From</span><span role="columnheader">When</span></div>
+        @foreach (var entry in Model.Entries)
+        {
+            var sentimentClass = entry.Sentiment.ToString().ToLowerInvariant();
+            <div class="feedback-row" role="row">
+                <div role="cell" class="feedback-main">
+                    <p class="fp-mobile-meta"><span class="sentiment-icon sentiment-@sentimentClass" aria-hidden="true">@Icon(entry.Sentiment)</span>@entry.Buyer (@entry.BuyerScore) · @When(entry.Recency) · <span>Verified purchase</span></p>
+                    <p class="feedback-comment"><span class="sentiment-icon sentiment-@sentimentClass fp-classic" title="@entry.Sentiment">@Icon(entry.Sentiment)</span><span class="sr-only">@entry.Sentiment:</span> @(entry.Comment ?? $"{entry.Sentiment} feedback")</p>
+                    <p class="field-help fp-item">@if (entry.ProductId is int productId) { <a asp-controller="Catalog" asp-action="Details" asp-route-id="@productId">@entry.ItemTitle (#@productId)</a> } else { @entry.ItemTitle }</p>
+                    @if (entry.Reply != null)
+                    {
+                        <div class="feedback-reply"><strong>Reply by @Model.Seller</strong> <span class="field-help">@entry.RepliedAtUtc?.ToString("MMM dd, yyyy", CultureInfo.InvariantCulture)</span><p>@entry.Reply</p></div>
+                    }
+                    else if (isOwner)
+                    {
+                        var draft = (ViewData["ReplyDraftId"] as int?) == entry.Id ? ViewData["ReplyDraft"] as string : null;
+                        <details class="reply-box" open="@(draft != null)">
+                            <summary>Reply</summary>
+                            <form asp-action="Reply" method="post">
+                                <input type="hidden" name="feedbackId" value="@entry.Id" />
+                                <label class="sr-only" for="reply-@entry.Id">Reply to this feedback</label>
+                                <textarea id="reply-@entry.Id" name="reply" maxlength="@FeedbackLimits.MaxReplyLength" rows="3" placeholder="Reply to this buyer. Replies can't be edited.">@draft</textarea>
+                                <button class="button outline" type="submit">Post reply</button>
+                            </form>
+                        </details>
+                    }
+                </div>
+                <div role="cell" class="feedback-from fp-classic-cell"><span>Buyer: @entry.Buyer (@entry.BuyerScore)</span>@if (entry.UnitPrice is decimal price) { <span>US $@price.ToString("N2", CultureInfo.InvariantCulture)</span> }<span>Verified purchase</span></div>
+                <div role="cell" class="feedback-when"><span class="fp-classic">@When(entry.Recency)</span>@if (canReport && me != entry.BuyerId.ToString(CultureInfo.InvariantCulture)) { <a class="report-link" asp-controller="Reports" asp-action="Create" asp-route-kind="feedback" asp-route-id="@entry.Id">Report</a> }</div>
+            </div>
+        }
+    </div>
+}
+@if (Model.Total > 0 || query.Page > 1)
+{
+    <div class="fp-pages">
+        <span class="fp-classic">@(query.Page <= Math.Max(1, Model.TotalPages) ? $"Page {query.Page} of {Math.Max(1, Model.TotalPages)}" : $"Page {query.Page} · {Model.TotalPages} pages available")</span>
+        @if (Model.TotalPages > 1 || query.Page > 1)
+        {
+            <nav class="pagination fp-pagination" aria-label="Feedback pages">
+                @if (query.Page > 1) { <a class="page-arrow" href="@Link(query with { Page = query.Page - 1 })" aria-label="Previous page">←</a> } else { <span class="page-arrow disabled" aria-hidden="true">←</span> }
+                @foreach (var number in Enumerable.Range(Math.Max(1, Math.Min(query.Page - 3, Model.TotalPages - 6)), Math.Min(7, Model.TotalPages)))
+                { <a href="@Link(query with { Page = number })" aria-current="@(number == query.Page ? "page" : null)" class="@(number == query.Page ? "active" : null)">@number</a> }
+                @if (query.Page < Model.TotalPages) { <a class="page-arrow" href="@Link(query with { Page = query.Page + 1 })" aria-label="Next page">→</a> } else { <span class="page-arrow disabled" aria-hidden="true">→</span> }
+            </nav>
+        }
+        <span class="fp-size fp-classic">Items per page:
+            @foreach (var size in FeedbackProfileQuery.PageSizes)
+            { if (size == query.PageSize) { <strong>@size</strong> } else { <a href="@Link(query with { PageSize = size, Page = 1 })">@size</a> } }
+        </span>
+    </div>
+    <p class="fp-mobile fp-results">@Model.Total.ToString("N0", CultureInfo.InvariantCulture) result@(Model.Total == 1 ? "" : "s")</p>
+}
+@section Scripts { <script src="~/js/feedback-profile.js" asp-append-version="true"></script> }

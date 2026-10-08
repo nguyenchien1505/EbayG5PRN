@@ -13,6 +13,9 @@ public sealed record CatalogItem
 public sealed record CatalogCategory(int Id, string Name);
 public sealed record CatalogPage(IReadOnlyList<CatalogItem> Items, IReadOnlyList<CatalogCategory> Categories, int Total, int Page, string Query, int? CategoryId)
 {
+    /// <summary>H02: "Visit store" / "Seller's other items" filter; SellerName is set when the id is an existing Seller.</summary>
+    public int? SellerId { get; init; }
+    public string? SellerName { get; init; }
     public const int PageSize = 12;
     public int TotalPages => (int)Math.Ceiling(Total / (double)PageSize);
 }
@@ -21,5 +24,6 @@ public sealed record CatalogDetail(CatalogItem Item, long Quantity);
 public interface ICatalogService
 {
     Task<CatalogPage> SearchAsync(string? query, int? categoryId, int page, CancellationToken cancellationToken = default);
+    Task<CatalogPage> SearchAsync(string? query, int? categoryId, int page, int? sellerId, CancellationToken cancellationToken = default);
     Task<CatalogDetail?> FindAsync(int id, CancellationToken cancellationToken = default);
 }

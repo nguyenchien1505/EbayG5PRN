@@ -18,6 +18,7 @@ public sealed class EbayDbContext(DbContextOptions<EbayDbContext> options) : DbC
             entity.Property(x => x.Password).HasColumnName("password").HasColumnType("nvarchar(255)").HasMaxLength(255);
             entity.Property(x => x.Role).HasColumnName("role").HasColumnType("nvarchar(20)").HasMaxLength(20);
             entity.Property(x => x.AvatarURL).HasColumnName("avatarURL").HasColumnType("nvarchar(max)");
+            entity.Property(x => x.JoinedAtUtc).HasColumnType("datetime2(7)").HasDefaultValueSql("SYSUTCDATETIME()");
         });
         modelBuilder.Entity<Address>(entity =>
         {

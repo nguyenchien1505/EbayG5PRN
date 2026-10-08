@@ -125,7 +125,7 @@ public sealed class ChatSchemaTests
     {
         var target=SqlFixture.NewTarget(); SqlFixture.CreateEmpty(target);
         var scripts=new List<SqlScript>{new("0001_Baseline.sql",Baseline.ReadTableDdl())}; var assembly=typeof(MigrationRunner).Assembly;
-        foreach(var resource in assembly.GetManifestResourceNames().Where(x=>x.Contains(".Scripts.")&&!x.EndsWith("0006_ChatConversation.sql")).Order())
+        foreach(var resource in assembly.GetManifestResourceNames().Where(x=>x.Contains(".Scripts.")&&!x.EndsWith("0006_ChatConversation.sql")&&!x.EndsWith("0016_UserJoinedAt.sql")).Order()) // 0016 indexes 0006 chat columns.
         {
             using var reader=new StreamReader(assembly.GetManifestResourceStream(resource)!);
             scripts.Add(new(resource[(resource.IndexOf(".Scripts.",StringComparison.Ordinal)+9)..],reader.ReadToEnd()));
@@ -134,7 +134,7 @@ public sealed class ChatSchemaTests
         SqlFixture.Execute(target,"INSERT dbo.Message(senderId,receiverId,content,[timestamp]) VALUES(1,2,N'legacy message','20260901'),(3,1,NULL,NULL),(1,1,REPLICATE(CAST(N'x' AS nvarchar(max)),5000),NULL),(NULL,NULL,N'  ',NULL)");
         var metadata=SqlFixture.Rows(target,SqlFixture.Metadata);
         var original=SqlFixture.Rows(target,"SELECT CONCAT(id,'|',senderId,'|',receiverId,'|',content,'|',CONVERT(nvarchar(30),[timestamp],126)) FROM dbo.Message");
-        Assert.Equal(1,MigrationRunner.Run(target));
+        Assert.Equal(2,MigrationRunner.Run(target));
         Assert.True(metadata.IsSubsetOf(SqlFixture.Rows(target,SqlFixture.Metadata)));
         Assert.True(original.SetEquals(SqlFixture.Rows(target,"SELECT CONCAT(id,'|',senderId,'|',receiverId,'|',content,'|',CONVERT(nvarchar(30),[timestamp],126)) FROM dbo.Message")));
         Assert.Equal("4",SqlFixture.Scalar(target,"SELECT COUNT(*) FROM dbo.Message WHERE ConversationId IS NULL AND ClientMessageId IS NULL AND SentAtUtc IS NULL"));

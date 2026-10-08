@@ -9,14 +9,14 @@ namespace EbayGroup5.Web.Controllers;
 public sealed class CatalogController(ICatalogService catalog, IReviewService reviews, IFeedbackService feedback) : Controller
 {
     [HttpGet]
-    public async Task<IActionResult> Index(string? q, int? categoryId, int page = 1, CancellationToken cancellationToken = default)
+    public async Task<IActionResult> Index(string? q, int? categoryId, int? seller, int page = 1, CancellationToken cancellationToken = default)
     {
-        if (!ModelState.IsValid || (q?.Trim().Length ?? 0) > 100 || categoryId is <= 0 || page <= 0 || page > int.MaxValue / CatalogPage.PageSize)
+        if (!ModelState.IsValid || (q?.Trim().Length ?? 0) > 100 || categoryId is <= 0 || seller is <= 0 || page <= 0 || page > int.MaxValue / CatalogPage.PageSize)
         {
             Response.StatusCode = 400;
             return View("InvalidFilters");
         }
-        var result = await catalog.SearchAsync(q, categoryId, page, cancellationToken);
+        var result = await catalog.SearchAsync(q, categoryId, page, seller, cancellationToken);
         ViewData["SearchQuery"] = result.Query;
         // D06 (A2): card rating and seller reputation, batched for the current page only.
         ViewData["Ratings"] = await reviews.SummariesAsync(result.Items.Select(x => x.Id).ToArray(), cancellationToken);
@@ -25,12 +25,22 @@ public sealed class CatalogController(ICatalogService catalog, IReviewService re
     }
 
     [HttpGet]
-    public async Task<IActionResult> Details(int id, CancellationToken cancellationToken)
+    public async Task<IActionResult> Details(int id, string? fb = null, CancellationToken cancellationToken = default)
     {
+        // H02: "Seller feedback" dropdown on the item page (All ratings / Positive / Neutral / Negative).
+        FeedbackSentiment? filter = fb switch { "positive" => FeedbackSentiment.Positive, "neutral" => FeedbackSentiment.Neutral, "negative" => FeedbackSentiment.Negative, _ => null };
+        if (!ModelState.IsValid || fb is not (null or "" or "positive" or "neutral" or "negative"))
+        {
+            Response.StatusCode = 400;
+            return View("InvalidFilters");
+        }
         var result = await catalog.FindAsync(id, cancellationToken);
         if (result == null) return NotFound();
         ViewData["Reviews"] = await reviews.ProductReviewsAsync(id, cancellationToken: cancellationToken);
-        ViewData["SellerReputation"] = await feedback.ReputationAsync(result.Item.SellerId, cancellationToken);
+        var sellerFeedback = await feedback.ProfileAsync(result.Item.SellerId, new FeedbackProfileQuery(Sentiment: filter, PageSize: 8), cancellationToken);
+        ViewData["SellerReputation"] = sellerFeedback?.Reputation ?? await feedback.ReputationAsync(result.Item.SellerId, cancellationToken);
+        if (sellerFeedback?.Summary is { } summary)
+            ViewData["AboutSeller"] = new Models.AboutSellerView(id, summary, sellerFeedback.Reputation, feedback.DetailedRatingsMinimum, sellerFeedback, filter?.ToString().ToLowerInvariant());
         return View(result);
     }
 

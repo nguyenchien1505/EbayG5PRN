@@ -1,14 +1,17 @@
 @model EbayGroup5.Application.Catalog.CatalogDetail
 @using System.Globalization
 @{ ViewData["Title"] = Model.Item.Title; var reviews = ViewData["Reviews"] as EbayGroup5.Application.Reviews.ProductReviewPage; var summary = reviews?.Summary ?? EbayGroup5.Application.Reviews.RatingSummary.Empty;
-    var reputation = ViewData["SellerReputation"] as EbayGroup5.Application.Feedback.SellerReputation ?? EbayGroup5.Application.Feedback.SellerReputation.Empty; }
+    var reputation = ViewData["SellerReputation"] as EbayGroup5.Application.Feedback.SellerReputation ?? EbayGroup5.Application.Feedback.SellerReputation.Empty;
+    var about = ViewData["AboutSeller"] as EbayGroup5.Web.Models.AboutSellerView; }
 <a class="back-to-catalog" asp-action="Index">← Browse all items</a>
 <div class="product-detail">
     <div class="detail-media product-placeholder"><svg viewBox="0 0 64 64" aria-hidden="true"><path d="M12 20 32 10 52 20 32 30Z M12 20v24l20 10 20-10V20 M32 30v24" /></svg><span>Image unavailable</span></div>
     <section class="detail-info" aria-labelledby="product-title">
         <h1 id="product-title">@Model.Item.Title</h1>
         @if (summary.Average is decimal average) { <a class="rating-inline" href="#reviews"><partial name="_Stars" model="average" /><span>@average.ToString("0.0", CultureInfo.InvariantCulture) · @summary.Ratings product rating@(summary.Ratings == 1 ? "" : "s")</span></a> }
-        <div class="seller-section"><span class="seller-avatar" aria-hidden="true">S</span><div class="seller-section-text"><strong>@Model.Item.Seller</strong><p><a class="seller-feedback-link" asp-controller="Sellers" asp-action="Feedback" asp-route-id="@Model.Item.SellerId"><partial name="_SellerReputation" model="reputation" /></a></p></div>
+        @* H02 (IT-1): name (score ★) → profile; "x% positive · Seller's other items · Contact seller". *@
+        <div class="seller-section"><span class="seller-avatar" aria-hidden="true">@Model.Item.Seller[0]</span><div class="seller-section-text"><p class="seller-card-name"><a asp-controller="Sellers" asp-action="Feedback" asp-route-id="@Model.Item.SellerId">@Model.Item.Seller</a> <span class="seller-card-score">(@reputation.Score.ToString(CultureInfo.InvariantCulture)<partial name="_FeedbackStar" model="reputation.Star" />)</span></p>
+            <p class="seller-card-links">@if (reputation.PositivePercent is decimal positive) { <a class="seller-feedback-link" asp-controller="Sellers" asp-action="Feedback" asp-route-id="@Model.Item.SellerId">@positive.ToString("0.#", CultureInfo.InvariantCulture)% positive</a> } else { <a class="seller-feedback-link" asp-controller="Sellers" asp-action="Feedback" asp-route-id="@Model.Item.SellerId">@(reputation.Total == 0 ? "No feedback yet" : "No feedback in the last 12 months")</a> }<span aria-hidden="true"> · </span><a asp-controller="Catalog" asp-action="Index" asp-route-seller="@Model.Item.SellerId">Seller's other items</a>@if (User.IsInRole("Buyer")) { <span aria-hidden="true"> · </span><button type="button" class="link-button" data-chat-product-id="@Model.Item.Id">Contact seller</button> }</p></div>
             @* D06 (A1): eBay puts the Message button in the seller card; behavior is unchanged from C04. *@
             @if (User.IsInRole("Buyer")) { <button type="button" class="button outline seller-message" data-chat-product-id="@Model.Item.Id">Message</button> }
             else if (User.Identity?.IsAuthenticated != true) { <a class="button outline seller-message" asp-controller="Account" asp-action="Login" asp-route-returnUrl="@Url.Action("Details", "Catalog", new { id = Model.Item.Id, message = true })">Message</a> }
@@ -31,6 +34,7 @@
         <a class="button outline" asp-action="Reviews" asp-route-id="@Model.Item.Id">See all @summary.Reviews review@(summary.Reviews == 1 ? "" : "s")</a>
     }
 </section>
+@if (about != null) { <partial name="_AboutSeller" model="about" /> }
 @if (User.IsInRole("Buyer")) { <partial name="_ChatPanel" /> }
 @section Styles { <link rel="stylesheet" href="~/css/chat.css" asp-append-version="true" /> }
-@section Scripts { @if (User.IsInRole("Buyer")) { <partial name="_ChatScripts" /> } }
+@section Scripts { <script src="~/js/feedback-profile.js" asp-append-version="true"></script> @if (User.IsInRole("Buyer")) { <partial name="_ChatScripts" /> } }

@@ -8,4 +8,5 @@ public sealed class User
     public string? Password { get; set; }
     public string? Role { get; set; }
     public string? AvatarURL { get; set; }
+    public DateTime? JoinedAtUtc { get; set; }
 }

@@ -174,3 +174,38 @@ Soạn trước khi sửa source, baseline main `5a8d3b9`. Nguồn: [ADR-003](..
 - Chỉ hiển thị khi tổng số DSR do buyer chấm (ba dòng đầu, đếm từng giá trị) ≥ ngưỡng `Feedback:DetailedRatingsMinimum` (mặc định 10, như câu "at least 10 detailed seller ratings" trên F1); demo có thể hạ ngưỡng bằng cấu hình. Hiển thị chi tiết thuộc H02; H01 cung cấp dữ liệu.
 
 **Schema — DbUp 0015 (chỉ mở rộng):** `SellerFeedback` thêm `ArrivedOnTime bit NULL`, `DescriptionRating`, `ShippingTimeRating`, `CommunicationRating tinyint NULL` (CHECK 1–5). Trigger `TR_SellerFeedback_Immutable` mở rộng để các cột mới cũng bất biến. Quyền INSERT hiện có đã bao gồm cột mới. Không backfill (feedback cũ không có DSR).
+
+## Quyết định H02 (09/10/2026, hồ sơ và khối người bán giống eBay)
+
+Soạn trước khi sửa source, baseline main sau H01. Mẫu: F2 (classic desktop), F2m (mobile), SA và IT-4 (trang sản phẩm), IT-1 (seller card) trong [references](../references/ui/INDEX.md). Thay bố cục "F1 giản lược" của D04 theo [ADR-003](../decisions/ADR-003-ui-fidelity-references.md). Quy tắc tính điểm giữ H01.
+
+**Dữ liệu mới (DbUp 0016, chỉ mở rộng):** `dbo.[User]` thêm `JoinedAtUtc datetime2(7) NULL DEFAULT SYSUTCDATETIME()`. Không backfill user cũ (không có nguồn ngày thật) → "Member since"/"Joined" chỉ hiện khi có giá trị. Đăng ký và seed mới tự có ngày. Thêm index `IX_Product_Seller` và `IX_Message_SellerTurns` (lọc) vì khối người bán nằm trên mọi trang sản phẩm có trong bài tải F05.
+
+**Số liệu chỉ lấy từ dữ liệu thật (ADR-003 §3):**
+
+- Items sold = tổng `quantity` của các dòng đơn có `OrderTable.SellerId` = seller; hiển thị gọn như eBay (`2.0K items sold`); 0 thì bỏ.
+- "Usually responds within 24 hours": các lượt buyer nhắn trong 90 ngày (tin buyer đầu tiên sau tin seller hoặc đầu hội thoại) có seller trả lời; trung vị thời gian trả lời ≤ 24 giờ thì hiện câu này, ngược lại hoặc không có dữ liệu thì bỏ.
+- Popular categories = danh mục của listing seller, nhiều nhất trước, tối đa 7; "See all" → danh sách hàng của seller.
+- Điểm buyer cạnh tên che (`b***r (0)`): điểm feedback nhận với vai trò buyer (clone chưa có feedback cho buyer → 0, không bịa).
+- Không hiện: Top-rated seller, revised feedback, eBay automated feedback, ảnh feedback (chưa có dữ liệu; Q-UI-012), quốc gia đăng ký.
+
+**Trang hồ sơ `/Sellers/Feedback/{id}` (F2):**
+
+- Breadcrumb Home › Feedback profile; tiêu đề "Feedback profile".
+- Thẻ seller: avatar chữ đầu, tên, `(điểm ★)` ⓘ, "Positive Feedback (last 12 months): x%" ⓘ, "Member since: Mon-DD-YY" nếu có. Hộp "Member Quick Links": Contact member (mở chat trên listing mới nhất còn bán, ẩn nếu không có), View items for sale.
+- "Feedback ratings" 1/6/12 tháng (bỏ cột All time của D04 để giống eBay); mỗi số là link lọc theo mức + kỳ.
+- "Detailed seller ratings — Average for the last 12 months": 4 dòng sao + (số lượt); dưới ngưỡng H01 hiện "This information will be available when this member receives at least {n} detailed seller ratings."
+- Tab: All received Feedback / Received as buyer / Received as seller / Left for others (`tab=all|buyer|seller|left`). Clone chỉ có feedback seller nhận → tab buyer/left hiện trạng thái rỗng thật.
+- Ô "Search Feedback … with an item title or ID", Period (All / Past month / Past 6 months / Past year), Sort By (Most relevant = có comment trước rồi mới nhất — xấp xỉ của clone; Most recent), lọc sentiment từ link bảng.
+- Danh sách FEEDBACK (icon, comment đậm, tên item + `(#id)` link sản phẩm, reply) / FROM (`Buyer: x***y (0)`, giá, Verified purchase) / WHEN; Report và form Reply giữ như D04/D05.
+- Phân trang số trang + Previous/Next, "Page x of y", Items per page 25/50/100. Tham số sai → 400 như D04.
+- Mobile ≤ 700 px theo F2m: header gọn (avatar, tên, % positive), tiêu đề "Seller feedback", nút Sort/Filter (details), thẻ feedback một cột, "N results"; ẩn bảng ratings/DSR như eBay mweb.
+
+**Trang sản phẩm (SA/IT-4, IT-1):**
+
+- Seller card cạnh giá: tên `(điểm ★)` link hồ sơ, "x% positive · Seller's other items · Contact seller", nút Message giữ hành vi C04.
+- Khối "About this seller": avatar, tên, "x% positive feedback · N items sold", Joined Mon YYYY, Usually responds…, Visit store / Message seller / Save seller, Detailed seller ratings dạng thanh + số (khi đủ ngưỡng), Popular categories.
+- Khối "Seller feedback (N)": dropdown All ratings/Positive/Neutral/Negative (`fb=` GET, neo `#seller-feedback`), 8 thẻ mới nhất kiểu mweb, "See all feedback".
+- Visit store / Seller's other items / View items for sale → `/Catalog?seller={id}` (lọc listing theo seller, tên store lấy từ bảng nguồn `Store` nếu có). Save seller → trang chung "This feature isn't available in this demo" (`/Help/Unavailable/save-seller`, danh sách khóa cố định, khóa lạ 404).
+
+**Kiểm duyệt sau H01/H02:** comment R1 được ghi vào cả feedback seller và review sản phẩm, nhưng hai bản ghi vẫn kiểm duyệt riêng như D05: ẩn review không ẩn feedback (hành trình J5 kiểm khu Reviews), admin xử lý feedback qua báo cáo riêng.
