@@ -99,7 +99,8 @@ public sealed class EntryPointTests
 
         var reputations = await feedback.ReputationsAsync([s.Seller, s.OtherSeller, s.Buyer]);
         foreach (var id in new[] { s.Seller, s.OtherSeller, s.Buyer }) Assert.Equal(await feedback.ReputationAsync(id), reputations[id]);
-        Assert.Equal(1, reputations[s.Seller].Score); Assert.Equal(66.7m, reputations[s.Seller].PositivePercent);
+        // H01: one buyer, one transaction week -> counted once per sentiment (raw 2 P / 1 N).
+        Assert.Equal(0, reputations[s.Seller].Score); Assert.Equal(50m, reputations[s.Seller].PositivePercent);
         Assert.Null(reputations[s.OtherSeller].PositivePercent); Assert.Equal(SellerReputation.Empty, reputations[s.Buyer]);
 
         Assert.Empty(await reviews.SummariesAsync([]));

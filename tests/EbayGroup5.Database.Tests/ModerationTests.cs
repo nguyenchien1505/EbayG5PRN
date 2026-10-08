@@ -102,17 +102,20 @@ public sealed class ModerationTests
         var s = await Setup();
         var admin = await Moderator(s);
         var ok = Feedback(s, "Positive", "Fine"); var rude = Feedback(s, "Negative", "Rude words", "Sorry"); var spam = Feedback(s, "Negative", "Spam");
-        Assert.Equal((-1, 33.3m), ((await Feedback(s).ReputationAsync(s.Seller)).Score, (await Feedback(s).ReputationAsync(s.Seller)).PositivePercent!.Value));
+        // H01: same buyer and transaction week -> one Positive and one Negative count (raw 1 P / 2 N).
+        Assert.Equal((0, 50m), ((await Feedback(s).ReputationAsync(s.Seller)).Score, (await Feedback(s).ReputationAsync(s.Seller)).PositivePercent!.Value));
+        Assert.Equal(new FeedbackCounts(1, 0, 2), (await Feedback(s).ReputationAsync(s.Seller)).Lifetime);
         Assert.Equal(ModerationOutcome.Success, (await Moderation(s).ActAsync(admin, ContentKind.SellerFeedback, rude, ModerationAction.RemoveComment, null)).Outcome);
         var profile = await Feedback(s).ProfileAsync(s.Seller);
         var entry = profile!.Entries.Single(x => x.Id == rude);
         Assert.Null(entry.Comment);
         Assert.Null(entry.Reply);
         Assert.Equal(FeedbackSentiment.Negative, entry.Sentiment);
-        Assert.Equal(-1, profile.Reputation.Score);
+        Assert.Equal(0, profile.Reputation.Score);
         Assert.Equal(ModerationOutcome.Success, (await Moderation(s).ActAsync(admin, ContentKind.SellerFeedback, spam, ModerationAction.Hide, "Spam")).Outcome);
         var rep = await Feedback(s).ReputationAsync(s.Seller);
         Assert.Equal((0, 50m), (rep.Score, rep.PositivePercent!.Value));
+        Assert.Equal(new FeedbackCounts(1, 0, 1), rep.Lifetime);
         Assert.Equal(2, (await Feedback(s).ProfileAsync(s.Seller))!.Total);
         Assert.Equal(ReplyOutcome.NotFound, (await Feedback(s).ReplyAsync(s.Seller, spam, "reply to hidden")).Outcome);
         Assert.Contains("Replies are closed", (await Feedback(s).ReplyAsync(s.Seller, rude, "x")).Error);

@@ -64,6 +64,8 @@ public static class WebApplicationHost
         builder.Services.AddScoped<EbayGroup5.Application.Orders.IOrderService, EbayGroup5.Infrastructure.Orders.OrderService>();
         builder.Services.AddScoped<EbayGroup5.Application.Reviews.IReviewService, EbayGroup5.Infrastructure.Reviews.ReviewService>();
         builder.Services.TryAddSingleton(TimeProvider.System);
+        // H01: Feedback:DetailedRatingsMinimum (default 10, eBay) gates the detailed seller ratings block; demos may lower it.
+        builder.Services.AddSingleton(builder.Configuration.GetSection("Feedback").Get<EbayGroup5.Application.Feedback.FeedbackDisplayOptions>() ?? new());
         builder.Services.AddScoped<EbayGroup5.Application.Feedback.IFeedbackService, EbayGroup5.Infrastructure.Reputation.FeedbackService>();
         builder.Services.AddScoped<EbayGroup5.Application.Moderation.IModerationService, EbayGroup5.Infrastructure.Moderation.ModerationService>();
         // E01: business-day timing; Disputes:DemoBusinessDaySeconds > 0 shortens deadlines for demos (DISPUTES.md).

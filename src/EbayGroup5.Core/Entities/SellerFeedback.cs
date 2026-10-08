@@ -13,4 +13,8 @@ public sealed class SellerFeedback
     public DateTime? RepliedAtUtc { get; set; }
     public DateTime? HiddenAtUtc { get; set; }
     public DateTime? CommentRemovedAtUtc { get; set; }
+    public bool? ArrivedOnTime { get; set; }
+    public byte? DescriptionRating { get; set; }
+    public byte? ShippingTimeRating { get; set; }
+    public byte? CommunicationRating { get; set; }
 }

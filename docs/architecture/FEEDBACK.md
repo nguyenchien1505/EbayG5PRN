@@ -143,3 +143,34 @@ Phần này soạn trước khi sửa source, trên baseline main `baa8a8a`. Dep
 - Menu My eBay của Seller có thêm mục "Feedback profile".
 
 **Cập nhật D05:** `Visible()` loại feedback đã Hide khỏi uy tín và hồ sơ; RemoveComment ẩn comment và reply nhưng giữ sentiment; không reply vào nội dung đã Hide (404) hoặc đã gỡ comment (409). Xem [MODERATION](MODERATION.md).
+
+## Quyết định H01 (08/10/2026, giống eBay)
+
+Soạn trước khi sửa source, baseline main `5a8d3b9`. Nguồn: [ADR-003](../decisions/ADR-003-ui-fidelity-references.md), mẫu R1/F1/F2 trong [references](../references/ui/INDEX.md), chú thích trên hồ sơ eBay live, trang Community/hướng dẫn seller (ghi ở evidence H01). Thay các quy tắc tương ứng của D03/D04 ở trên.
+
+**Điểm feedback (toàn thời gian):**
+
+- Một buyer chỉ làm điểm của seller thay đổi tối đa +1 (Positive) và −1 (Negative) cho mỗi **tuần giao dịch**. Tuần = thứ Hai–Chủ nhật theo giờ Pacific (`Pacific Standard Time`, có DST), xác định từ `OrderTable.orderDate` (UTC) của dòng đơn; thiếu orderDate thì dùng `CreatedAtUtc` của feedback.
+- Score = số cặp (buyer, tuần) có Positive − số cặp (buyer, tuần) có Negative. Neutral không đổi điểm.
+- Tính trong SQL (`AT TIME ZONE`), không phụ thuộc tzdata của container.
+
+**% tích cực (12 tháng):** P'/(P'+N') với P', N' là số cặp (buyer, tuần) Positive/Negative của feedback có `CreatedAtUtc` trong 12 tháng; không có P' hoặc N' thì null. Bảng Feedback ratings 1/6/12 tháng vẫn đếm từng feedback (như eBay: 432/8/3 nhưng 99,5%). Cột All time giữ cho đến H02.
+
+**Sao theo điểm:** 10 vàng, 50 xanh dương, 100 ngọc lam, 500 tím, 1.000 đỏ, 5.000 xanh lá, 10.000 sao băng vàng, 25.000 sao băng ngọc lam, 50.000 sao băng tím, 100.000 sao băng đỏ, 500.000 sao băng xanh lá, 1.000.000 sao băng bạc. Nguồn là hướng dẫn seller bên thứ ba (Help chính thức không mở được), khớp màu quan sát trên F2 (13 vàng, 133/216 ngọc lam, 543/829 tím, 1.031–4.024 đỏ). Điểm < 10 không có sao.
+
+**Form "Leave feedback" theo R1** (một form cho một dòng đơn):
+
+1. How was your experience? Positive/Neutral/Negative (quy tắc 7 ngày, 60 ngày giữ nguyên).
+2. How would you rate this item? 1–5 sao.
+3. Tell us more about this item: **một ô comment tối đa 500 ký tự** ("Feedback length"). Comment lưu vào feedback seller khi chọn sentiment và vào review sản phẩm khi chọn sao; phần nào đã gửi trước đó thì chỉ ghi phần còn lại. Comment mà không chọn sentiment hoặc sao → 400.
+4. Did this item arrive on time? (Optional) Yes/No.
+5. Rate more details about your purchase (Optional): Item description, Shipping time, Seller communication, mỗi dòng 1–5 sao.
+6. Mục 4–5 chỉ hiện và chỉ được gửi cùng phần seller (sentiment); gửi khi không có sentiment hoặc giá trị ngoài miền → 400. "Add up to 5 photos" chờ [Q-UI-012](../questions/INDEX.md).
+
+**Detailed seller ratings (DSR):**
+
+- Accurate description = trung bình Item description; Shipping speed = Shipping time; Communication = Seller communication; mỗi dòng kèm số lượt, chỉ tính feedback hiển thị có `CreatedAtUtc` trong 12 tháng, làm tròn 1 chữ số.
+- Reasonable shipping cost: clone không thu phí vận chuyển, nên theo quy tắc eBay "free shipping → tự động 5 sao" mỗi feedback trong 12 tháng tính một lượt 5 sao.
+- Chỉ hiển thị khi tổng số DSR do buyer chấm (ba dòng đầu, đếm từng giá trị) ≥ ngưỡng `Feedback:DetailedRatingsMinimum` (mặc định 10, như câu "at least 10 detailed seller ratings" trên F1); demo có thể hạ ngưỡng bằng cấu hình. Hiển thị chi tiết thuộc H02; H01 cung cấp dữ liệu.
+
+**Schema — DbUp 0015 (chỉ mở rộng):** `SellerFeedback` thêm `ArrivedOnTime bit NULL`, `DescriptionRating`, `ShippingTimeRating`, `CommunicationRating tinyint NULL` (CHECK 1–5). Trigger `TR_SellerFeedback_Immutable` mở rộng để các cột mới cũng bất biến. Quyền INSERT hiện có đã bao gồm cột mới. Không backfill (feedback cũ không có DSR).

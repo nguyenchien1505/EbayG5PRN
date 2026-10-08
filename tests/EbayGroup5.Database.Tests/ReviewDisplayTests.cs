@@ -150,19 +150,19 @@ public sealed class ReviewDisplayTests
         var form = await buyer.GetStringAsync(create);
         Assert.Contains("How would you rate this item?", form);
         Assert.Contains("Tell us more about this item", form);
-        Assert.Contains("0 / 2000", System.Text.RegularExpressions.Regex.Replace(form, "<[^>]+>", ""));
+        Assert.Contains("0 / 500", System.Text.RegularExpressions.Regex.Replace(form, "<[^>]+>", ""));
 
         var missing = await buyer.PostAsync("/Reviews/Create", new FormUrlEncodedContent(new Dictionary<string, string>
         { ["OrderItemId"] = s.Item.ToString(), ["Comment"] = "Keep this draft", ["__RequestVerificationToken"] = Field(form) }));
         Assert.Equal(HttpStatusCode.BadRequest, missing.StatusCode);
         var missingHtml = await missing.Content.ReadAsStringAsync();
-        Assert.Contains("Select a star rating from 1 to 5.", missingHtml);
+        Assert.Contains("Rate your experience with the seller or rate the item.", missingHtml);
         Assert.Contains("Keep this draft", missingHtml);
 
         var tooLong = await buyer.PostAsync("/Reviews/Create", new FormUrlEncodedContent(new Dictionary<string, string>
-        { ["OrderItemId"] = s.Item.ToString(), ["Rating"] = "4", ["Comment"] = new string('x', 2001), ["__RequestVerificationToken"] = Field(form) }));
+        { ["OrderItemId"] = s.Item.ToString(), ["Rating"] = "4", ["Comment"] = new string('x', 501), ["__RequestVerificationToken"] = Field(form) }));
         Assert.Equal(HttpStatusCode.BadRequest, tooLong.StatusCode);
-        Assert.Contains("at most 2000 characters", await tooLong.Content.ReadAsStringAsync());
+        Assert.Contains("at most 500 characters", await tooLong.Content.ReadAsStringAsync());
         Assert.Equal("0", SqlFixture.Scalar(s.Target, "SELECT COUNT(*) FROM dbo.Review"));
 
         var posted = await buyer.PostAsync("/Reviews/Create", new FormUrlEncodedContent(new Dictionary<string, string>

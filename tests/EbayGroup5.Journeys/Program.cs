@@ -142,9 +142,10 @@ async Task<int> CaptureScreens(string dir)
         var lines = await b.Locator("[id^=line-]").EvaluateAllAsync<string[]>("els => els.map(e => e.id)");
         await b.Locator("#" + lines[0]).GetByRole(AriaRole.Link, new() { Name = "Leave feedback" }).ClickAsync();
         await b.Locator("label[for=sentiment-Positive]").ClickAsync();
-        await b.Locator("#seller-comment").FillAsync("Fast shipping and quick answers. Thank you!");
         await b.Locator("label[for=rating-5]").ClickAsync();
-        await b.Locator("#review-comment").FillAsync("Great sound and comfortable for long calls.");
+        await b.Locator("#feedback-comment").FillAsync("Great sound and comfortable for long calls. Fast shipping too.");
+        await b.Locator("label[for=arrived-yes]").ClickAsync();
+        foreach (var detail in new[] { "DescriptionRating-5", "ShippingTimeRating-4", "CommunicationRating-5" }) await b.Locator($"label[for={detail}]").ClickAsync();
         await Shot(b, "S08", "leave-feedback");
         await b.GetByRole(AriaRole.Button, new() { Name = "Leave feedback" }).ClickAsync();
         await Expect(b.GetByText("You rated this item 5 out of 5.")).ToBeVisibleAsync();
@@ -285,7 +286,7 @@ await Step("J3 seller ships, buyer confirms receipt and leaves feedback", async 
     await buyer.Locator("#line-" + await LineId(buyer)).GetByRole(AriaRole.Link, new() { Name = "Leave feedback" }).ClickAsync();
     await buyer.Locator("label[for=sentiment-Positive]").ClickAsync();
     await buyer.Locator("label[for=rating-5]").ClickAsync();
-    await buyer.Locator("#review-comment").FillAsync(reviewComment);
+    await buyer.Locator("#feedback-comment").FillAsync(reviewComment);
     await buyer.GetByRole(AriaRole.Button, new() { Name = "Leave feedback" }).ClickAsync();
     await Expect(buyer.GetByText("You rated this item 5 out of 5.")).ToBeVisibleAsync();
     await buyer.GotoAsync("/");

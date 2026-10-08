@@ -71,3 +71,4 @@ max HTTP p95 241,48ms/chat p95 27,98ms. Update/undo thay pod thật, journal gi�
 | F06 | [F06](F06.md) | OPS-06 (nền K8s) |
 | G01 | [G01](G01.md) | **UI-01**, truy vết toàn ma trận; ảnh [ui/](ui/) |
 | G02 | [G02](G02.md) | **DOC-01** (báo cáo/setup/demo/handover); OPS-04 Pending theo user |
+| H01 | [H01](H01.md) | G5-03, G5-05 (quy tắc eBay, form R1) |

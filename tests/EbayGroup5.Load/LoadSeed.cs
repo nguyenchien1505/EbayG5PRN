@@ -125,7 +125,7 @@ public static class LoadSeed
                     if (j < reviews)
                     {
                         var left = await new FeedbackService(db, TimeProvider.System).SubmitAsync(buyers[b],
-                            new(item, FeedbackSentiment.Positive, $"Load seller feedback {j}", 1 + j % 5, $"Load review {j}: as described."), ct);
+                            new(item, FeedbackSentiment.Positive, 1 + j % 5, $"Load feedback {j}: as described.", new FeedbackDetails(true, 5, 4 + j % 2, 5)), ct);
                         if (left.Outcome != LeaveFeedbackOutcome.Success) throw new InvalidOperationException("Feedback failed: " + left.Error);
                     }
                     else

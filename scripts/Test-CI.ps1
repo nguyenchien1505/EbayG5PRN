@@ -39,12 +39,13 @@ try {
     dotnet build --no-restore -c Release
     if ($LASTEXITCODE -ne 0) { throw 'Release build failed.' }
 
+    # Every SQL test creates its own database and keeps it until the container is removed; ~220 databases need ~2 GB (H01).
     $env:MSSQL_SA_PASSWORD = 'Eg5!' + [Convert]::ToHexString([Security.Cryptography.RandomNumberGenerator]::GetBytes(24))
     if ($env:GITHUB_ACTIONS -eq 'true') { Write-Output "::add-mask::$env:MSSQL_SA_PASSWORD" }
     $health = 'SQLCMDPASSWORD="$MSSQL_SA_PASSWORD" /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -C -b -l 5 -Q "SELECT 1" > /dev/null'
     docker run --detach --name $containerName --publish '127.0.0.1::1433' `
         --env ACCEPT_EULA=Y --env MSSQL_PID=Developer --env MSSQL_SA_PASSWORD `
-        --env MSSQL_MEMORY_LIMIT_MB=2048 --memory 3g `
+        --env MSSQL_MEMORY_LIMIT_MB=3072 --memory 4g `
         --health-cmd $health --health-interval 3s --health-timeout 8s --health-retries 40 `
         'mcr.microsoft.com/mssql/server:2022-CU27-ubuntu-22.04@sha256:4402d880dd4c34bfa7d8705e56a86cd6c88da80a1f6bbbe741f999e76264a090' | Out-Null
     if ($LASTEXITCODE -ne 0) { throw 'Cannot create isolated CI SQL container.' }
