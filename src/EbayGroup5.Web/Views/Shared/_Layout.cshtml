@@ -1,3 +1,16 @@
+@inject EbayGroup5.Web.Shell.ShellData Shell
+@using System.Security.Claims
+@{
+    // H03 (references HD, HM, IT-1): eBay header — utility row, logo + Shop by category + scoped search, category bar — and footer.
+    // Controls without a clone feature open /Help/Unavailable/{key} (ADR-003 §2).
+    var signedIn = User.Identity?.IsAuthenticated == true;
+    var isAccountPage = string.Equals(ViewContext.RouteData.Values["controller"]?.ToString(), "Account", StringComparison.OrdinalIgnoreCase);
+    var categories = await Shell.CategoriesAsync(Context.RequestAborted);
+    var shipTo = signedIn ? await Shell.ShipToAsync(User, Context.RequestAborted) : null;
+    var me = User.FindFirstValue(ClaimTypes.NameIdentifier);
+    var firstName = (User.Identity?.Name ?? "").Split(' ', StringSplitOptions.RemoveEmptyEntries).FirstOrDefault() ?? "";
+    int? selectedCategory = int.TryParse(Context.Request.Query["categoryId"], out var categoryValue) ? categoryValue : null;
+}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -11,47 +24,115 @@
     <a class="skip-link" href="#main-content">Skip to main content</a>
     <header class="site-header">
         <div class="utility-row shell-width">
-        <div class="greeting">
-            @if (User.Identity?.IsAuthenticated == true)
-            {
-                <span>Hi, <a asp-controller="Account" asp-action="Me">@User.Identity.Name</a>!</span>
-            }
-            else
-            {
-                <span>Hi! <a asp-controller="Account" asp-action="Login">Sign in</a> or <a asp-controller="Account" asp-action="Register">register</a></span>
-            }
-        </div>
-        <nav aria-label="Account">
-            <details class="account-menu">
-                <summary>My eBay</summary>
-                <div class="menu-panel">
-                    <a asp-controller="Account" asp-action="Me">Your account</a>
-                    @if (User.IsInRole("Buyer")) { <a asp-controller="Orders" asp-action="Purchases">Purchase history</a> }
-                    @if (User.IsInRole("Seller")) { <a asp-controller="Orders" asp-action="Sales">Sales history</a><a asp-controller="Sellers" asp-action="Feedback" asp-route-id="@User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value">Feedback profile</a> }
-                    @if (User.IsInRole("Buyer") || User.IsInRole("Seller")) { <a asp-controller="Messages" asp-action="Index">Messages</a><a asp-controller="Disputes" asp-action="Index">Returns and requests</a> }
-                    @if (User.IsInRole("Admin")) { <a asp-controller="Admin" asp-action="Moderation">Moderation</a><a asp-controller="Admin" asp-action="Disputes">Request reviews</a> }
-                    @if (User.Identity?.IsAuthenticated != true)
-                    {
-                        <a asp-controller="Account" asp-action="Register">Create an account</a>
-                    }
-                </div>
-            </details>
-        </nav>
+            <nav class="utility-left" aria-label="Account and help">
+                @if (signedIn)
+                {
+                    <details class="header-menu greeting-menu" data-menu>
+                        <summary><span>Hi <strong>@firstName</strong>!</span><svg class="caret" viewBox="0 0 12 12" aria-hidden="true"><path d="M2 4l4 4 4-4" /></svg></summary>
+                        <div class="menu-panel menu-panel-left">
+                            <p class="menu-title">@User.Identity!.Name</p>
+                            <a asp-controller="Account" asp-action="Me">Account settings</a>
+                            <form asp-controller="Account" asp-action="Logout" method="post"><button type="submit" class="menu-button">Sign out</button></form>
+                        </div>
+                    </details>
+                }
+                else
+                {
+                    <span class="greeting">Hi! <a asp-controller="Account" asp-action="Login">Sign in</a> or <a asp-controller="Account" asp-action="Register">register</a></span>
+                }
+                <a class="utility-link" asp-controller="Help" asp-action="Unavailable" asp-route-id="deals">Deals</a>
+                <a class="utility-link" asp-controller="Help" asp-action="Unavailable" asp-route-id="brand-outlet">Brand Outlet</a>
+                <a class="utility-link" asp-controller="Help" asp-action="Unavailable" asp-route-id="help-contact">Help &amp; Contact</a>
+            </nav>
+            <nav class="utility-right" aria-label="My eBay">
+                @if (shipTo != null)
+                {
+                    <span class="ship-to" title="Ship to your default address"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 5h12v3h4l4 5v5h-2a3 3 0 0 1-6 0H9a3 3 0 0 1-6 0H2Zm2 2v9h.2a3 3 0 0 1 5.6 0H12V7Zm10 3v6h.2a3 3 0 0 1 5.6 0h.2v-2.3L17 10ZM6 17a1 1 0 1 0 0 2 1 1 0 0 0 0-2Zm11 0a1 1 0 1 0 0 2 1 1 0 0 0 0-2Z" /></svg><span class="sr-only">Ship to </span>@shipTo</span>
+                }
+                <details class="header-menu" data-menu>
+                    <summary>Sell<svg class="caret" viewBox="0 0 12 12" aria-hidden="true"><path d="M2 4l4 4 4-4" /></svg></summary>
+                    <div class="menu-panel">
+                        @if (User.IsInRole("Seller"))
+                        {
+                            <a asp-controller="Orders" asp-action="Sales">Sales history</a>
+                            <a asp-controller="Sellers" asp-action="Feedback" asp-route-id="@me">Feedback profile</a>
+                            <a asp-controller="Catalog" asp-action="Index" asp-route-seller="@me">Your listings</a>
+                        }
+                        <a asp-controller="Help" asp-action="Unavailable" asp-route-id="sell">Start selling</a>
+                    </div>
+                </details>
+                <details class="header-menu" data-menu>
+                    <summary>Watchlist<svg class="caret" viewBox="0 0 12 12" aria-hidden="true"><path d="M2 4l4 4 4-4" /></svg></summary>
+                    <div class="menu-panel"><p class="menu-note">Your Watchlist isn't part of this demo.</p><a asp-controller="Help" asp-action="Unavailable" asp-route-id="watchlist">About Watchlist</a></div>
+                </details>
+                <details class="header-menu" data-menu>
+                    <summary>My eBay<svg class="caret" viewBox="0 0 12 12" aria-hidden="true"><path d="M2 4l4 4 4-4" /></svg></summary>
+                    <div class="menu-panel">
+                        <a asp-controller="Account" asp-action="Me">Summary</a>
+                        @if (User.IsInRole("Buyer")) { <a asp-controller="Orders" asp-action="Purchases">Purchase history</a> }
+                        @if (User.IsInRole("Seller")) { <a asp-controller="Orders" asp-action="Sales">Sales history</a><a asp-controller="Sellers" asp-action="Feedback" asp-route-id="@me">Feedback profile</a> }
+                        @if (User.IsInRole("Buyer") || User.IsInRole("Seller")) { <a asp-controller="Messages" asp-action="Index">Messages</a><a asp-controller="Disputes" asp-action="Index">Returns and requests</a> }
+                        @if (User.IsInRole("Admin")) { <a asp-controller="Admin" asp-action="Moderation">Moderation</a><a asp-controller="Admin" asp-action="Disputes">Request reviews</a> }
+                        @if (!signedIn) { <a asp-controller="Account" asp-action="Login">Sign in</a><a asp-controller="Account" asp-action="Register">Create an account</a> }
+                    </div>
+                </details>
+                <a class="icon-link" asp-controller="Help" asp-action="Unavailable" asp-route-id="notifications" aria-label="Notifications"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2a6 6 0 0 1 6 6v4.6l2 3.4v1H4v-1l2-3.4V8a6 6 0 0 1 6-6Zm0 2a4 4 0 0 0-4 4v5.1L6.5 15h11L16 13.1V8a4 4 0 0 0-4-4Zm-2 15h4a2 2 0 0 1-4 0Z" /></svg></a>
+                <a class="icon-link" asp-controller="Help" asp-action="Unavailable" asp-route-id="cart" aria-label="Shopping cart"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 3h3l2.3 11.2A2 2 0 0 0 9.3 16H18v-2H9.3l-.2-1H19l2-8H6.4L6 3Zm4.8 4H18.4l-1 4H7.6ZM9 18a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3Zm8 0a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3Z" /></svg></a>
+            </nav>
         </div>
         <div class="brand-row shell-width">
             <a class="wordmark" asp-controller="Home" asp-action="Index" aria-label="eBay Clone home"><span>e</span><span>b</span><span>a</span><span>y</span></a>
-            @if (!string.Equals(ViewContext.RouteData.Values["controller"]?.ToString(), "Account", StringComparison.OrdinalIgnoreCase))
+            @if (!isAccountPage)
             {
+                <details class="header-menu shop-category" data-menu>
+                    <summary><span>Shop by<br />category</span><svg class="caret" viewBox="0 0 12 12" aria-hidden="true"><path d="M2 4l4 4 4-4" /></svg></summary>
+                    <div class="menu-panel menu-panel-left category-panel">
+                        <p class="menu-title">Shop by category</p>
+                        @foreach (var category in categories) { <a asp-controller="Catalog" asp-action="Index" asp-route-categoryId="@category.Id">@category.Name</a> }
+                        <a asp-controller="Catalog" asp-action="Index">All items</a>
+                    </div>
+                </details>
                 <form class="site-search" asp-controller="Catalog" asp-action="Index" method="get" role="search">
-                    <label class="sr-only" for="site-query">Search for anything</label>
-                    <input id="site-query" type="search" name="q" maxlength="100" value="@ViewData["SearchQuery"]" placeholder="Search for anything" />
+                    <div class="search-box">
+                        <svg class="search-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M10.5 3a7.5 7.5 0 0 1 5.9 12.1l4.8 4.8-1.4 1.4-4.8-4.8A7.5 7.5 0 1 1 10.5 3Zm0 2a5.5 5.5 0 1 0 0 11 5.5 5.5 0 0 0 0-11Z" /></svg>
+                        <label class="sr-only" for="site-query">Search for anything</label>
+                        <input id="site-query" type="search" name="q" maxlength="100" value="@ViewData["SearchQuery"]" placeholder="Search for anything" />
+                        <a class="camera-link" asp-controller="Help" asp-action="Unavailable" asp-route-id="image-search" aria-label="Search by image"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 4h8l1.5 2H21v14H3V6h3.5Zm1 2-1.5 2H5v10h14V8h-2.5L15 6Zm3 3a4 4 0 1 1 0 8 4 4 0 0 1 0-8Zm0 2a2 2 0 1 0 0 4 2 2 0 0 0 0-4Z" /></svg></a>
+                        <label class="sr-only" for="site-category">Select a category for search</label>
+                        <select id="site-category" name="categoryId">
+                            <option value="">All Categories</option>
+                            @foreach (var category in categories) { <option value="@category.Id" selected="@(category.Id == selectedCategory)">@category.Name</option> }
+                        </select>
+                    </div>
                     <button class="button primary" type="submit">Search</button>
                 </form>
+                <a class="advanced-link" asp-controller="Help" asp-action="Unavailable" asp-route-id="advanced-search">Advanced</a>
             }
         </div>
+        @if (!isAccountPage)
+        {
+            <nav class="category-bar" aria-label="Categories">
+                <div class="shell-width">
+                    <a asp-controller="Help" asp-action="Unavailable" asp-route-id="saved">Saved</a>
+                    @foreach (var category in categories.Take(9)) { <a asp-controller="Catalog" asp-action="Index" asp-route-categoryId="@category.Id">@category.Name</a> }
+                    <a asp-controller="Help" asp-action="Unavailable" asp-route-id="deals">Deals</a>
+                    <a asp-controller="Help" asp-action="Unavailable" asp-route-id="sell">Sell</a>
+                </div>
+            </nav>
+        }
     </header>
     <main id="main-content" class="shell-width" tabindex="-1">@if (TempData["SiteNotice"] is string siteNotice) { <p class="account-notice" role="status">@siteNotice</p> }@RenderBody()</main>
-    <footer class="site-footer"><div class="shell-width">eBay Clone · Group 5 <span>Educational demo. Not affiliated with eBay.</span></div></footer>
+    <footer class="site-footer">
+        <div class="shell-width footer-columns">
+            <section><h2>Buy</h2><a asp-controller="Account" asp-action="Register">Registration</a><a asp-controller="Help" asp-action="Unavailable" asp-route-id="buying-help">Bidding &amp; buying help</a><a asp-controller="Catalog" asp-action="Index">Stores</a><a asp-controller="Help" asp-action="Unavailable" asp-route-id="charity">eBay for Charity</a></section>
+            <section><h2>Sell</h2><a asp-controller="Help" asp-action="Unavailable" asp-route-id="sell">Start selling</a><a asp-controller="Help" asp-action="Unavailable" asp-route-id="seller-center">Seller Center</a></section>
+            <section><h2>Your account</h2><a asp-controller="Account" asp-action="Me">My eBay</a><a asp-controller="Messages" asp-action="Index">Messages</a><a asp-controller="Disputes" asp-action="Index">Returns and requests</a></section>
+            <section><h2>About eBay</h2><a asp-controller="Help" asp-action="Unavailable" asp-route-id="about">Company info</a><a asp-controller="Help" asp-action="Unavailable" asp-route-id="policies">Policies</a><a asp-controller="Help" asp-action="Unavailable" asp-route-id="site-map">Site map</a></section>
+            <section><h2>Help &amp; Contact</h2><a asp-controller="Help" asp-action="Unavailable" asp-route-id="help-contact">Contact us</a><a asp-controller="Disputes" asp-action="Index">eBay Returns</a><a asp-controller="Help" asp-action="Unavailable" asp-route-id="community">Community</a></section>
+        </div>
+        <div class="shell-width footer-legal">eBay Clone · Group 5 <span>Educational demo built for a university course. Not affiliated with eBay Inc.</span></div>
+    </footer>
+    <script src="~/js/shell.js" asp-append-version="true"></script>
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

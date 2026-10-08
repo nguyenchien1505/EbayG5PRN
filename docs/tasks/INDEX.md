@@ -54,7 +54,7 @@ Mở 08/10/2026 theo yêu cầu người dùng; ngoài 40 task của PLAN. Ảnh
 | [H00](H00.md) | Thư viện ảnh mẫu UI và ADR-003 | G02 | Done |
 | [H01](H01.md) | Điểm uy tín và form feedback theo eBay (tuần, DSR, R1) | H00 | Done |
 | [H02](H02.md) | Hồ sơ feedback classic/mobile, khối About this seller | H01 | Done |
-| [H03](H03.md) | Header, thanh danh mục, footer, trang chủ | H00 | Planned |
+| [H03](H03.md) | Header, thanh danh mục, footer, trang chủ | H00 | Done |
 | [H04](H04.md) | Trang kết quả tìm kiếm | H03 | Planned |
 | [H05](H05.md) | Trang sản phẩm và ảnh sản phẩm demo | H02, H04 | Planned |
 | [H06](H06.md) | Checkout, Purchases, Order details, tài khoản | H05, Q-UI-011 | Blocked |

@@ -1,0 +1,69 @@
+@model IReadOnlyList<EbayGroup5.Application.Catalog.CatalogCategory>
+@using System.Globalization
+@{
+    // H03 (reference HM): hero banner, category tiles, "Shopping made easy", account banner (signed out), newest listings,
+    // and the money-back promise that the clone's returns and item-not-received requests implement (group 5).
+    var recent = ViewData["Recent"] as IReadOnlyList<EbayGroup5.Application.Catalog.CatalogItem> ?? [];
+    var signedIn = User.Identity?.IsAuthenticated == true;
+}
+<section class="home-hero" aria-labelledby="hero-title">
+    <div>
+        <h1 id="hero-title">Shop with confidence</h1>
+        <p>Message sellers, leave feedback and get help with returns — the way eBay does it.</p>
+        <a class="button home-hero-button" asp-controller="Catalog" asp-action="Index">Start shopping</a>
+    </div>
+    <div class="home-hero-art" aria-hidden="true"><span>Chat</span><span>Feedback</span><span>Returns</span></div>
+</section>
+
+@if (Model.Count > 0)
+{
+    <section class="home-section" aria-labelledby="categories-title">
+        <h2 id="categories-title">Shop by category</h2>
+        <ul class="home-tiles">
+            @foreach (var category in Model.Take(7))
+            {
+                <li><a asp-controller="Catalog" asp-action="Index" asp-route-categoryId="@category.Id"><span class="home-tile-art" aria-hidden="true">@category.Name[0]</span><span>@category.Name</span></a></li>
+            }
+        </ul>
+    </section>
+}
+
+<section class="home-strip" aria-labelledby="easy-title">
+    <div><h2 id="easy-title">Shopping made easy</h2><p>Enjoy reliable sellers, secure deliveries and hassle-free returns.</p></div>
+    <a class="button home-dark-button" asp-controller="Catalog" asp-action="Index">Start now</a>
+</section>
+
+@if (!signedIn)
+{
+    <section class="home-banner home-banner-account" aria-labelledby="account-title">
+        <h2 id="account-title">Get more with an eBay account</h2>
+        <p>Save your addresses, chat with sellers and track every order in one place.</p>
+        <a class="button home-light-button" asp-controller="Account" asp-action="Login">Sign in</a>
+    </section>
+}
+
+@if (recent.Count > 0)
+{
+    <section class="home-section" aria-labelledby="recent-title">
+        <h2 id="recent-title">Recently listed</h2>
+        <p class="field-help home-subtitle">New on the marketplace</p>
+        <ul class="home-products">
+            @foreach (var item in recent)
+            {
+                <li>
+                    <a asp-controller="Catalog" asp-action="Details" asp-route-id="@item.Id">
+                        <span class="product-placeholder home-product-art" aria-hidden="true"><svg viewBox="0 0 64 64"><path d="M12 20 32 10 52 20 32 30Z M12 20v24l20 10 20-10V20 M32 30v24" /></svg></span>
+                        <span class="home-product-title">@item.Title</span>
+                        <strong>US $@item.Price.ToString("N2", CultureInfo.InvariantCulture)</strong>
+                    </a>
+                </li>
+            }
+        </ul>
+    </section>
+}
+
+<section class="home-banner home-banner-guarantee" aria-labelledby="guarantee-title">
+    <h2 id="guarantee-title">Money Back Guarantee</h2>
+    <p>Get the item you ordered or your money back: report an item that didn't arrive or return one that isn't as described.</p>
+    <a class="button home-light-button" asp-controller="Disputes" asp-action="Index">Learn more</a>
+</section>

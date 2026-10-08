@@ -43,6 +43,16 @@ public sealed class CatalogService(EbayDbContext db) : ICatalogService
         return new CatalogPage(items, categories, total, page, query, categoryId) { SellerId = sellerId, SellerName = sellerName };
     }
 
+    public async Task<IReadOnlyList<CatalogCategory>> CategoriesAsync(CancellationToken cancellationToken = default) =>
+        await db.Set<Category>().AsNoTracking().OrderBy(x => x.Name).ThenBy(x => x.Id)
+            .Select(x => new CatalogCategory(x.Id, x.Name ?? "Uncategorized")).ToListAsync(cancellationToken);
+
+    public async Task<IReadOnlyList<CatalogItem>> RecentAsync(int take, CancellationToken cancellationToken = default)
+    {
+        if (take is < 1 or > 24) throw new ArgumentOutOfRangeException(nameof(take));
+        return await Listings().OrderByDescending(x => x.Id).Take(take).ToListAsync(cancellationToken);
+    }
+
     public async Task<CatalogDetail?> FindAsync(int id, CancellationToken cancellationToken = default)
     {
         var item = await Listings().SingleOrDefaultAsync(x => x.Id == id, cancellationToken);
