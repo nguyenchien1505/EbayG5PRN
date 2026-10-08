@@ -9,14 +9,21 @@ namespace EbayGroup5.Web.Controllers;
 public sealed class CatalogController(ICatalogService catalog, IReviewService reviews, IFeedbackService feedback) : Controller
 {
     [HttpGet]
-    public async Task<IActionResult> Index(string? q, int? categoryId, int? seller, int page = 1, CancellationToken cancellationToken = default)
+    // H04 (reference SR): sort, buying format tab, price range, items per page and list/gallery view on top of q/category/seller.
+    public async Task<IActionResult> Index(string? q, int? categoryId, int? seller, int page = 1, string? sort = null, string? format = null,
+        decimal? minPrice = null, decimal? maxPrice = null, int ipp = CatalogPage.PageSize, string? view = null, CancellationToken cancellationToken = default)
     {
-        if (!ModelState.IsValid || (q?.Trim().Length ?? 0) > 100 || categoryId is <= 0 || seller is <= 0 || page <= 0 || page > int.MaxValue / CatalogPage.PageSize)
+        CatalogSort? catalogSort = sort switch { null or "" or "best" => CatalogSort.BestMatch, "price_asc" => CatalogSort.PriceLowest, "price_desc" => CatalogSort.PriceHighest, "newest" => CatalogSort.Newest, _ => null };
+        CatalogFormat? catalogFormat = format switch { null or "" or "all" => CatalogFormat.All, "auction" => CatalogFormat.Auction, "bin" => CatalogFormat.BuyItNow, _ => null };
+        if (!ModelState.IsValid || (q?.Trim().Length ?? 0) > 100 || categoryId is <= 0 || seller is <= 0 || page <= 0 || catalogSort == null || catalogFormat == null
+            || !CatalogQuery.PageSizes.Contains(ipp) || page > int.MaxValue / ipp || view is not (null or "" or "list" or "gallery")
+            || minPrice is < 0 or > CatalogQuery.MaxPriceFilter || maxPrice is < 0 or > CatalogQuery.MaxPriceFilter || (minPrice > maxPrice && maxPrice != null))
         {
             Response.StatusCode = 400;
             return View("InvalidFilters");
         }
-        var result = await catalog.SearchAsync(q, categoryId, page, seller, cancellationToken);
+        var result = await catalog.SearchAsync(new CatalogQuery(q, categoryId, seller, minPrice, maxPrice, catalogSort.Value, catalogFormat.Value, page, ipp), cancellationToken);
+        ViewData["Gallery"] = view == "gallery";
         ViewData["SearchQuery"] = result.Query;
         // D06 (A2): card rating and seller reputation, batched for the current page only.
         ViewData["Ratings"] = await reviews.SummariesAsync(result.Items.Select(x => x.Id).ToArray(), cancellationToken);

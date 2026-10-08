@@ -538,3 +538,57 @@ main.shell-width { flex: 1; padding-block: 32px 64px; }
 @media(max-width:700px) { .home-hero { grid-template-columns:minmax(0,1fr); padding:28px 22px; } .home-hero-art { display:none; } .home-hero h1 { font-size:26px; }
     .home-tiles { grid-template-columns:repeat(3,minmax(0,1fr)); } .home-products { grid-template-columns:repeat(2,minmax(0,1fr)); }
     .home-strip { flex-direction:column; align-items:flex-start; } .home-banner { padding:28px 22px; } }
+/* H04: eBay search results (SR). */
+.srp { display:grid; grid-template-columns:220px minmax(0,1fr); gap:28px; }
+.srp-rail section { border-bottom:1px solid #e5e5e5; padding:0 0 14px; margin:0 0 14px; }
+.srp-rail h2 { font-size:14px; margin:0 0 8px; }
+.srp-categories { list-style:none; padding:0; margin:0; display:grid; gap:4px; font-size:13px; }
+.srp-categories a { color:#3665f3; text-decoration:none; }
+.srp-categories a.active { color:#191919; font-weight:700; }
+.srp-count { color:#767676; font-size:11px; }
+.srp-price { display:flex; align-items:center; gap:6px; font-size:13px; }
+.srp-price input { width:72px; min-width:0; font:inherit; padding:6px 8px; border:1px solid #888; border-radius:16px; }
+.srp-go { width:28px; height:28px; border-radius:50%; border:0; background:#f2f2f2; cursor:pointer; font-size:18px; line-height:1; }
+.srp-clear { display:inline-block; margin-top:6px; font-size:12px; }
+.srp-head { display:flex; flex-wrap:wrap; align-items:baseline; gap:8px 20px; margin-bottom:12px; }
+.srp-head h1 { font-size:16px; font-weight:400; margin:0; }
+.srp-total { color:#555; font-weight:400; font-size:14px; }
+.srp-save { display:inline-flex; gap:6px; align-items:center; color:#3665f3; font-size:13px; text-decoration:none; }
+.srp-save svg { width:16px; height:16px; fill:currentColor; }
+.srp-controls { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:10px; margin-bottom:12px; }
+.srp-tabs { display:flex; gap:6px; }
+.srp-tabs a { padding:6px 14px; border-radius:16px; color:#191919; text-decoration:none; font-size:13px; background:#f2f2f2; }
+.srp-tabs a[aria-current="page"] { background:#191919; color:#fff; }
+.srp-right { display:flex; gap:10px; align-items:center; }
+.srp-sort summary, .srp-view summary { border:1px solid #c7c7c7; border-radius:16px; padding:6px 12px; font-size:13px; }
+.srp-view summary svg:first-child { width:16px; height:16px; fill:#191919; }
+.srp-right .menu-panel { right:0; left:auto; width:260px; }
+.srp-right .menu-panel a[aria-current="true"] { font-weight:700; }
+.srp-pills { display:flex; flex-wrap:wrap; gap:8px; align-items:center; margin:0 0 14px; font-size:13px; }
+.srp-pills span { font-weight:700; margin-right:4px; }
+.srp-pills a { padding:6px 14px; border-radius:16px; background:#f2f2f2; color:#191919; text-decoration:none; }
+.srp-results { list-style:none; padding:0; margin:0; }
+.srp-list .srp-item { display:grid; grid-template-columns:225px minmax(0,1fr); gap:16px; padding:16px 0; border-top:1px solid #e5e5e5; }
+.srp-image { position:relative; }
+.srp-image .product-placeholder { aspect-ratio:1; border-radius:12px; display:grid; place-items:center; }
+.srp-image .product-placeholder svg { width:40%; }
+.srp-watch { position:absolute; top:8px; right:8px; width:32px; height:32px; border-radius:50%; background:#fff; display:grid; place-items:center; box-shadow:0 1px 4px #0003; }
+.srp-watch svg { width:16px; height:16px; fill:#191919; }
+.srp-title { display:block; color:#191919; font-size:16px; text-decoration:none; margin-bottom:6px; overflow-wrap:anywhere; }
+.srp-title:hover { text-decoration:underline; }
+.srp-buy p { margin:2px 0; }
+.srp-price { font-size:20px; font-weight:700; }
+.srp-sold { font-weight:700; font-size:13px; }
+.srp-gallery { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:16px; }
+.srp-gallery .srp-item { display:grid; gap:8px; }
+.srp-gallery .srp-title { font-size:14px; }
+.srp-pages { display:flex; flex-wrap:wrap; justify-content:space-between; align-items:center; gap:12px; margin:24px 0 8px; font-size:13px; }
+.srp-empty { margin-top:24px; }
+@media(max-width:900px) { .srp { grid-template-columns:minmax(0,1fr); } .srp-rail { display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:0 20px; } .srp-gallery { grid-template-columns:repeat(3,minmax(0,1fr)); } }
+@media(max-width:700px) { .srp-list .srp-item { grid-template-columns:120px minmax(0,1fr); gap:12px; } .srp-title { font-size:14px; } .srp-price { font-size:17px; }
+    .srp-gallery { grid-template-columns:repeat(2,minmax(0,1fr)); } .srp-pages { justify-content:center; } .srp-right .menu-panel { width:220px; } }
+.srp-price input { font-size:13px; line-height:1.2; height:32px; padding:6px 10px; width:78px; }
+.srp-price span { font-size:13px; }
+.srp-filter-toggle { display:none; }
+@media(max-width:700px) { .srp-filter-toggle { display:inline-flex; gap:6px; align-items:center; list-style:none; cursor:pointer; border:1px solid #c7c7c7; border-radius:16px; padding:6px 14px; font-size:13px; margin-bottom:10px; }
+    .srp-filter-toggle::-webkit-details-marker { display:none; } }

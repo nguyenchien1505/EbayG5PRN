@@ -184,7 +184,7 @@ public sealed class AccountHttpTests
         using var client = factory.CreateClient(new() { AllowAutoRedirect = false });
         var query = "<script>alert(1)</script>";
         var search = await client.GetStringAsync("/Catalog?q=" + Uri.EscapeDataString(query));
-        Assert.Contains("No matching items", search);
+        Assert.Contains("No exact matches found", search);
         Assert.Contains("&lt;script&gt;", search);
         Assert.DoesNotContain(query, search);
         Assert.Equal(HttpStatusCode.BadRequest, (await client.GetAsync("/Catalog?q=" + new string('a', 101))).StatusCode);
@@ -224,7 +224,7 @@ public sealed class AccountHttpTests
         var query = "q=" + Uri.EscapeDataString("Filter & item") + "&categoryId=" + category.Id;
         var first = await client.GetStringAsync("/Catalog?" + query);
         Assert.Contains("Page 1 of 2", first);
-        var next = Regex.Match(first, "href=\"([^\"]+)\">Next</a>");
+        var next = Regex.Match(first, "href=\"([^\"]+)\" aria-label=\"Next page\"");
         Assert.True(next.Success);
         var location = WebUtility.HtmlDecode(next.Groups[1].Value);
         Assert.Contains("categoryId=" + category.Id, location);

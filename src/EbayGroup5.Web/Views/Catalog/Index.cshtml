@@ -1,62 +1,161 @@
 @model EbayGroup5.Application.Catalog.CatalogPage
 @using System.Globalization
+@using EbayGroup5.Application.Catalog
 @using EbayGroup5.Application.Feedback
 @using EbayGroup5.Application.Reviews
-@{ ViewData["Title"] = "Shop";
+@{
+    // H04 (reference SR): eBay search results — category/price/format rail, result count, format tabs, sort, list or gallery,
+    // numbered pagination with items per page. Only real data: no condition, location or invented shipping costs.
+    var r = Model.Request;
+    var gallery = ViewData["Gallery"] as bool? == true;
+    ViewData["Title"] = Model.Query.Length > 0 ? Model.Query + " for sale" : Model.SellerName ?? "Shop";
     var ratings = ViewData["Ratings"] as IReadOnlyDictionary<int, RatingSummary>;
-    var reputations = ViewData["Reputations"] as IReadOnlyDictionary<int, SellerReputation>; }
-<div class="catalog-heading">
-    <div><p class="eyebrow">Explore the marketplace</p><h1>@(Model.SellerName != null ? $"Items for sale from {Model.SellerName}" : Model.Query.Length > 0 ? $"Results for “{Model.Query}”" : "Find your next favorite")</h1><p>@Model.Total item@(Model.Total == 1 ? "" : "s")</p></div>
-</div>
-<form class="catalog-filters" method="get" asp-action="Index">
-    <input type="hidden" name="q" value="@Model.Query" />
-    @if (Model.SellerId != null) { <input type="hidden" name="seller" value="@Model.SellerId" /> }
-    <label for="category">Category</label>
-    <select id="category" name="categoryId">
-        <option value="">All categories</option>
-        @if (Model.CategoryId.HasValue && !Model.Categories.Any(x => x.Id == Model.CategoryId))
-        { <option value="@Model.CategoryId" selected>Category unavailable</option> }
-        @foreach (var category in Model.Categories)
-        { <option value="@category.Id" selected="@(category.Id == Model.CategoryId)">@category.Name</option> }
-    </select>
-    <button class="button outline" type="submit">Apply</button>
-    <a asp-action="Index">Clear filters</a>
-</form>
-@if (Model.Items.Count == 0)
-{
-    <section class="marketplace-state">
-    @if (Model.Total == 0)
-    { <h2>No matching items</h2><p>Try another search or category.</p><a class="button primary" asp-action="Index">Browse all items</a> }
-    else
-    { <h2>No items on this page</h2><p>Return to the first page to see your results.</p><a class="button primary" asp-action="Index" asp-route-q="@Model.Query" asp-route-categoryId="@Model.CategoryId" asp-route-seller="@Model.SellerId">First page</a> }
-    </section>
-}
-else
-{
-    <div class="product-grid">
-    @foreach (var item in Model.Items)
+    var reputations = ViewData["Reputations"] as IReadOnlyDictionary<int, SellerReputation>;
+    string? Sort(CatalogSort s) => s switch { CatalogSort.PriceLowest => "price_asc", CatalogSort.PriceHighest => "price_desc", CatalogSort.Newest => "newest", _ => null };
+    string? Format(CatalogFormat f) => f switch { CatalogFormat.Auction => "auction", CatalogFormat.BuyItNow => "bin", _ => null };
+    string Price(decimal? p) => p?.ToString("0.##", CultureInfo.InvariantCulture) ?? "";
+    string Link(CatalogQuery q, bool? galleryView = null) => Url.Action("Index", "Catalog", new
     {
-        <article class="product-card">
-            <a asp-action="Details" asp-route-id="@item.Id">
-                <div class="product-placeholder"><svg viewBox="0 0 64 64" aria-hidden="true"><path d="M12 20 32 10 52 20 32 30Z M12 20v24l20 10 20-10V20 M32 30v24" /></svg><span>Image unavailable</span></div>
-                <h2>@item.Title</h2>
-            </a>
-            @if (ratings?.GetValueOrDefault(item.Id) is { Average: decimal average } rated)
-            {
-                <a class="card-rating" asp-action="Details" asp-route-id="@item.Id" asp-fragment="reviews" aria-label="@average.ToString("0.0", CultureInfo.InvariantCulture) out of 5 stars, @rated.Ratings product rating@(rated.Ratings == 1 ? "" : "s")"><partial name="_Stars" model="average" /><span aria-hidden="true">(@rated.Ratings)</span></a>
-            }
-            <p class="product-price">US $@item.Price.ToString("N2", CultureInfo.InvariantCulture)</p>
-            @{ var reputation = reputations?.GetValueOrDefault(item.SellerId) ?? SellerReputation.Empty; }
-            <p class="seller-caption"><span class="seller-caption-name">@item.Seller</span>@if (reputation.PositivePercent is decimal percent) { <span> @percent.ToString("0.#", CultureInfo.InvariantCulture)% positive</span> } <span title="Feedback score">(@SellerReputation.CompactScore(reputation.Score))</span></p>
-        </article>
-    }
+        q = string.IsNullOrEmpty(q.Query) ? null : q.Query, categoryId = q.CategoryId, seller = q.SellerId, minPrice = q.MinPrice, maxPrice = q.MaxPrice,
+        sort = Sort(q.Sort), format = Format(q.Format), ipp = q.PageSize == CatalogPage.PageSize ? (int?)null : q.PageSize,
+        view = (galleryView ?? gallery) ? "gallery" : null, page = q.Page == 1 ? (int?)null : q.Page
+    })!;
+    var heading = Model.SellerName != null ? $"Items for sale from {Model.SellerName}" : null;
+    var categoryName = Model.Categories.FirstOrDefault(x => x.Id == r.CategoryId)?.Name;
+    var sortLabels = new (CatalogSort Sort, string Label)[] { (CatalogSort.BestMatch, "Best Match"), (CatalogSort.PriceLowest, "Price + Shipping: lowest first"), (CatalogSort.PriceHighest, "Price + Shipping: highest first"), (CatalogSort.Newest, "Time: newly listed") };
+}
+<div class="srp">
+    <aside aria-label="Refine results">
+      <details class="srp-rail" open data-mobile-collapse>
+        <summary class="srp-filter-toggle">Filter<svg class="caret" viewBox="0 0 12 12" aria-hidden="true"><path d="M2 4l4 4 4-4" /></svg></summary>
+        <section>
+            <h2>Category</h2>
+            <ul class="srp-categories">
+                <li><a href="@Link(r with { CategoryId = null, Page = 1 })" class="@(r.CategoryId == null ? "active" : null)">All</a></li>
+                @foreach (var category in Model.Categories)
+                {
+                    var count = Model.CategoryCounts.GetValueOrDefault(category.Id);
+                    if (count == 0 && category.Id != r.CategoryId) { continue; }
+                    <li><a href="@Link(r with { CategoryId = category.Id, Page = 1 })" class="@(category.Id == r.CategoryId ? "active" : null)">@category.Name <span class="srp-count">(@count.ToString("N0", CultureInfo.InvariantCulture))</span></a></li>
+                }
+            </ul>
+        </section>
+        <section>
+            <h2>Price</h2>
+            <form method="get" asp-action="Index" class="srp-price">
+                @if (Model.Query.Length > 0) { <input type="hidden" name="q" value="@Model.Query" /> }
+                @if (r.CategoryId != null) { <input type="hidden" name="categoryId" value="@r.CategoryId" /> }
+                @if (r.SellerId != null) { <input type="hidden" name="seller" value="@r.SellerId" /> }
+                @if (Sort(r.Sort) is string sortValue) { <input type="hidden" name="sort" value="@sortValue" /> }
+                @if (Format(r.Format) is string formatValue) { <input type="hidden" name="format" value="@formatValue" /> }
+                @if (gallery) { <input type="hidden" name="view" value="gallery" /> }
+                <label class="sr-only" for="min-price">Minimum price</label>
+                <input id="min-price" name="minPrice" type="number" min="0" step="0.01" inputmode="decimal" placeholder="$ Min" value="@Price(r.MinPrice)" />
+                <span aria-hidden="true">to</span>
+                <label class="sr-only" for="max-price">Maximum price</label>
+                <input id="max-price" name="maxPrice" type="number" min="0" step="0.01" inputmode="decimal" placeholder="$ Max" value="@Price(r.MaxPrice)" />
+                <button type="submit" class="srp-go" aria-label="Submit price range">›</button>
+            </form>
+            @if (r.MinPrice != null || r.MaxPrice != null) { <a class="srp-clear" href="@Link(r with { MinPrice = null, MaxPrice = null, Page = 1 })">Clear price</a> }
+        </section>
+        <section>
+            <h2>Buying Format</h2>
+            <ul class="srp-categories">
+                <li><a href="@Link(r with { Format = CatalogFormat.All, Page = 1 })" class="@(r.Format == CatalogFormat.All ? "active" : null)">All Listings</a></li>
+                <li><a href="@Link(r with { Format = CatalogFormat.Auction, Page = 1 })" class="@(r.Format == CatalogFormat.Auction ? "active" : null)">Auction</a></li>
+                <li><a href="@Link(r with { Format = CatalogFormat.BuyItNow, Page = 1 })" class="@(r.Format == CatalogFormat.BuyItNow ? "active" : null)">Buy It Now</a></li>
+            </ul>
+        </section>
+      </details>
+    </aside>
+    <div class="srp-main">
+        <div class="srp-head">
+            <h1>@if (heading != null) { @heading <span class="srp-total">· @Model.Total.ToString("N0", CultureInfo.InvariantCulture) result@(Model.Total == 1 ? "" : "s")</span> }
+                else { <span>@Model.Total.ToString("N0", CultureInfo.InvariantCulture) result@(Model.Total == 1 ? "" : "s")</span>@if (Model.Query.Length > 0) { <span> for <strong>@Model.Query</strong></span> }@if (categoryName != null) { <span> in <strong>@categoryName</strong></span> } }</h1>
+            <a class="srp-save" asp-controller="Help" asp-action="Unavailable" asp-route-id="saved"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21 3.5 12.6A5 5 0 0 1 12 6a5 5 0 0 1 8.5 6.6Zm0-2.8 7-6.9a3 3 0 1 0-4.6-3.8L12 9.8 9.6 7.5A3 3 0 1 0 5 11.3Z" /></svg>Save this search</a>
+        </div>
+        <div class="srp-controls">
+            <nav class="srp-tabs" aria-label="Buying format">
+                <a href="@Link(r with { Format = CatalogFormat.All, Page = 1 })" aria-current="@(r.Format == CatalogFormat.All ? "page" : null)">All</a>
+                <a href="@Link(r with { Format = CatalogFormat.Auction, Page = 1 })" aria-current="@(r.Format == CatalogFormat.Auction ? "page" : null)">Auction</a>
+                <a href="@Link(r with { Format = CatalogFormat.BuyItNow, Page = 1 })" aria-current="@(r.Format == CatalogFormat.BuyItNow ? "page" : null)">Buy It Now</a>
+            </nav>
+            <div class="srp-right">
+                <details class="header-menu srp-sort" data-menu>
+                    <summary>Sort: @sortLabels.First(x => x.Sort == r.Sort).Label<svg class="caret" viewBox="0 0 12 12" aria-hidden="true"><path d="M2 4l4 4 4-4" /></svg></summary>
+                    <div class="menu-panel">
+                        @foreach (var (sortValue, label) in sortLabels)
+                        { <a href="@Link(r with { Sort = sortValue, Page = 1 })" aria-current="@(sortValue == r.Sort ? "true" : null)">@label</a> }
+                    </div>
+                </details>
+                <details class="header-menu srp-view" data-menu>
+                    <summary aria-label="View: @(gallery ? "Gallery" : "List")"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 5h18v2H3Zm0 6h18v2H3Zm0 6h18v2H3Z" /></svg><svg class="caret" viewBox="0 0 12 12" aria-hidden="true"><path d="M2 4l4 4 4-4" /></svg></summary>
+                    <div class="menu-panel"><a href="@Link(r, false)" aria-current="@(!gallery ? "true" : null)">List View</a><a href="@Link(r, true)" aria-current="@(gallery ? "true" : null)">Gallery View</a></div>
+                </details>
+            </div>
+        </div>
+        @if (r.CategoryId == null && Model.CategoryCounts.Count > 1)
+        {
+            <div class="srp-pills" aria-label="Popular filters"><span>Popular Filters</span>
+                @foreach (var category in Model.Categories.Where(x => Model.CategoryCounts.ContainsKey(x.Id)).Take(8)) { <a href="@Link(r with { CategoryId = category.Id, Page = 1 })">@category.Name</a> }
+            </div>
+        }
+        @if (Model.Items.Count == 0)
+        {
+            <section class="marketplace-state srp-empty">
+                @if (Model.Total == 0)
+                { <h2>No exact matches found</h2><p>Try fewer words, another category, a wider price range or All Listings.</p><a class="button primary" asp-action="Index">Browse all items</a> }
+                else
+                { <h2>No items on this page</h2><p>Return to the first page to see your results.</p><a class="button primary" href="@Link(r with { Page = 1 })">First page</a> }
+            </section>
+        }
+        else
+        {
+            <ul class="srp-results @(gallery ? "srp-gallery" : "srp-list")">
+                @foreach (var item in Model.Items)
+                {
+                    var reputation = reputations?.GetValueOrDefault(item.SellerId) ?? SellerReputation.Empty;
+                    <li class="srp-item">
+                        <div class="srp-image">
+                            <a asp-action="Details" asp-route-id="@item.Id" tabindex="-1" aria-hidden="true"><span class="product-placeholder"><svg viewBox="0 0 64 64"><path d="M12 20 32 10 52 20 32 30Z M12 20v24l20 10 20-10V20 M32 30v24" /></svg></span></a>
+                            <a class="srp-watch" asp-controller="Help" asp-action="Unavailable" asp-route-id="watchlist" aria-label="Add to Watchlist"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21 3.5 12.6A5 5 0 0 1 12 6a5 5 0 0 1 8.5 6.6Zm0-2.8 7-6.9a3 3 0 1 0-4.6-3.8L12 9.8 9.6 7.5A3 3 0 1 0 5 11.3Z" /></svg></a>
+                        </div>
+                        <div class="srp-info">
+                            <a class="srp-title" asp-action="Details" asp-route-id="@item.Id">@item.Title</a>
+                            @if (ratings?.GetValueOrDefault(item.Id) is { Average: decimal average } rated)
+                            {
+                                <a class="card-rating" asp-action="Details" asp-route-id="@item.Id" asp-fragment="reviews" aria-label="@average.ToString("0.0", CultureInfo.InvariantCulture) out of 5 stars, @rated.Ratings product rating@(rated.Ratings == 1 ? "" : "s")"><partial name="_Stars" model="average" /><span aria-hidden="true">(@rated.Ratings)</span></a>
+                            }
+                            <div class="srp-buy">
+                                <p class="srp-price">US $@item.Price.ToString("N2", CultureInfo.InvariantCulture)</p>
+                                <p class="field-help">Buy It Now</p>
+                                <p class="field-help">Free delivery</p>
+                                @if (Model.Sold.GetValueOrDefault(item.Id) is long sold && sold > 0) { <p class="srp-sold">@sold.ToString("N0", CultureInfo.InvariantCulture) sold</p> }
+                            </div>
+                            <p class="seller-caption"><span class="seller-caption-name">@item.Seller</span>@if (reputation.PositivePercent is decimal percent) { <span> @percent.ToString("0.#", CultureInfo.InvariantCulture)% positive</span> } <span title="Feedback score">(@SellerReputation.CompactScore(reputation.Score))</span></p>
+                        </div>
+                    </li>
+                }
+            </ul>
+        }
+        @if (Model.Total > 0 || r.Page > 1)
+        {
+            <div class="srp-pages">
+                @if (Model.TotalPages > 1 || r.Page > 1)
+                {
+                    <nav class="pagination fp-pagination" aria-label="Results pages">
+                        @if (r.Page > 1) { <a class="page-arrow" href="@Link(r with { Page = r.Page - 1 })" aria-label="Previous page">←</a> } else { <span class="page-arrow disabled" aria-hidden="true">←</span> }
+                        @foreach (var number in Enumerable.Range(Math.Max(1, Math.Min(r.Page - 4, Model.TotalPages - 8)), Math.Max(0, Math.Min(9, Model.TotalPages))))
+                        { <a href="@Link(r with { Page = number })" aria-current="@(number == r.Page ? "page" : null)" class="@(number == r.Page ? "active" : null)">@number</a> }
+                        @if (r.Page < Model.TotalPages) { <a class="page-arrow" href="@Link(r with { Page = r.Page + 1 })" aria-label="Next page">→</a> } else { <span class="page-arrow disabled" aria-hidden="true">→</span> }
+                    </nav>
+                }
+                <span class="srp-page-status">@(r.Page <= Math.Max(1, Model.TotalPages) ? $"Page {r.Page} of {Math.Max(1, Model.TotalPages)}" : $"Page {r.Page} · {Model.TotalPages} pages available")</span>
+                <span class="fp-size">Items Per Page
+                    @foreach (var size in CatalogQuery.PageSizes)
+                    { if (size == r.PageSize) { <strong>@size</strong> } else { <a href="@Link(r with { PageSize = size, Page = 1 })">@size</a> } }
+                </span>
+            </div>
+        }
     </div>
-}
-@if (Model.TotalPages > 1 || Model.Page > 1)
-{
-    <nav class="pagination" aria-label="Catalog pages">
-        @if (Model.Page > 1) { <a class="button outline" asp-action="Index" asp-route-q="@Model.Query" asp-route-categoryId="@Model.CategoryId" asp-route-seller="@Model.SellerId" asp-route-page="@(Model.Page - 1)">Previous</a> }
-        <span>@(Model.Page <= Model.TotalPages ? $"Page {Model.Page} of {Model.TotalPages}" : $"Page {Model.Page} · {Model.TotalPages} pages available")</span>
-        @if (Model.Page < Model.TotalPages) { <a class="button outline" asp-action="Index" asp-route-q="@Model.Query" asp-route-categoryId="@Model.CategoryId" asp-route-seller="@Model.SellerId" asp-route-page="@(Model.Page + 1)">Next</a> }
-    </nav>
-}
+</div>

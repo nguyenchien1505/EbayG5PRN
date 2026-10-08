@@ -11,3 +11,8 @@ document.addEventListener("keydown", event => {
     const open = menus.find(menu => menu.open);
     if (open) { open.open = false; open.querySelector("summary")?.focus(); }
 });
+// H04: eBay mobile collapses the search filters behind a "Filter" button; desktop keeps them open.
+const narrow = matchMedia("(max-width: 700px)");
+const collapse = () => document.querySelectorAll("details[data-mobile-collapse]").forEach(d => { d.open = !narrow.matches; });
+collapse();
+narrow.addEventListener("change", collapse);
