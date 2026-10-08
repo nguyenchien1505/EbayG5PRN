@@ -181,6 +181,7 @@ public sealed class EbayDbContext(DbContextOptions<EbayDbContext> options) : DbC
             entity.Property(x => x.DescriptionRating).HasColumnType("tinyint");
             entity.Property(x => x.ShippingTimeRating).HasColumnType("tinyint");
             entity.Property(x => x.CommunicationRating).HasColumnType("tinyint");
+            entity.Property(x => x.TransactionWeek).HasColumnType("date");
             entity.HasIndex(x => new { x.SellerId, x.Id }).IsDescending(false, true).HasDatabaseName("IX_SellerFeedback_Seller");
             entity.ToTable(t => t.HasTrigger("TR_SellerFeedback_Immutable"));
         });

@@ -1,0 +1,12 @@
+{
+  "profiles": {
+    "EbayGroup5.Web": {
+      "commandName": "Project",
+      "launchBrowser": true,
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      },
+      "applicationUrl": "https://localhost:53006;http://localhost:53007"
+    }
+  }
+}

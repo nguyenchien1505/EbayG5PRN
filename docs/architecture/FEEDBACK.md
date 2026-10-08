@@ -152,7 +152,7 @@ Soạn trước khi sửa source, baseline main `5a8d3b9`. Nguồn: [ADR-003](..
 
 - Một buyer chỉ làm điểm của seller thay đổi tối đa +1 (Positive) và −1 (Negative) cho mỗi **tuần giao dịch**. Tuần = thứ Hai–Chủ nhật theo giờ Pacific (`Pacific Standard Time`, có DST), xác định từ `OrderTable.orderDate` (UTC) của dòng đơn; thiếu orderDate thì dùng `CreatedAtUtc` của feedback.
 - Score = số cặp (buyer, tuần) có Positive − số cặp (buyer, tuần) có Negative. Neutral không đổi điểm.
-- Tính trong SQL (`AT TIME ZONE`), không phụ thuộc tzdata của container.
+- Tuần tính trong SQL (`AT TIME ZONE`, không phụ thuộc tzdata của container) **một lần khi ghi** và lưu ở cột `TransactionWeek` (0015, có backfill); đọc chỉ đếm `DISTINCT` theo index `IX_SellerFeedback_Reputation`. Lần đo CI đầu (tính tuần lúc đọc) làm catalog p95 lên 1,9 s nên đã đổi trước khi lên main.
 
 **% tích cực (12 tháng):** P'/(P'+N') với P', N' là số cặp (buyer, tuần) Positive/Negative của feedback có `CreatedAtUtc` trong 12 tháng; không có P' hoặc N' thì null. Bảng Feedback ratings 1/6/12 tháng vẫn đếm từng feedback (như eBay: 432/8/3 nhưng 99,5%). Cột All time giữ cho đến H02.
 

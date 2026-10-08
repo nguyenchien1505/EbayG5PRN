@@ -1,9 +1,21 @@
 -- H01: eBay R1 feedback details. "Did this item arrive on time?" and three buyer-rated detailed seller ratings, all optional.
+-- TransactionWeek: Monday of the order's week in Pacific time (eBay counts a buyer once per week); stored at insert so reads stay cheap.
 ALTER TABLE dbo.SellerFeedback ADD
     ArrivedOnTime bit NULL,
     DescriptionRating tinyint NULL,
     ShippingTimeRating tinyint NULL,
-    CommunicationRating tinyint NULL;
+    CommunicationRating tinyint NULL,
+    TransactionWeek date NULL;
+GO
+UPDATE f SET TransactionWeek = DATEADD(day, -(DATEDIFF(day, '19000101', w.LocalDay) % 7), w.LocalDay)
+FROM dbo.SellerFeedback f
+JOIN dbo.OrderItem i ON i.id = f.OrderItemId
+JOIN dbo.OrderTable o ON o.id = i.orderId
+CROSS APPLY (SELECT CAST(CAST(COALESCE(CAST(o.orderDate AS datetime2(7)), f.CreatedAtUtc) AS datetime2(7))
+    AT TIME ZONE 'UTC' AT TIME ZONE 'Pacific Standard Time' AS date) AS LocalDay) w;
+GO
+CREATE INDEX IX_SellerFeedback_Reputation ON dbo.SellerFeedback(SellerId, CreatedAtUtc)
+    INCLUDE (Sentiment, BuyerId, TransactionWeek, DescriptionRating, ShippingTimeRating, CommunicationRating) WHERE HiddenAtUtc IS NULL;
 GO
 ALTER TABLE dbo.SellerFeedback ADD CONSTRAINT CK_SellerFeedback_DetailRatings CHECK (
     (DescriptionRating IS NULL OR DescriptionRating BETWEEN 1 AND 5) AND
@@ -24,6 +36,7 @@ BEGIN
             OR ISNULL(i.DescriptionRating,0)<>ISNULL(d.DescriptionRating,0)
             OR ISNULL(i.ShippingTimeRating,0)<>ISNULL(d.ShippingTimeRating,0)
             OR ISNULL(i.CommunicationRating,0)<>ISNULL(d.CommunicationRating,0)
+            OR (d.TransactionWeek IS NOT NULL AND (i.TransactionWeek IS NULL OR i.TransactionWeek<>d.TransactionWeek))
             OR (d.ReplyText IS NOT NULL AND (i.ReplyText IS NULL
                 OR i.ReplyText COLLATE Latin1_General_100_BIN2<>d.ReplyText COLLATE Latin1_General_100_BIN2 OR i.RepliedAtUtc<>d.RepliedAtUtc)))
         THROW 51009, 'Seller feedback and replies are immutable.', 1;

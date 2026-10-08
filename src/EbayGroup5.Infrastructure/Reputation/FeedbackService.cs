@@ -22,31 +22,35 @@ public sealed class FeedbackService(EbayDbContext db, TimeProvider clock, Feedba
         decimal? Communication, int CommunicationCount, int Feedback12);
 
     // H01 (FEEDBACK.md): one buyer moves the score at most once per sentiment per transaction week, Monday–Sunday Pacific time.
-    // The week is computed in SQL (AT TIME ZONE) so it does not depend on the container's tzdata. 1900-01-01 was a Monday.
-    private const string VisibleWithWeek = """
-        SELECT f.SellerId, f.BuyerId, f.Sentiment, f.CreatedAtUtc, f.DescriptionRating, f.ShippingTimeRating, f.CommunicationRating,
-               DATEADD(day, -(DATEDIFF(day, '19000101', w.LocalDay) % 7), w.LocalDay) AS WeekStart
+    // The week is computed in SQL (AT TIME ZONE, no container tzdata needed) once at insert and stored in TransactionWeek;
+    // rows written outside the service (fixtures) fall back to the same expression. 1900-01-01 was a Monday.
+    private const string WeekOf = """
+        DATEADD(day, -(DATEDIFF(day, '19000101', CAST(CAST({0} AS datetime2(7)) AT TIME ZONE 'UTC' AT TIME ZONE 'Pacific Standard Time' AS date)) % 7),
+                CAST(CAST({0} AS datetime2(7)) AT TIME ZONE 'UTC' AT TIME ZONE 'Pacific Standard Time' AS date))
+        """;
+    private static readonly string VisibleWithWeek = $"""
+        SELECT f.SellerId, f.Sentiment, f.CreatedAtUtc, f.DescriptionRating, f.ShippingTimeRating, f.CommunicationRating,
+               CAST(f.BuyerId AS bigint) * 10000 + DATEDIFF(day, '19000101', COALESCE(f.TransactionWeek,
+                   (SELECT {string.Format(System.Globalization.CultureInfo.InvariantCulture, WeekOf, "COALESCE(CAST(o.orderDate AS datetime2(7)), f.CreatedAtUtc)")}
+                    FROM dbo.OrderItem i JOIN dbo.OrderTable o ON o.id = i.orderId WHERE i.id = f.OrderItemId))) / 7 AS BuyerWeek
         FROM dbo.SellerFeedback f
-        JOIN dbo.OrderItem i ON i.id = f.OrderItemId
-        JOIN dbo.OrderTable o ON o.id = i.orderId
-        CROSS APPLY (SELECT CAST(CAST(COALESCE(CAST(o.orderDate AS datetime2(7)), f.CreatedAtUtc) AS datetime2(7))
-            AT TIME ZONE 'UTC' AT TIME ZONE 'Pacific Standard Time' AS date) AS LocalDay) w
         WHERE f.HiddenAtUtc IS NULL AND f.SellerId IN (SELECT CAST([value] AS int) FROM OPENJSON(@ids))
         """;
+    private static readonly string WeekSql = "SELECT " + string.Format(System.Globalization.CultureInfo.InvariantCulture, WeekOf, "@at") + " AS [Value]";
 
     // Per seller and sentiment: every feedback per window (ratings table) and distinct buyer-weeks (score and %).
-    private const string WindowSql = "WITH f AS (" + VisibleWithWeek + """
+    private static readonly string WindowSql = "WITH f AS (" + VisibleWithWeek + """
         )
         SELECT SellerId AS Seller, Sentiment, COUNT(*) AS [All],
                SUM(CASE WHEN CreatedAtUtc > @m1 THEN 1 ELSE 0 END) AS M1, SUM(CASE WHEN CreatedAtUtc > @m6 THEN 1 ELSE 0 END) AS M6,
                SUM(CASE WHEN CreatedAtUtc > @m12 THEN 1 ELSE 0 END) AS M12,
-               COUNT(DISTINCT CONCAT(BuyerId, '|', WeekStart)) AS UniqueAll,
-               COUNT(DISTINCT CASE WHEN CreatedAtUtc > @m12 THEN CONCAT(BuyerId, '|', WeekStart) END) AS Unique12
+               COUNT(DISTINCT BuyerWeek) AS UniqueAll,
+               COUNT(DISTINCT CASE WHEN CreatedAtUtc > @m12 THEN BuyerWeek END) AS Unique12
         FROM f GROUP BY SellerId, Sentiment
         """;
 
     // Detailed seller ratings over the last 12 months of visible feedback.
-    private const string DetailSql = "WITH f AS (" + VisibleWithWeek + """
+    private static readonly string DetailSql = "WITH f AS (" + VisibleWithWeek + """
         )
         SELECT SellerId AS Seller,
                AVG(CAST(DescriptionRating AS decimal(9,4))) AS Description, COUNT(DescriptionRating) AS DescriptionCount,
@@ -282,13 +286,15 @@ public sealed class FeedbackService(EbayDbContext db, TimeProvider clock, Feedba
             .AsNoTracking().Select(x => x.Sentiment).FirstOrDefaultAsync(ct);
         var now = clock.GetUtcNow().UtcDateTime;
         var eligibility = Eligibility(item.Id, order, deliveredAt, existing, now);
+        var transacted = order.OrderDate is { } ordered ? DateTime.SpecifyKind(ordered, DateTimeKind.Utc) : now;
+        var week = DateOnly.FromDateTime((await db.Database.SqlQueryRaw<DateTime>(WeekSql, new SqlParameter("@at", SqlDbType.DateTime2) { Value = transacted }).ToListAsync(ct)).Single());
         if (!eligibility.CanLeave) return new(LeaveFeedbackOutcome.Conflict, Error: eligibility.Reason);
         if (eligibility.PositiveOnly && sentiment != FeedbackSentiment.Positive) return new(LeaveFeedbackOutcome.Conflict, Error: WaitMessage);
         db.Add(new SellerFeedback
         {
             OrderItemId = item.Id, BuyerId = buyerId, SellerId = order.SellerId!.Value, Sentiment = sentiment.ToString(), Comment = comment, CreatedAtUtc = now,
             ArrivedOnTime = details?.ArrivedOnTime, DescriptionRating = (byte?)details?.Description,
-            ShippingTimeRating = (byte?)details?.ShippingTime, CommunicationRating = (byte?)details?.Communication
+            ShippingTimeRating = (byte?)details?.ShippingTime, CommunicationRating = (byte?)details?.Communication, TransactionWeek = week
         });
         await db.SaveChangesAsync(ct);
         return new(LeaveFeedbackOutcome.Success, order.Id);
