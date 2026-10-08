@@ -4,6 +4,12 @@ Ngày tổng hợp: **08/10/2026** (Asia/Saigon). Ngày nộp: **chưa xác đ�
 Repository private: [Twiash/EbayGroup5](https://github.com/Twiash/EbayGroup5).
 Đề bài lưu tại [requirements-extracted](../requirements/sources/requirements-extracted.md).
 
+**Kết quả bàn giao:** 40/40 task kỹ thuật hoàn tất; DOC-01 đã bàn giao.
+[CI37709417510](https://github.com/Twiash/EbayGroup5/actions/runs/37709417510) và
+[clone sạch/demo evidence](../evidence/G02.md) pass trên runtime `e635866`.
+**OPS-04 còn Pending theo user** (Jira live làm sau); việc rehearsal/giải thích
+của từng thành viên là checklist chuẩn bị, không ghi nhận đã xảy ra.
+
 ## 1. Mục tiêu và phạm vi
 
 Dự án môn C#/.NET triển khai Interaction Layer của nhóm 5: chat buyer–seller,
@@ -57,7 +63,7 @@ Migration/seed identity riêng với runtime login ít quyền; không rollback 
 | Module | Hành vi và điều kiện chính | Contract |
 |---|---|---|
 | Chat | Cookie principal, membership theo buyer/seller; SQL commit trước event, UUID idempotent, sequence/cursor string, inbox/read, reconnect/rejoin/catch-up | [CHAT](../architecture/CHAT.md) |
-| Product review | Buyer owner của dòng hàng Delivered, một review/OrderItem; mua lại được review mới; rating1–5, comment tuỳ chọn; aggregate theo nội dung hợp lệ | [REVIEWS](../architecture/REVIEWS.md) |
+| Product review | Buyer owner của dòng hàng Delivered, một review/OrderItem; mua lại được review mới; rating 1–5, comment tuỳ chọn; aggregate theo nội dung hợp lệ | [REVIEWS](../architecture/REVIEWS.md) |
 | Seller feedback | Sentiment độc lập rating sản phẩm; score P−N, %positive 12 tháng, cửa sổ lịch sử, seller reply một lần; report/moderation/audit | [FEEDBACK](../architecture/FEEDBACK.md), [MODERATION](../architecture/MODERATION.md) |
 | Dispute | INR sau ngày giao dự kiến, Return sau nhận; draft server/reload; buyer/seller dashboard/timeline; seller response, automation chuyển quá hạn; admin quyết định có audit | [DISPUTES](../architecture/DISPUTES.md), [DISPUTE_ADMIN](../architecture/DISPUTE_ADMIN.md) |
 
@@ -67,7 +73,7 @@ Mốc hạn và quy tắc đã chốt theo contract, không coi toàn bộ giả
 
 ## 5. UI và đối chiếu eBay
 
-G01 chụp **19 màn × desktop1280/mobile390 =38 ảnh**, 0 tràn ngang và 0 vi phạm CSP.
+G01 chụp **19 màn × desktop 1280 / mobile 390 = 38 ảnh**, 0 tràn ngang và 0 vi phạm CSP.
 Ảnh, nguồn và phân loại: [UI_ACCEPTANCE](../architecture/UI_ACCEPTANCE.md),
 [gallery](../evidence/ui/), [UI_CANDIDATES](../architecture/UI_CANDIDATES.md).
 
@@ -83,7 +89,7 @@ không tuyên bố mọi màn của clone trùng eBay.
 
 ## 6. Kiểm thử và bảo mật
 
-Checkpoint G01: **263 .NET +20 Node pass**, build0 warning; SQL integration,
+Checkpoint G01: **263 .NET + 20 Node pass**, build 0 warning; SQL integration,
 HTTP/socket, browser journeys, access matrix, IDOR/CSRF/XSS, TLS/security headers,
 secret scan lịch sử và NuGet audit. [CI37689369159](https://github.com/Twiash/EbayGroup5/actions/runs/37689369159).
 
@@ -96,10 +102,10 @@ dùng Redis cho nhiều instance. Redis outage và giới hạn thực ghi trong
 
 | Bài đo | Kết quả đã có | Bằng chứng |
 |---|---|---|
-| F05 Full JMeter/SignalR | Dataset100k tin/10k review/1k dispute; 50 user ×10 phút, 0% lỗi, p95 HTTP≤39ms; 20 cặp chat p9520,4ms, 11.753/11.753 tin | [F05](../evidence/F05.md) |
-| F05 Stress | Đến800 user p95<100ms; 1600 user inbox p95 khoảng1,3s; giới hạn máy/bài đo, không SLA | [LOAD](../architecture/LOAD.md) |
-| F07 CD | Hosted build image fullSHA, artifact checksum/digest/platform/revision verified; Windows ephemeral runner deploy kind, 2 Ready, TLS smoke; deregister/không service | [CD37669952216](https://github.com/Twiash/EbayGroup5/actions/runs/37669952216), [F07](../evidence/F07.md) |
-| F08 Full rolling/undo | 50 HTTP user+20 cặp/600s; 152.130 request0 lỗi/5xx/network; 12.891 ACK đủ/một dòng SQL; 80 reconnect max2,51s, max HTTP p95241,48ms/chat27,98ms | [F08](../evidence/F08.md) |
+| F05 Full JMeter/SignalR | Dataset 100k tin / 10k review / 1k dispute; 50 user × 10 phút, 0% lỗi, p95 HTTP ≤ 39 ms; 20 cặp chat p95 20,4 ms, 11.753/11.753 tin | [F05](../evidence/F05.md) |
+| F05 Stress | Đến 800 user p95 < 100 ms; 1600 user inbox p95 khoảng 1,3 s; giới hạn máy/bài đo, không SLA | [LOAD](../architecture/LOAD.md) |
+| F07 CD | Hosted build image full SHA, artifact checksum/digest/platform/revision verified; Windows ephemeral runner deploy kind, 2 Ready, TLS smoke; deregister/không service | [CD37669952216](https://github.com/Twiash/EbayGroup5/actions/runs/37669952216), [F07](../evidence/F07.md) |
+| F08 Full rolling/undo | 50 HTTP user + 20 cặp / 600 s; 152.130 request, 0 lỗi/5xx/network; 12.891 ACK đủ/một dòng SQL; 80 reconnect, max 2,51 s; max HTTP p95 241,48 ms / chat 27,98 ms | [F08](../evidence/F08.md) |
 
 Rolling/rollback kiểm image tương thích/cùng binary nghiệp vụ trên một node kind;
 không chứng minh SQL/Redis failover, node outage, hoặc rollback schema không tương thích.

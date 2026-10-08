@@ -57,7 +57,7 @@ Status `Pending` nghĩa là chưa triển khai/chưa nghiệm thu. Task tài li�
 | CON-05 | Báo thông tin UI/nghiệp vụ không tự lấy được | A02 và xuyên suốt | Câu hỏi cụ thể, nguồn đã kiểm tra, câu trả lời lưu bền vững | Established |
 | UI-01 | Bám hành trình eBay thực tế, UI tiếng Anh responsive | A02, B03, C04, D02–D04, E02–E03, G01 | Có nguồn/ảnh tham chiếu truy cập được, khác biệt ghi rõ, desktop/mobile | Done |
 | PERF-01 | Ngưỡng tải/latency nội bộ | F05, F08 | Theo mục tiêu bên dưới, ghi cấu hình máy và dữ liệu đo | Done |
-| DOC-01 | Báo cáo, demo và bàn giao | G01–G02 | Mỗi yêu cầu có bằng chứng; setup từ clone sạch; mỗi thành viên giải thích module | Pending |
+| DOC-01 | Báo cáo, demo và bàn giao | G01–G02 | Mỗi yêu cầu có bằng chứng; setup từ clone sạch; mỗi thành viên giải thích module | Done |
 
 `Established` chỉ áp dụng quy tắc làm việc đã được thiết lập, không khẳng định đã tuân thủ trong các task tương lai. CON-01 Verified A07: [metadata/upgrade và seed tests trên GitHub CI](../evidence/A07.md) đã pass cho baseline hiện tại; bắt buộc chạy lại với mỗi migration, không suy ra tương lai đã pass.
 
@@ -146,3 +146,11 @@ Revision/image/pod UID xác nhận update và undo thật; 14 migration giữ ng
 Giới hạn: single-node kind, image tương thích/cùng binary nghiệp vụ, không chứng minh DB/node failover.
 
 G01: [UI acceptance evidence](../evidence/G01.md); 19 màn nhóm 5 + điểm vào × desktop/mobile ([ảnh](../evidence/ui/)), đối chiếu nguồn U1/M1/R1/P1/P2/F1/E1/E0/H1/D2, khác biệt ghi rõ ([UI_ACCEPTANCE](../architecture/UI_ACCEPTANCE.md)); sửa nhỏ: nhãn Connected, công thức feedback, khoảng trống form khiếu nại, ngày giao dự kiến của đơn seed (INR demo). **UI-01 Done.** Còn Pending: OPS-04 (Jira live) và DOC-01 (báo cáo/demo) thuộc G02.
+
+G02: [handover evidence](../evidence/G02.md), [báo cáo](../delivery/REPORT.md),
+[setup](../delivery/SETUP.md), [demo5 người](../delivery/DEMO.md), [handover/checklist](../delivery/HANDOVER.md).
+Clone GitHub sạch `e635866` locked restore/build,263 .NET+20Node/browser demo/HTTPS WSS pass;
+CI37709417510 success (demo INR mới/worker/admin,load,K8s,rolling). Kind demo30s/day
+provision/rerun bảo toàn credentials/TLS/data. **DOC-01 Done về tài liệu và nghiệm thu kỹ thuật**;
+checklist/phần giải thích từng thành viên đã chuẩn bị, không chứng nhận rehearsal cá nhân đã diễn ra.
+**OPS-04 Pending**, user yêu cầu hoãn Jira live; không tạo worklog/review/transition giả.

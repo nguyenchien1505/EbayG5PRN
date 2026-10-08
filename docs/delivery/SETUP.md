@@ -2,10 +2,10 @@
 
 ## Chuẩn bị
 
-Windows x64, Git, PowerShell7 (`pwsh`), Docker Desktop **Linux containers**,
-Docker Compose, Chrome, Node20+, kubectl (Docker Desktop). Dành tối thiểu8GB RAM
+Windows x64, Git, PowerShell 7 (`pwsh`), Docker Desktop **Linux containers**,
+Docker Compose, Chrome, Node 20+, kubectl (Docker Desktop). Dành tối thiểu 8 GB RAM
 cho Docker khi chạy kind/test; không chạy các bài SQL/load nặng song song.
-SDK **.NET8.0.425** theo `global.json`; Java chỉ cần cho JMeter.
+.NET SDK **8.0.425** theo `global.json`; Java chỉ cần cho JMeter.
 Repo private yêu cầu tài khoản GitHub được cấp quyền, không đưa token vào URL/lệnh.
 
 ```powershell

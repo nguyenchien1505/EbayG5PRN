@@ -2,7 +2,7 @@
 
 Dự án môn C#/.NET: Chat, đánh giá, uy tín người bán và khiếu nại, kèm luồng mua hàng tối thiểu để demo độc lập.
 
-**Hiện trạng:** A00–G01 hoàn tất; G02 đang bàn giao. Chat, review/uy tín, khiếu nại,
+**Hiện trạng:** **40/40 task kỹ thuật A00–G02 hoàn tất**; DOC-01 Done về tài liệu/nghiệm thu kỹ thuật. Chat, review/uy tín, khiếu nại,
 Docker/Kubernetes, CI/CD và load/rolling đã có bằng chứng. Jira live chờ đồng bộ theo yêu cầu user.
 [Tiến độ](docs/START_HERE.md), [ma trận](docs/requirements/MATRIX.md), [evidence](docs/evidence/INDEX.md).
 
