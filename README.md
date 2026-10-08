@@ -2,7 +2,22 @@
 
 Dự án môn C#/.NET: Chat, đánh giá, uy tín người bán và khiếu nại, kèm luồng mua hàng tối thiểu để demo độc lập.
 
-**Hiện trạng:** A00–A05 hoàn tất; SQL baseline 17 bảng, DbUp, EF Core và runtime login riêng đã có. 8 test SQL thật pass; chưa seed dữ liệu/tài khoản demo hoặc nghiệp vụ. [Migration và test DB](docs/runbooks/DATABASE.md). Hạ tầng: [LOCAL_INFRA](docs/runbooks/LOCAL_INFRA.md). Xem [hướng dẫn chạy](docs/runbooks/LOCAL_SETUP.md) và [source map](docs/architecture/SOURCE_MAP.md).
+**Hiện trạng:** A00–G01 hoàn tất; G02 đang bàn giao. Chat, review/uy tín, khiếu nại,
+Docker/Kubernetes, CI/CD và load/rolling đã có bằng chứng. Jira live chờ đồng bộ theo yêu cầu user.
+[Tiến độ](docs/START_HERE.md), [ma trận](docs/requirements/MATRIX.md), [evidence](docs/evidence/INDEX.md).
+
+Bộ bàn giao: [Báo cáo](docs/delivery/REPORT.md), [setup từ clone sạch](docs/delivery/SETUP.md),
+[kịch bản demo](docs/delivery/DEMO.md), [phân công/checklist](docs/delivery/HANDOVER.md).
+Ngày nộp chưa xác định. UI tiếng Anh, tài liệu tiếng Việt; refund/shipping mô phỏng.
+
+Demo kind (PowerShell7 +Docker Linux +kubectl):
+
+```powershell
+pwsh -NoProfile -File scripts/Start-K8s.ps1 -Demo
+```
+
+Mở https://localhost:9443; credential riêng ở `secrets/k8s/secrets.json` (ignore, không chia sẻ công khai).
+Demo dùng **đơn mới**,30s/ngày làm việc, không đổi ngày seed lịch sử. Chi tiết và prerequisites ở setup trên.
 
 - [Bắt đầu/tiếp tục công việc](docs/START_HERE.md)
 - [Kế hoạch đã chốt](docs/PLAN.md)

@@ -3,7 +3,8 @@
 # secrets/tls from New-LocalTlsCertificate.ps1. Running it again redeploys the current commit (migration Job first).
 #   -Stop    stops the cluster node container (data kept; start again with this script)
 #   -Delete  deletes the cluster and its volumes (all K8s demo data); asks for confirmation unless -Force
-param([switch]$Stop, [switch]$Delete, [switch]$Force, [int]$HttpsPort = 9443, [int]$HttpPort = 9080)
+param([switch]$Stop, [switch]$Delete, [switch]$Force, [int]$HttpsPort = 9443, [int]$HttpPort = 9080,
+    [switch]$Demo, [ValidateRange(10,3600)][int]$DemoBusinessDaySeconds = 30)
 $ErrorActionPreference = 'Stop'
 $repoRoot = Split-Path $PSScriptRoot -Parent
 $cluster = 'ebaygroup5'
@@ -39,10 +40,22 @@ if (-not (Test-Path -LiteralPath $secretsFile)) {
 }
 $secrets = @{}
 (Get-Content -Raw -LiteralPath $secretsFile | ConvertFrom-Json).PSObject.Properties | ForEach-Object { $secrets[$_.Name] = $_.Value }
+$helperArgs = @()
+$demoSeconds = 0
+if ($Demo) {
+    foreach ($role in 'buyer','seller','admin') {
+        $key = "demo-$role-password"
+        if (-not $secrets.ContainsKey($key)) { $secrets[$key] = 'Eg5!' + [Convert]::ToHexString([Security.Cryptography.RandomNumberGenerator]::GetBytes(24)) }
+    }
+    $secrets | ConvertTo-Json | Set-Content -LiteralPath $secretsFile
+    $helperArgs = @('--seed-demo','--enable-demo-auth')
+    $demoSeconds = $DemoBusinessDaySeconds
+    Write-Output "DEMO MODE: 1 business day = ${demoSeconds}s; use newly placed orders. Private passwords: secrets/k8s/secrets.json."
+}
 $tls = Join-Path $repoRoot 'secrets/tls'
 if (-not (Test-Path -LiteralPath (Join-Path $tls 'server.crt'))) {
     pwsh -NoProfile -File "$PSScriptRoot/New-LocalTlsCertificate.ps1" | Out-Host
     if ($LASTEXITCODE -ne 0) { throw 'Cannot create the TLS certificate.' }
 }
-& "$PSScriptRoot/Deploy-K8s.ps1" -Cluster $cluster -HttpsPort $HttpsPort -HttpPort $HttpPort -Secrets $secrets -TlsDir $tls -Work (Join-Path $repoRoot 'artifacts/k8s/user')
+& "$PSScriptRoot/Deploy-K8s.ps1" -Cluster $cluster -HttpsPort $HttpsPort -HttpPort $HttpPort -Secrets $secrets -TlsDir $tls -Work (Join-Path $repoRoot 'artifacts/k8s/user') -HelperArgs $helperArgs -DemoBusinessDaySeconds $demoSeconds
 Write-Output "Kubernetes demo: https://localhost:$HttpsPort (CA: secrets/tls/ca.crt). kubectl --context kind-$cluster -n ebaygroup5 get pods"

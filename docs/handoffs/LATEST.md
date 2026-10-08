@@ -1,36 +1,31 @@
-# Handoff — G01: nghiệm thu UI-01 và rà ma trận yêu cầu
+# Handoff — G02 báo cáo/demo/bàn giao (đang kiểm chứng)
 
-08/10/2026. Baseline main `013f7f4`; branch `task/G01-ui-acceptance`; checkpoint `git log --oneline --grep=G01`. Runtime `409e05d`, fast-forward vào main sau khi [CI37689369159](https://github.com/Twiash/EbayGroup5/actions/runs/37689369159) pass.
-Handoff trước: [F08](F08.md).
+08/10/2026. Baseline fe4a22b; branch task/G02-report-demo-handoff.
+Handoff trước [G01](G01.md); G01 runtime409e05d/CI37689369159 success.
 
-## Quyết định người dùng (08/10/2026)
+## Quyết định user
 
-- Rà soát trước, không sửa; sau đó chốt **P1**: nghiệm thu UI + truy vết, sửa hiển thị nhỏ, không đổi nghiệp vụ, không làm badge tin chưa đọc (Q-UI-010 Deferred).
-- Ảnh và seed cluster: agent quyết định → ảnh commit ở `docs/evidence/ui/`; cluster `ebaygroup5` **không bị ghi**, seed demo để G02.
-- Commit kèm bản trích đề bài có khoảng trắng của người dùng (`requirements-extracted.md`); nội dung khớp ma trận.
-- Nhắc lại quy tắc: nhóm 5 giống eBay nhất có thể; phần hỗ trợ demo giản lược, không ảnh hưởng nhóm 5.
+- G02 thực hiện đầy đủ, Jira sync thật để sau: OPS-04 vẫn Pending.
+- Q-DEMO-001: đơn mới + thời gian rút ngắn; Q-TEAM-002 ngày nộp chưa xác định.
+- Giữ seed/ngày lịch sử, không reset database/volume hoặc bypass quyền/thời hạn.
 
-## Hoàn tất
+## Đã viết
 
-- Contract [UI_ACCEPTANCE](../architecture/UI_ACCEPTANCE.md) (phương pháp, 19 màn, nguồn, kết quả, khác biệt).
-- `Test-AppStack.ps1 -Screens <dir>` → Journeys `--screens`: dữ liệu sạch qua UI rồi chụp desktop 1280 / mobile 390, kiểm tràn ngang + CSP. 38 ảnh, 0 vấn đề.
-- Sửa nhỏ: `chat.js` (không hiện "Connected"), `Sellers/Feedback.cshtml` (bỏ dòng công thức), `_DisputeDraftStatus.cshtml` + `site.css` (khoảng trống form khiếu nại), `DemoSeedRunner` (ngày giao dự kiến cho đơn seed → INR demo được) + `DemoSeedTests`.
-- Tài liệu: evidence INDEX đủ 22 mục còn thiếu + G01; MATRIX UI-01 Done + ghi chú cũ sửa; UI_CANDIDATES; Q-UI-005 đóng; Q-DEMO-001, Q-UI-010 thêm; START_HERE rút gọn (~300 từ).
+- Contract [HANDOVER](../architecture/HANDOVER.md); bộ [REPORT](../delivery/REPORT.md),
+  [SETUP](../delivery/SETUP.md), [DEMO](../delivery/DEMO.md), [HANDOVER](../delivery/HANDOVER.md).
+- README cập nhật tiến độ; setup từ clone sạch, kịch bản5 thành viên/checklist/Jira batch.
+- Start-K8s -Demo (30s/day): thêm credential riêng một lần, migration→seed→auth→web;
+  DemoBusinessDaySeconds ConfigMap và Pod template stamp để đổi clock có hiệu lực.
+- Test-AppStack -DemoClockSeconds10: journey mới INR/draft reload/worker escalation/admin;
+  Test-Handover clone private GitHub đúng SHA, không copy local state/reference code.
+- CI compose smoke kèm demo clock; giữ các gate trước, không giảm bảo mật/load thresholds.
 
-## Verification
+## Verification / còn lại
 
-- Test lọc 51 + 40 pass; **Test-CI local 263/263 .NET + 20/20 Node**, 0 warning; Test-AppStack compose pass; GitHub [CI37689369159](https://github.com/Twiash/EbayGroup5/actions/runs/37689369159) success (compose, load, K8s, rolling).
-
-## Requirement
-
-- **UI-01 Done.** Còn Pending: **OPS-04** (Jira live) và **DOC-01** (báo cáo/demo) → G02.
-
-## Cho G02
-
-- **Q-DEMO-001 (Open):** seed demo gắn ngày 20–25/09/2026 → return hết 25/10, INR hết 28/10, feedback hết 24/11/2026; đơn mới cần qua ngày giao dự kiến trừ khi bật `Disputes:DemoBusinessDaySeconds`. Cần chốt cách demo trước khi seed cluster `ebaygroup5`.
-- Q-TEAM-002 (hạn nộp) vẫn Open. Jira KAN chưa sync live (OPS-04).
-- Khác biệt với eBay đã ghi (badge tin chưa đọc, ảnh đính kèm, nút ↻/nhãn Read) — nêu trong báo cáo.
-
-## Giữ nguyên
-
-- Cluster `ebaygroup5` (web `f0b65b0`, catalog trống), untracked `src/EbayGroup5.Web/Properties/launchSettings.json`.
+- Parse scripts/build Journey0 warning/docs pass.
+- Rehearsal đầu J1–J7 pass; J8 parse URL nhầm order thành case, đã sửa mở link case thật;
+  rehearsal lần2 đang chạy trên stack riêng.
+- Còn clean GitHub clone/Test-CI/demo, CI runtime và provision kind demo (idempotent).
+- DOC-01 chưa Done tới khi có minh chứng; không claim thành viên đã hiểu/trình bày.
+- Stage file cụ thể, skipci +dispatch runtime một lượt, FF main sau pass.
+- Không ghi Jira live; user launchSettings untracked giữ nguyên.

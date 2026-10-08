@@ -7,7 +7,8 @@
 # F05 (LOAD.md): -Load Short|Full|Stress builds the same isolated stack with compose.load.yaml and runs scripts/Invoke-LoadTest.ps1
 # instead of the journeys/smoke (the smoke needs the default auth window).
 # G01 (UI_ACCEPTANCE.md): -Screens <dir> seeds the demo, captures the group 5 screens (desktop + mobile) into <dir> and stops there.
-param([switch]$KeepStack, [switch]$KeepRunning, [ValidateSet('Short', 'Full', 'Stress')][string]$Load, [string]$Screens)
+param([switch]$KeepStack, [switch]$KeepRunning, [ValidateSet('Short', 'Full', 'Stress')][string]$Load, [string]$Screens,
+    [ValidateRange(0,30)][int]$DemoClockSeconds = 0)
 $ErrorActionPreference = 'Stop'
 $repoRoot = Split-Path $PSScriptRoot -Parent
 $hex = [Guid]::NewGuid().ToString('N')
@@ -35,7 +36,31 @@ try {
     if ($LASTEXITCODE -ne 0) { throw 'Cannot create the test certificate.' }
     $httpsPort = Get-FreePort
     $httpPort = Get-FreePort
-    $octet = Get-Random -Minimum 200 -Maximum 250
+    # Retained failed stacks may occupy a randomly chosen subnet. Select an actually unused pool for a clean setup.
+    $networkIds = @(docker network ls --quiet)
+    if ($LASTEXITCODE -ne 0) { throw 'Cannot list existing network pools.' }
+    $subnets = @(foreach ($networkId in $networkIds) {
+        $ipam = docker network inspect $networkId --format '{{json .IPAM.Config}}' | ConvertFrom-Json
+        if ($LASTEXITCODE -ne 0) { throw 'Cannot inspect existing network pools.' }
+        $ipam | ForEach-Object { $_.Subnet } | Where-Object { $_ -and $_ -notlike '*:*' }
+    })
+    function Overlaps([string]$left, [string]$right) {
+        $l = $left.Split('/'); $r = $right.Split('/')
+        $lb = [Net.IPAddress]::Parse($l[0]).GetAddressBytes(); $rb = [Net.IPAddress]::Parse($r[0]).GetAddressBytes()
+        $bits = [Math]::Min([int]$l[1],[int]$r[1])
+        for ($i=0; $i -lt 4; $i++) {
+            $n = [Math]::Clamp($bits - 8*$i,0,8)
+            $mask = (255 -shl (8-$n)) -band 255
+            if (($lb[$i] -band $mask) -ne ($rb[$i] -band $mask)) { return $false }
+        }
+        return $true
+    }
+    $octet = @(200..249 | Sort-Object { Get-Random } | Where-Object {
+        $pool = "172.30.$_.0/24"
+        -not @($subnets | Where-Object { Overlaps $pool $_ }).Count
+    } | Select-Object -First 1)
+    if ($octet.Count -ne 1) { throw 'No unused test subnet is available; no existing networks were changed.' }
+    $octet = $octet[0]
     $sqlPort = Get-FreePort
     $saPassword = New-Secret
     $envFile = Join-Path $work 'stack.env'
@@ -47,6 +72,12 @@ try {
         "APP_SUBNET=172.30.$octet.0/24", "APP_GATEWAY=172.30.$octet.1", "APP_PROXY_ADDRESS=172.30.$octet.10",
         "TLS_DIR=$((Join-Path $work 'tls').Replace('\', '/'))"))
     $compose = @('compose', '-p', $project, '-f', 'compose.yaml', '-f', 'compose.app.yaml') + $(if ($Load) { @('-f', 'compose.load.yaml') } else { @() }) + @('--env-file', $envFile)
+    if ($DemoClockSeconds) {
+        if ($Load -or $Screens) { throw 'Demo rehearsal is separate from load/screens.' }
+        $demoOverride = Join-Path $work 'compose.demo.yaml'
+        "services:`n  web:`n    environment:`n      Disputes__DemoBusinessDaySeconds: '$DemoClockSeconds'`n      Disputes__Automation__IntervalSeconds: '2'" | Set-Content -LiteralPath $demoOverride
+        $compose = @('compose', '-p', $project, '-f', 'compose.yaml', '-f', 'compose.app.yaml', '-f', $demoOverride, '--env-file', $envFile)
+    }
     Write-Output "Isolated app stack: $project (https://localhost:$httpsPort)"
 
     docker @compose build
@@ -87,8 +118,13 @@ try {
     }
     # Journeys run before the smoke: the smoke's spoofing check deliberately exhausts the host's auth window.
     dotnet run --project tests/EbayGroup5.Journeys -c Release --no-launch-profile -- `
-        --base "https://localhost:$httpsPort" --spki $spki --out (Join-Path $work 'journeys')
+        --base "https://localhost:$httpsPort" --spki $spki --out (Join-Path $work 'journeys') --demo-clock $DemoClockSeconds
     if ($LASTEXITCODE -ne 0) { throw 'Browser journeys failed; screenshots in artifacts/stack/<hex>/journeys, stack retained.' }
+    if ($DemoClockSeconds) {
+        $receiptDirectory = Join-Path $repoRoot "artifacts/handover/rehearsals/$hex"
+        New-Item -ItemType Directory -Force -Path $receiptDirectory | Out-Null
+        Copy-Item -LiteralPath (Join-Path $work 'journeys/demo-rehearsal.json') -Destination (Join-Path $receiptDirectory 'demo-rehearsal.json')
+    }
 
     dotnet run --project tests/EbayGroup5.StackSmoke -c Release --no-launch-profile -- `
         --https-port $httpsPort --http-port $httpPort --ca (Join-Path $work 'tls/ca.crt') --wait-seconds 240

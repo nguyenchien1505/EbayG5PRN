@@ -9,7 +9,8 @@ param(
     [Parameter(Mandatory)][string]$TlsDir,       # server.crt + server.key (New-LocalTlsCertificate.ps1)
     [Parameter(Mandatory)][string]$Work,
     [string[]]$HelperArgs = @(),                 # extra migrate-image runs after the migration, e.g. --seed-demo, --enable-demo-auth
-    [ValidatePattern('^[0-9a-f]{40}$')][string]$ImageTag # F07: verified, preloaded CI images; no build on the deployment host
+    [ValidatePattern('^[0-9a-f]{40}$')][string]$ImageTag, # F07: verified, preloaded CI images; no build on the deployment host
+    [ValidateRange(0,86400)][int]$DemoBusinessDaySeconds = 0 # G02: opt-in only; ordinary deployments keep real days
 )
 $ErrorActionPreference = 'Stop'
 $repoRoot = Split-Path $PSScriptRoot -Parent
@@ -86,7 +87,7 @@ $admin = if ($existing) { $existing } else { '192.0.2.1' }
 function Set-Config([string]$adminAddress) {
     Apply-Json @{ apiVersion = 'v1'; kind = 'ConfigMap'; metadata = @{ name = 'ebaygroup5-config'; namespace = 'ebaygroup5' }
         data = @{ 'pod-cidr' = $podCidr; 'origin-localhost' = "https://localhost:$HttpsPort"; 'origin-loopback' = "https://127.0.0.1:$HttpsPort"
-                  'public-https-port' = "$HttpsPort"; 'admin-address' = $adminAddress } }
+                  'public-https-port' = "$HttpsPort"; 'admin-address' = $adminAddress; 'demo-business-day-seconds' = "$DemoBusinessDaySeconds" } }
 }
 Set-Config $admin
 
@@ -97,17 +98,17 @@ $rendered = $rendered.Replace('ebaygroup5-web:local', "ebaygroup5-web:$tag")
 Set-Content -LiteralPath (Join-Path $Work 'rendered.yaml') -Value $rendered
 # Keep the existing app serving until migrations finish; first deploy infrastructure/services/policies only.
 $documents = @($rendered -split '(?m)^---\s*$' | Where-Object { $_.Trim() })
-if ($ImageTag) {
-    # Rebuilding the same source SHA can yield a different image ID. Stamp the pod template so those pods are replaced too.
-    $documents = @($documents | ForEach-Object {
-        if ($_ -match '(?m)^kind: Deployment\s*$' -and $_ -match '(?m)^  name: web\s*$') {
-            $pattern = '(?m)^  template:\r?\n    metadata:\r?\n'
-            if ([regex]::Matches($_, $pattern).Count -ne 1) { throw 'Cannot identify the web pod template for the CI image stamp.' }
-            [regex]::Replace($_, $pattern, "  template:`n    metadata:`n      annotations:`n        ebaygroup5.io/cd-image-id: `"$webImageId`"`n")
-        } else { $_ }
-    })
-    Set-Content -LiteralPath (Join-Path $Work 'rendered.yaml') -Value ($documents -join "`n---`n")
-}
+# Clock changes and CI image changes both replace pods, including same-SHA redeploys.
+$documents = @($documents | ForEach-Object {
+    if ($_ -match '(?m)^kind: Deployment\s*$' -and $_ -match '(?m)^  name: web\s*$') {
+        $pattern = '(?m)^  template:\r?\n    metadata:\r?\n'
+        if ([regex]::Matches($_, $pattern).Count -ne 1) { throw 'Cannot identify the web pod template for the CI image stamp.' }
+        $stamp = "  template:`n    metadata:`n      annotations:`n        ebaygroup5.io/demo-business-day-seconds: `"$DemoBusinessDaySeconds`"`n"
+        if ($ImageTag) { $stamp += "        ebaygroup5.io/cd-image-id: `"$webImageId`"`n" }
+        [regex]::Replace($_, $pattern, $stamp)
+    } else { $_ }
+})
+Set-Content -LiteralPath (Join-Path $Work 'rendered.yaml') -Value ($documents -join "`n---`n")
 ($documents | Where-Object { $_ -notmatch '(?m)^kind: Deployment\s*$' }) -join "`n---`n" |
     kubectl --context $context apply -f - | Out-Host
 if ($LASTEXITCODE -ne 0) { throw 'kubectl apply (infrastructure) failed.' }
