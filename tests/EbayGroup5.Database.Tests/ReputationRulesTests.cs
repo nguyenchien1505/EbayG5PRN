@@ -148,7 +148,13 @@ public sealed class ReputationRulesTests
             "SELECT CONCAT(Comment,'|',CAST(ArrivedOnTime AS int),'|',DescriptionRating,'|',ShippingTimeRating,'|',CommunicationRating) FROM dbo.SellerFeedback"));
         Assert.Equal("5|Exactly as described", SqlFixture.Scalar(s.Target, $"SELECT CONCAT(rating,'|',comment) FROM dbo.Review WHERE OrderItemId={s.Item}"));
 
-        foreach (var column in new[] { "ArrivedOnTime=0", "DescriptionRating=1", "ShippingTimeRating=NULL", "CommunicationRating=5" })
+        // The buyer-week key is stored at insert: Monday of the order's week in Pacific time.
+        var ordered = DateTime.SpecifyKind(DateTime.Parse(SqlFixture.Scalar(s.Target, $"SELECT CONVERT(varchar(33),orderDate,126) FROM dbo.OrderTable WHERE id={s.Order}"),
+            System.Globalization.CultureInfo.InvariantCulture), DateTimeKind.Utc);
+        var pacific = TimeZoneInfo.ConvertTimeFromUtc(ordered, TimeZoneInfo.FindSystemTimeZoneById("America/Los_Angeles")).Date;
+        var monday = pacific.AddDays(-(((int)pacific.DayOfWeek + 6) % 7));
+        Assert.Equal(monday.ToString("yyyy-MM-dd"), SqlFixture.Scalar(s.Target, "SELECT CONVERT(varchar(10),TransactionWeek,23) FROM dbo.SellerFeedback"));
+        foreach (var column in new[] { "ArrivedOnTime=0", "DescriptionRating=1", "ShippingTimeRating=NULL", "CommunicationRating=5", "TransactionWeek=NULL", "TransactionWeek='2000-01-03'" })
         {
             var ex = Assert.Throws<SqlException>(() => SqlFixture.Execute(s.Target, $"UPDATE dbo.SellerFeedback SET {column}"));
             Assert.Equal(51009, ex.Number);

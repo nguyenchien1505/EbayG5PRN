@@ -17,4 +17,5 @@ public sealed class SellerFeedback
     public byte? DescriptionRating { get; set; }
     public byte? ShippingTimeRating { get; set; }
     public byte? CommunicationRating { get; set; }
+    public DateOnly? TransactionWeek { get; set; }
 }
