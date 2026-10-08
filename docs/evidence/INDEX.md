@@ -74,3 +74,4 @@ max HTTP p95 241,48ms/chat p95 27,98ms. Update/undo thay pod thật, journal gi�
 | H01 | [H01](H01.md) | G5-03, G5-05 (quy tắc eBay, form R1) |
 | H02 | [H02](H02.md) | G5-04, G5-05 (hồ sơ F2, About this seller), UI-01 |
 | H03 | [H03](H03.md) | UI-01, SUP-02 (header/footer/trang chủ theo eBay) |
+| H04 | [H04](H04.md) | SUP-02, UI-01 (trang kết quả tìm kiếm theo eBay) |

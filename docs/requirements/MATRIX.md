@@ -160,3 +160,5 @@ H01 09/10/2026: [evidence](../evidence/H01.md) — điểm/% theo (buyer, tuần
 H02 09/10/2026: [evidence](../evidence/H02.md) — hồ sơ feedback F2/F2m, About this seller/Seller feedback trên trang sản phẩm, DSR hiển thị theo ngưỡng; 287 .NET + 20 Node.
 
 H03 09/10/2026: [evidence](../evidence/H03.md) — header/thanh danh mục/footer/trang chủ theo HD/HM; điều khiển ngoài phạm vi mở trang thông báo demo; 290 .NET + 20 Node.
+
+H04 09/10/2026: [evidence](../evidence/H04.md) — trang kết quả tìm kiếm theo SR (sort, giá, định dạng, đếm danh mục, đã bán, list/gallery); 292 .NET + 20 Node.

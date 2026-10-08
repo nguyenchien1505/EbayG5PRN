@@ -492,7 +492,7 @@ public sealed class SecurityTests
         // Injection-shaped input stays data; malformed JSON gets a generic problem without exception details.
         var search = await anonymous.GetAsync("/Catalog?q=" + Uri.EscapeDataString("' OR 1=1 --"));
         Assert.Equal(HttpStatusCode.OK, search.StatusCode);
-        Assert.Contains("No matching items", WebUtilityDecode(await search.Content.ReadAsStringAsync()));
+        Assert.Contains("No exact matches found", WebUtilityDecode(await search.Content.ReadAsStringAsync()));
         using var buyer = await Login(factory, "buyer");
         using var malformed = new HttpRequestMessage(HttpMethod.Post, "/api/v1/chat/conversations/1/messages") { Content = new StringContent("{\"content\":", System.Text.Encoding.UTF8, "application/json") };
         malformed.Headers.Add(Header, await ChatToken(buyer));
