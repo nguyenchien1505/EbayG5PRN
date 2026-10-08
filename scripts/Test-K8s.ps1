@@ -62,6 +62,8 @@ try {
 
     # 3. Probes as declared in K8S.md.
     $web = Kube get deployment web -o json | ConvertFrom-Json
+    Check ((Kube get configmap ebaygroup5-config -o 'jsonpath={.data.demo-business-day-seconds}') -eq '0' -and
+        $web.spec.template.metadata.annotations.'ebaygroup5.io/demo-business-day-seconds' -eq '0') 'ordinary Kubernetes deployment uses the real business-day clock (demo is opt-in)'
     $c = $web.spec.template.spec.containers[0]
     Check ($c.startupProbe.httpGet.path -eq '/health/live' -and $c.livenessProbe.httpGet.path -eq '/health/live' -and $c.readinessProbe.httpGet.path -eq '/health/ready') 'web startup/liveness /health/live, readiness /health/ready'
     foreach ($set in 'sqlserver', 'redis') {

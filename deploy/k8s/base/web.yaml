@@ -60,6 +60,11 @@ spec:
           env:
             - name: ASPNETCORE_ENVIRONMENT
               value: Production
+            - name: Disputes__DemoBusinessDaySeconds
+              valueFrom:
+                configMapKeyRef:
+                  name: ebaygroup5-config
+                  key: demo-business-day-seconds
             - name: SQL_APP_PASSWORD
               valueFrom:
                 secretKeyRef:

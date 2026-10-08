@@ -33,7 +33,15 @@ jobs:
       - name: Verify, build and test with isolated SQL
         run: ./scripts/Test-CI.ps1
       - name: App image + Nginx HTTPS/WSS stack smoke
-        run: ./scripts/Test-AppStack.ps1
+        run: ./scripts/Test-AppStack.ps1 -DemoClockSeconds 10
+      - name: Demo rehearsal receipt (no credentials)
+        if: ${{ always() }}
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: demo-rehearsal
+          path: artifacts/handover/rehearsals/*/demo-rehearsal.json
+          if-no-files-found: ignore
+          retention-days: 7
       # F05 (docs/architecture/LOAD.md): short JMeter + realtime run on its own isolated stack; the full run is local.
       - name: Cache Apache JMeter 5.6.3 (checksum-verified)
         uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0

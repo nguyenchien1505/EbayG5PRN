@@ -297,6 +297,7 @@ await Step("J4 return: buyer opens it, seller accepts, buyer ships back, seller 
 {
     await buyer.GotoAsync($"/Orders/Details/{order}");
     await buyer.Locator("#line-" + await LineId(buyer)).GetByRole(AriaRole.Link, new() { Name = "Return this item" }).ClickAsync();
+    await Expect(buyer.Locator("[data-next]")).ToBeVisibleAsync();
     await buyer.GetByText("Item damaged", new() { Exact = true }).ClickAsync();
     await buyer.GetByRole(AriaRole.Button, new() { Name = "Next" }).ClickAsync();
     await buyer.Locator("textarea[name=Details]").FillAsync("The headband cracked in transit. " + Payload);
@@ -388,6 +389,55 @@ await Step("J7 stored markup in chat, review and return stays text; no CSP viola
     if (!violations.IsEmpty) throw new InvalidOperationException("CSP violations or dialogs: " + string.Join(" | ", violations.Take(5)));
 });
 
+if (options.TryGetValue("--demo-clock", out var demoClock) && int.TryParse(demoClock, out var demoSeconds) && demoSeconds > 0)
+{
+    await Step("G02 new-order INR draft, real worker escalation and admin decision with demo clock", async () =>
+    {
+        await buyer.GotoAsync("/Catalog");
+        await buyer.GetByRole(AriaRole.Link, new() { Name = "Wireless Headphones" }).First.ClickAsync();
+        await buyer.GetByRole(AriaRole.Link, new() { Name = "Buy It Now" }).ClickAsync();
+        await buyer.Locator("input[name=AddressId]").First.CheckAsync();
+        await buyer.GetByRole(AriaRole.Button, new() { Name = "Place order" }).ClickAsync();
+        await Expect(buyer.GetByRole(AriaRole.Heading, new() { Name = "Your order is placed" })).ToBeVisibleAsync();
+        var freshOrder = int.Parse(Regex.Match(await buyer.Locator(".confirmation-card").InnerTextAsync(), @"Order #(\d+)").Groups[1].Value);
+        // This is a fresh transaction; do not edit the seeded dates or database state.
+        await Task.Delay(TimeSpan.FromSeconds(5 * demoSeconds + 2));
+        await buyer.GotoAsync($"/Orders/Details/{freshOrder}");
+        await buyer.Locator("#line-" + await LineId(buyer)).GetByRole(AriaRole.Link, new() { Name = "I didn't receive it" }).ClickAsync();
+        var details = $"G02 missing parcel {run}";
+        await buyer.Locator("textarea[name=Details]").FillAsync(details);
+        await Expect(buyer.Locator("[data-draft-status]")).ToHaveTextAsync("Draft saved");
+        await buyer.ReloadAsync();
+        await Expect(buyer.Locator("textarea[name=Details]")).ToHaveValueAsync(details);
+        await buyer.GetByText("I'd like a refund", new() { Exact = true }).ClickAsync();
+        await buyer.GetByRole(AriaRole.Button, new() { Name = "Send request" }).ClickAsync();
+        await Expect(buyer.Locator(".account-notice")).ToContainTextAsync("Your request was sent.");
+        await buyer.Locator("a[href*='/Disputes/Details/']").First.ClickAsync();
+        await Expect(buyer).ToHaveURLAsync(new Regex(@"/Disputes/Details/\d+"));
+        var requestUrl = buyer.Url;
+        var requestId = int.Parse(Regex.Match(requestUrl, @"/Disputes/Details/(\d+)").Groups[1].Value);
+        // Seller intentionally does not respond; wait for the actual automation worker to escalate.
+        var deadline = DateTime.UtcNow.AddSeconds(3 * demoSeconds + 75);
+        var escalated = false;
+        do
+        {
+            await admin.GotoAsync($"/Admin/Dispute/{requestId}");
+            escalated = await admin.GetByRole(AriaRole.Button, new() { Name = "Confirm decision" }).IsVisibleAsync();
+            if (!escalated) await Task.Delay(2000);
+        } while (!escalated && DateTime.UtcNow < deadline);
+        if (!escalated) throw new InvalidOperationException("Demo request was not escalated by the worker.");
+        await admin.Locator("input[name=ForBuyer][value=true]").CheckAsync();
+        await admin.Locator("#decision-note").FillAsync("G02 demo decision: buyer protected, refund simulated.");
+        await admin.GetByRole(AriaRole.Button, new() { Name = "Confirm decision" }).ClickAsync();
+        await buyer.GotoAsync(requestUrl);
+        await Expect(buyer.Locator(".dispute-headline")).ToHaveTextAsync("Closed — decided in your favor");
+        await seller.GotoAsync(requestUrl);
+        await Expect(seller.Locator(".dispute-headline")).ToHaveTextAsync("Closed — decided in the buyer's favor");
+        if (!violations.IsEmpty) throw new InvalidOperationException("Demo rehearsal reported a CSP violation or dialog.");
+        await File.WriteAllTextAsync(Path.Combine(output, "demo-rehearsal.json"), System.Text.Json.JsonSerializer.Serialize(new
+            { demoSeconds, freshOrder, requestId, draftReload = true, workerEscalation = true, adminDecision = true, utc = DateTime.UtcNow }));
+    });
+}
 Console.WriteLine(failures == 0 ? "PASS: browser journeys" : $"FAIL: {failures} browser journey step(s)");
 return failures == 0 ? 0 : 1;
 
