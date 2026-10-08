@@ -1,5 +1,5 @@
 -- H01: eBay R1 feedback details. "Did this item arrive on time?" and three buyer-rated detailed seller ratings, all optional.
--- TransactionWeek: Monday of the order's week in Pacific time (eBay counts a buyer once per week); stored at insert so reads stay cheap.
+-- TransactionWeek: Monday of the order's week in Pacific time (eBay counts a buyer once per week); filled by a trigger at insert so reads stay cheap.
 ALTER TABLE dbo.SellerFeedback ADD
     ArrivedOnTime bit NULL,
     DescriptionRating tinyint NULL,
@@ -13,6 +13,20 @@ JOIN dbo.OrderItem i ON i.id = f.OrderItemId
 JOIN dbo.OrderTable o ON o.id = i.orderId
 CROSS APPLY (SELECT CAST(CAST(COALESCE(CAST(o.orderDate AS datetime2(7)), f.CreatedAtUtc) AS datetime2(7))
     AT TIME ZONE 'UTC' AT TIME ZONE 'Pacific Standard Time' AS date) AS LocalDay) w;
+GO
+-- Every new row gets its week from the order (or its own time when the order has no date), whoever inserts it.
+CREATE TRIGGER dbo.TR_SellerFeedback_TransactionWeek ON dbo.SellerFeedback AFTER INSERT AS
+BEGIN
+    SET NOCOUNT ON;
+    UPDATE f SET TransactionWeek = DATEADD(day, -(DATEDIFF(day, '19000101', w.LocalDay) % 7), w.LocalDay)
+    FROM dbo.SellerFeedback f
+    JOIN inserted n ON n.Id = f.Id
+    JOIN dbo.OrderItem i ON i.id = f.OrderItemId
+    JOIN dbo.OrderTable o ON o.id = i.orderId
+    CROSS APPLY (SELECT CAST(CAST(COALESCE(CAST(o.orderDate AS datetime2(7)), f.CreatedAtUtc) AS datetime2(7))
+        AT TIME ZONE 'UTC' AT TIME ZONE 'Pacific Standard Time' AS date) AS LocalDay) w
+    WHERE f.TransactionWeek IS NULL;
+END
 GO
 CREATE INDEX IX_SellerFeedback_Reputation ON dbo.SellerFeedback(SellerId, CreatedAtUtc)
     INCLUDE (Sentiment, BuyerId, TransactionWeek, DescriptionRating, ShippingTimeRating, CommunicationRating) WHERE HiddenAtUtc IS NULL;
