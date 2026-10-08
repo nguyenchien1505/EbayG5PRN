@@ -2,9 +2,15 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace EbayGroup5.Web.Controllers;
 
-public sealed class HomeController : Controller
+public sealed class HomeController(EbayGroup5.Application.Catalog.ICatalogService catalog) : Controller
 {
-    public IActionResult Index() => RedirectToAction("Index", "Catalog");
+    // H03 (reference HM): eBay home with real categories and the newest listings; no invented deals or prices.
+    public async Task<IActionResult> Index(CancellationToken cancellationToken)
+    {
+        ViewData["Title"] = "Electronics, Cars, Fashion, Collectibles & More";
+        ViewData["Recent"] = await catalog.RecentAsync(12, cancellationToken);
+        return View(await catalog.CategoriesAsync(cancellationToken));
+    }
 
     [HttpGet]
     public IActionResult Search(string? q) => RedirectToAction("Index", "Catalog", new { q });

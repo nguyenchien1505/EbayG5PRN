@@ -78,6 +78,9 @@ public static class WebApplicationHost
         builder.Services.AddHostedService<EbayGroup5.Web.Disputes.DisputeAutomationWorker>();
         builder.Services.AddScoped<EbayGroup5.Application.Checkout.ICheckoutService, EbayGroup5.Infrastructure.Checkout.CheckoutService>();
         builder.Services.AddScoped<EbayGroup5.Application.Catalog.ICatalogService, EbayGroup5.Infrastructure.Catalog.CatalogService>();
+        // H03: header categories and Ship to (ADR-003).
+        builder.Services.AddMemoryCache();
+        builder.Services.AddScoped<EbayGroup5.Web.Shell.ShellData>();
         builder.Services.AddScoped<AccessCookieEvents>();
         builder.Services.AddSingleton<AdminNetwork>();
         builder.Services.AddSingleton<ReadinessProbe>();

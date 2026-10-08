@@ -26,4 +26,8 @@ public interface ICatalogService
     Task<CatalogPage> SearchAsync(string? query, int? categoryId, int page, CancellationToken cancellationToken = default);
     Task<CatalogPage> SearchAsync(string? query, int? categoryId, int page, int? sellerId, CancellationToken cancellationToken = default);
     Task<CatalogDetail?> FindAsync(int id, CancellationToken cancellationToken = default);
+    /// <summary>H03 header "Shop by category", category bar and search scope; ordered by name.</summary>
+    Task<IReadOnlyList<CatalogCategory>> CategoriesAsync(CancellationToken cancellationToken = default);
+    /// <summary>H03 home page strip: newest fixed-price listings (same listing rule as search), at most 24.</summary>
+    Task<IReadOnlyList<CatalogItem>> RecentAsync(int take, CancellationToken cancellationToken = default);
 }

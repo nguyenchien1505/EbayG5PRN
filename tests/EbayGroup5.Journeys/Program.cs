@@ -169,6 +169,8 @@ async Task<int> CaptureScreens(string dir)
         await Expect(b.Locator(".account-notice")).ToContainTextAsync("Your request was sent.");
 
         // Catalog card and item page after the feedback: stars, rating count and seller % positive (entry points A1/A2).
+        await b.GotoAsync("/");
+        await Shot(b, "S00", "home"); // H03 eBay home (reference HM).
         await b.GotoAsync("/Catalog");
         await Shot(b, "S01", "catalog");
         await b.GotoAsync(product);

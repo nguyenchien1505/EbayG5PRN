@@ -10,3 +10,15 @@ Nguồn: bố cục public đã quan sát tại A02 trong [UI_REFERENCE](UI_REFE
 - Empty/search-unavailable và 404 có tiêu đề/hướng dẫn/đường về Home; giữ nguyên status HTTP. Error 500 generic JSON và security statuses của B02 không thay đổi. 404 page chỉ xử lý GET không có body, không đổi API/POST response.
 - Skip link, focus visible, label search, native menu, wrap long names/query và mobile không overflow. Không cần JS, ảnh hay package mới.
 - Files: shared layout, CSS, Home controller/views, Program 404 handler; kiểm thử HTTP routing/query encoding/status và browser desktop/mobile/menu/auth navigation.
+
+## Quyết định H03 (09/10/2026, header/footer/trang chủ giống eBay)
+
+Theo [ADR-003](../decisions/ADR-003-ui-fidelity-references.md); mẫu HD, HM, IT-1 trong [references](../references/ui/INDEX.md). Thay bố cục giản lược B03 ở trên.
+
+- **Hàng tiện ích:** "Hi {tên}!" ▾ (Account settings, Sign out) hoặc "Hi! Sign in or register"; Deals, Brand Outlet, Help & Contact; bên phải Ship to (thành phố của địa chỉ mặc định — eBay hiện mã bưu chính, schema không có), Sell ▾, Watchlist ▾, My eBay ▾ (mục theo vai trò như trước), chuông, giỏ.
+- **Hàng logo:** Shop by category ▾ (danh mục thật), ô tìm kiếm bo tròn có icon, nút camera, chọn danh mục (`categoryId` hoạt động), Search, Advanced. **Thanh danh mục:** Saved, tối đa 9 danh mục thật, Deals, Sell.
+- **Footer:** cột Buy / Sell / Your account / About eBay / Help & Contact; dòng cuối giữ "Educational demo… Not affiliated with eBay Inc." (không chép tuyên bố pháp lý của eBay).
+- **Trang chủ `/`** (trước chuyển hướng sang catalog): banner, Shop by category (danh mục thật), Shopping made easy, Get more with an eBay account (khi chưa đăng nhập), Recently listed (12 listing mới nhất, giá thật), Money Back Guarantee (dẫn tới Returns and requests). Không hiện giảm giá/coupon/deal bịa.
+- Điều khiển chưa có tính năng (Deals, Brand Outlet, Help & Contact, Watchlist, Notifications, Cart, Search by image, Advanced, Saved, Start selling, các link footer) mở `/Help/Unavailable/{key}` với danh sách khóa cố định. Seller có thêm Sales history, Feedback profile, Your listings trong Sell ▾.
+- Menu dùng `<details data-menu>` + `shell.js` (một menu mở, đóng khi click ngoài/Escape); không inline script (CSP). Mobile ≤ 700 px: ẩn link chữ phụ, ô tìm full width, thanh danh mục cuộn ngang trong chính nó (trang không tràn ngang).
+- Danh mục header cache 60 giây trong bộ nhớ từng replica; lỗi đọc DB không làm hỏng trang (danh sách rỗng, log cảnh báo).

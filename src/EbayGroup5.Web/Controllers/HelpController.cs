@@ -8,6 +8,12 @@ public sealed class HelpController : Controller
     internal static readonly IReadOnlyDictionary<string, string> Features = new Dictionary<string, string>(StringComparer.Ordinal)
     {
         ["save-seller"] = "Save seller",
+        // H03 header, category bar and footer.
+        ["deals"] = "Deals", ["brand-outlet"] = "Brand Outlet", ["help-contact"] = "Help & Contact", ["sell"] = "Selling on eBay",
+        ["watchlist"] = "Watchlist", ["notifications"] = "Notifications", ["cart"] = "Shopping cart", ["image-search"] = "Search by image",
+        ["advanced-search"] = "Advanced search", ["saved"] = "Saved searches and sellers", ["buying-help"] = "Bidding & buying help",
+        ["charity"] = "eBay for Charity", ["seller-center"] = "Seller Center", ["about"] = "About eBay", ["policies"] = "Policies",
+        ["community"] = "Community", ["site-map"] = "Site map",
     };
 
     [HttpGet]
