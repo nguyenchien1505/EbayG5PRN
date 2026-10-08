@@ -1,5 +1,7 @@
 # Ảnh UI và quyết định đã chốt
 
+**08/10/2026 ([ADR-003](../decisions/ADR-003-ui-fidelity-references.md)):** ảnh đã chốt được lưu trong repo tại [references/ui](../references/ui/INDEX.md) (đã che thông tin cá nhân); các ghi chú "không commit ảnh"/"lưu ignored trong artifacts" bên dưới là lịch sử. Mẫu mới cho đợt H: HD/HM (header, trang chủ), SA (About this seller), IT (trang sản phẩm), SR (tìm kiếm), F2/F2m (hồ sơ feedback classic/mobile). Bản giản lược F1 bên dưới được thay bởi F2 ở H02.
+
 Ngày tìm 02/10/2026. Người dùng yêu cầu tìm ảnh thiếu trên Internet và cho xem trước khi chốt. **Đã chốt M1, R1, D1, D2** qua câu trả lời trực tiếp: “Chốt cả M1, R1, D1, D2”. U1 dùng cho panel Message seller theo câu hỏi đã được xác nhận. **P1 đã chốt** ngày 02/10/2026 qua lời nhắn “ok tôi chốt P1, hãy tiếp tục”. Chọn bố cục không tự mở rộng scope nghiệp vụ. Chỉ nạp ảnh của màn hình đang triển khai; không nạp toàn bộ gallery mỗi phiên.
 
 ## U1 — ảnh người dùng: Message seller
