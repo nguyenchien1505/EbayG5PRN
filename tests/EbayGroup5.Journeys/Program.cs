@@ -291,7 +291,7 @@ await Step("J3 seller ships, buyer confirms receipt and leaves feedback", async 
     await Expect(buyer.GetByText("You rated this item 5 out of 5.")).ToBeVisibleAsync();
     await buyer.GotoAsync("/");
     await buyer.GetByRole(AriaRole.Link, new() { Name = "Wireless Headphones" }).First.ClickAsync();
-    await Expect(buyer.GetByText(reviewComment)).ToBeVisibleAsync();
+    await Expect(buyer.Locator("#reviews").GetByText(reviewComment)).ToBeVisibleAsync(); // H02: also shown in Seller feedback.
 });
 
 await Step("J4 return: buyer opens it, seller accepts, buyer ships back, seller refunds", async () =>
@@ -347,7 +347,7 @@ await Step("J5 seller reports the review and an admin hides it", async () =>
     await Expect(admin.Locator(".account-notice")).ToHaveTextAsync("Hide recorded in the moderation audit.");
     await buyer.GotoAsync("/");
     await buyer.GetByRole(AriaRole.Link, new() { Name = "Wireless Headphones" }).First.ClickAsync();
-    await Expect(buyer.GetByText(reviewComment)).ToHaveCountAsync(0);
+    await Expect(buyer.Locator("#reviews").GetByText(reviewComment)).ToHaveCountAsync(0); // The seller-feedback copy is moderated separately.
 });
 
 await Step("J6 access control: login redirect, role 403, foreign request 404", async () =>

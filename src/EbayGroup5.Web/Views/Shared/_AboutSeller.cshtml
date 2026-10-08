@@ -1,0 +1,86 @@
+@model EbayGroup5.Web.Models.AboutSellerView
+@using EbayGroup5.Application.Feedback
+@using System.Globalization
+@{
+    // H02: eBay item page "About this seller" + "Seller feedback" (references SA, IT-4). Facts come from clone data only.
+    var summary = Model.Summary;
+    var rep = Model.Reputation;
+    string Sold(long n) => n < 1_000 ? n.ToString(CultureInfo.InvariantCulture) : n < 1_000_000 ? (Math.Floor(n / 100m) / 10m).ToString("0.0", CultureInfo.InvariantCulture) + "K" : (Math.Floor(n / 100_000m) / 10m).ToString("0.0", CultureInfo.InvariantCulture) + "M";
+    string When(FeedbackRecency r) => r switch { FeedbackRecency.PastMonth => "Past month", FeedbackRecency.Past6Months => "Past 6 months", FeedbackRecency.PastYear => "Past year", _ => "More than a year ago" };
+    string Icon(FeedbackSentiment s) => s switch { FeedbackSentiment.Positive => "+", FeedbackSentiment.Neutral => "•", _ => "−" };
+    var details = new (string Label, DetailRating Rating)[] { ("Accurate description", rep.Details.Description), ("Reasonable shipping cost", rep.Details.ShippingCost), ("Shipping speed", rep.Details.ShippingSpeed), ("Communication", rep.Details.Communication) };
+    var facts = new List<string>();
+    if (rep.PositivePercent is decimal percent) facts.Add(percent.ToString("0.#", CultureInfo.InvariantCulture) + "% positive feedback");
+    if (summary.ItemsSold > 0) facts.Add(Sold(summary.ItemsSold) + " items sold");
+}
+<section class="about-seller" aria-label="Seller information">
+    <div class="about-left">
+        <h2 id="about-seller-title">About this seller</h2>
+        <div class="about-head">
+            <span class="about-avatar" aria-hidden="true">@summary.Name[0]</span>
+            <div>
+                <p class="about-name"><a asp-controller="Sellers" asp-action="Feedback" asp-route-id="@summary.SellerId">@summary.Name</a></p>
+                @if (facts.Count > 0) { <p class="about-facts-line">@string.Join(" · ", facts)</p> }
+            </div>
+        </div>
+        <ul class="about-facts">
+            @if (summary.JoinedAtUtc is { } joined) { <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 2h2v2h6V2h2v2h3v18H4V4h3Zm11 8H6v10h12ZM6 8h12V6H6Z" /></svg>Joined @joined.ToString("MMM yyyy", CultureInfo.InvariantCulture)</li> }
+            @if (summary.RespondsWithin24Hours) { <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2a10 10 0 1 1 0 20 10 10 0 0 1 0-20Zm0 2a8 8 0 1 0 0 16 8 8 0 0 0 0-16Zm1 3v5.4l3.6 2.1-1 1.7L11 13.6V7Z" /></svg>Usually responds within 24 hours</li> }
+        </ul>
+        <div class="about-actions">
+            <a class="button primary" asp-controller="Catalog" asp-action="Index" asp-route-seller="@summary.SellerId">Visit store</a>
+            @if (User.IsInRole("Buyer")) { <button type="button" class="button outline" data-chat-product-id="@Model.ProductId">Message seller</button> }
+            else if (User.Identity?.IsAuthenticated != true) { <a class="button outline" asp-controller="Account" asp-action="Login" asp-route-returnUrl="@Url.Action("Details", "Catalog", new { id = Model.ProductId, message = true })">Message seller</a> }
+            <a class="button outline" asp-controller="Help" asp-action="Unavailable" asp-route-id="save-seller"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21 3.5 12.6A5 5 0 0 1 12 6a5 5 0 0 1 8.5 6.6Zm0-2.8 7-6.9a3 3 0 1 0-4.6-3.8L12 9.8 9.6 7.5A3 3 0 1 0 5 11.3Z" /></svg>Save seller</a>
+        </div>
+        <h3>Detailed seller ratings</h3>
+        @if (rep.Details.BuyerRated >= Model.DetailedRatingsMinimum)
+        {
+            <ul class="dsr-bars">
+                @foreach (var (label, rating) in details)
+                {
+                    var value = rating.Average ?? 0m;
+                    <li><span>@label</span><span class="rating-bar" aria-hidden="true"><span class="pct-@(Math.Round(value * 20m, MidpointRounding.AwayFromZero).ToString("0", CultureInfo.InvariantCulture))"></span></span><span>@(rating.Average is decimal avg ? avg.ToString("0.0", CultureInfo.InvariantCulture) : "—")</span></li>
+                }
+            </ul>
+            <p class="field-help">Average for the last 12 months</p>
+        }
+        else { <p class="field-help">Detailed seller ratings appear once this seller receives at least @Model.DetailedRatingsMinimum ratings.</p> }
+        @if (summary.Categories.Count > 0)
+        {
+            <div class="about-categories-head"><h3>Popular categories from this store</h3><a asp-controller="Catalog" asp-action="Index" asp-route-seller="@summary.SellerId">See all</a></div>
+            <ul class="about-categories">
+                @foreach (var category in summary.Categories)
+                { <li><a asp-controller="Catalog" asp-action="Index" asp-route-seller="@summary.SellerId" asp-route-categoryId="@category.Id">@category.Name</a></li> }
+            </ul>
+        }
+    </div>
+    <div class="about-right" id="seller-feedback">
+        <h2>Seller feedback <span class="about-count">(@Model.Feedback.Total.ToString("N0", CultureInfo.InvariantCulture))</span></h2>
+        <form class="about-filter" method="get" action="@(Url.Action("Details", "Catalog", new { id = Model.ProductId }))#seller-feedback" data-autosubmit>
+            <label class="sr-only" for="seller-feedback-filter">Filter seller feedback</label>
+            <select id="seller-feedback-filter" name="fb">
+                <option value="" selected="@(Model.Filter == null)">All ratings</option>
+                <option value="positive" selected="@(Model.Filter == "positive")">Positive</option>
+                <option value="neutral" selected="@(Model.Filter == "neutral")">Neutral</option>
+                <option value="negative" selected="@(Model.Filter == "negative")">Negative</option>
+            </select>
+            <noscript><button class="button outline" type="submit">Apply</button></noscript>
+        </form>
+        @if (Model.Feedback.Entries.Count == 0) { <p class="rating-empty">@(rep.Total == 0 ? "No feedback yet." : "No feedback matches this filter.")</p> }
+        else
+        {
+            <ul class="about-feedback">
+                @foreach (var entry in Model.Feedback.Entries)
+                {
+                    <li>
+                        <p class="about-feedback-meta"><span class="sentiment-icon sentiment-@entry.Sentiment.ToString().ToLowerInvariant()" title="@entry.Sentiment">@Icon(entry.Sentiment)</span><span class="sr-only">@entry.Sentiment feedback from</span> @entry.Buyer (@entry.BuyerScore) · @When(entry.Recency) <span>Verified purchase</span></p>
+                        <p class="about-feedback-comment">@(entry.Comment ?? $"{entry.Sentiment} feedback")</p>
+                        <p class="about-feedback-item">@entry.ItemTitle</p>
+                    </li>
+                }
+            </ul>
+        }
+        <a class="button outline about-all" asp-controller="Sellers" asp-action="Feedback" asp-route-id="@summary.SellerId">See all feedback</a>
+    </div>
+</section>

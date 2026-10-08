@@ -64,7 +64,7 @@ Kiểm trong `AccessMatrixTests`. Các cột: khách / buyer chủ / buyer khác
 | `/Checkout?productId=` | Login | 200 | 200 | 403 | 403 | 403 |
 | `/Reviews/Create?orderItemId=` (đơn chưa giao) | Login | 200, chỉ có lý do, không có form (D02) | 404 | 403 | 403 | 403 |
 | `/Account/Me` | Login | 200 | 200 | 200 | 200 | 200 |
-| `/Catalog/Details/{id}`, `/Sellers/Feedback/{id}` | 200 | 200 | 200 | 200 | 200 | 200 |
+| `/Catalog/Details/{id}`, `/Sellers/Feedback/{id}`, `/Help/Unavailable/save-seller` (H02) | 200 | 200 | 200 | 200 | 200 | 200 |
 
 Bản nháp đầu của bảng ghi `/Reviews/Create` (đơn chưa giao) là 409. Contract D02 lại quy định "dòng không đủ điều kiện hiện lý do, không hiện form", nên bảng đã được sửa theo D02 và test kiểm thêm rằng không có form.
 

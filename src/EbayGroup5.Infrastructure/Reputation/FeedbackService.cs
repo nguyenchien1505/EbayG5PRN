@@ -94,16 +94,41 @@ public sealed class FeedbackService(EbayDbContext db, TimeProvider clock, Feedba
 
     public int DetailedRatingsMinimum => detailedMinimum;
 
-    public async Task<SellerFeedbackPage?> ProfileAsync(int sellerId, FeedbackSentiment? filter = null, int page = 1, CancellationToken cancellationToken = default)
+    public Task<SellerFeedbackPage?> ProfileAsync(int sellerId, FeedbackSentiment? filter = null, int page = 1, CancellationToken cancellationToken = default) =>
+        ProfileAsync(sellerId, new FeedbackProfileQuery(Sentiment: filter, Page: page), cancellationToken);
+
+    public async Task<SellerFeedbackPage?> ProfileAsync(int sellerId, FeedbackProfileQuery query, CancellationToken cancellationToken = default)
     {
-        if (page < 1 || page > int.MaxValue / SellerFeedbackPage.PageSize || (filter is { } f && !Enum.IsDefined(f))) throw new ArgumentException("Invalid feedback filters.");
-        var seller = await db.Set<User>().AsNoTracking().Where(x => x.Id == sellerId && x.Role == "Seller").Select(x => new { x.Username }).SingleOrDefaultAsync(cancellationToken);
-        if (seller == null) return null;
+        var search = query.Search?.Trim();
+        if (string.IsNullOrEmpty(search)) search = null;
+        if (query.Page < 1 || query.PageSize is < 1 or > FeedbackProfileQuery.MaxPageSize || query.Page > int.MaxValue / query.PageSize
+            || !Enum.IsDefined(query.Tab) || !Enum.IsDefined(query.Period) || !Enum.IsDefined(query.Sort)
+            || (query.Sentiment is { } f && !Enum.IsDefined(f)) || search?.Length > FeedbackProfileQuery.MaxSearchLength)
+            throw new ArgumentException("Invalid feedback filters.");
+        var summary = await SummaryAsync(sellerId, cancellationToken);
+        if (summary == null) return null;
         var reputation = await ReputationAsync(sellerId, cancellationToken);
-        var query = Visible().Where(x => x.SellerId == sellerId);
-        if (filter != null) query = query.Where(x => x.Sentiment == filter.Value.ToString());
-        var total = await query.CountAsync(cancellationToken);
-        var rows = await query.OrderByDescending(x => x.Id).Skip((page - 1) * SellerFeedbackPage.PageSize).Take(SellerFeedbackPage.PageSize)
+        var now = clock.GetUtcNow().UtcDateTime;
+        var rowsQuery = Visible().Where(x => x.SellerId == sellerId);
+        // Feedback for buyers and feedback this member left do not exist in the clone: those tabs are honestly empty.
+        if (query.Tab is FeedbackTab.Buyer or FeedbackTab.Left) rowsQuery = rowsQuery.Where(x => false);
+        if (query.Sentiment != null) rowsQuery = rowsQuery.Where(x => x.Sentiment == query.Sentiment.Value.ToString());
+        if (query.Period != FeedbackPeriod.All)
+        {
+            var since = now.AddMonths(query.Period switch { FeedbackPeriod.PastMonth => -1, FeedbackPeriod.Past6Months => -6, _ => -12 });
+            rowsQuery = rowsQuery.Where(x => x.CreatedAtUtc > since);
+        }
+        if (search != null)
+        {
+            // eBay: "Search Feedback received as seller with an item title or ID".
+            int? itemId = int.TryParse(search.TrimStart('#'), System.Globalization.NumberStyles.None, System.Globalization.CultureInfo.InvariantCulture, out var id) ? id : null;
+            rowsQuery = rowsQuery.Where(x => db.Set<OrderItem>().Any(i => i.Id == x.OrderItemId &&
+                (i.ProductId == itemId || db.Set<Product>().Any(p => p.Id == i.ProductId && p.Title != null && p.Title.Contains(search)))));
+        }
+        var total = await rowsQuery.CountAsync(cancellationToken);
+        var ordered = query.Sort == FeedbackSort.Recent ? rowsQuery.OrderByDescending(x => x.Id)
+            : rowsQuery.OrderByDescending(x => x.CommentRemovedAtUtc == null && x.Comment != null).ThenByDescending(x => x.Id);
+        var rows = await ordered.Skip((query.Page - 1) * query.PageSize).Take(query.PageSize)
             .Select(x => new
             {
                 x.Id, x.Sentiment, x.CreatedAtUtc, x.BuyerId,
@@ -113,12 +138,69 @@ public sealed class FeedbackService(EbayDbContext db, TimeProvider clock, Feedba
                 RepliedAtUtc = x.CommentRemovedAtUtc == null ? x.RepliedAtUtc : null,
                 Buyer = db.Set<User>().Where(u => u.Id == x.BuyerId).Select(u => u.Username).FirstOrDefault(),
                 Item = db.Set<OrderItem>().Where(i => i.Id == x.OrderItemId)
-                    .Select(i => new { i.UnitPrice, Title = db.Set<Product>().Where(p => p.Id == i.ProductId).Select(p => p.Title).FirstOrDefault() }).FirstOrDefault()
+                    .Select(i => new { i.UnitPrice, i.ProductId, Title = db.Set<Product>().Where(p => p.Id == i.ProductId).Select(p => p.Title).FirstOrDefault() }).FirstOrDefault()
             }).ToListAsync(cancellationToken);
-        var now = clock.GetUtcNow().UtcDateTime;
         var entries = rows.Select(x => new FeedbackEntry(x.Id, Enum.Parse<FeedbackSentiment>(x.Sentiment), x.Comment, x.Item?.Title ?? "Item unavailable",
-            Mask(x.Buyer), x.Item?.UnitPrice, x.CreatedAtUtc, Recency(x.CreatedAtUtc, now), x.ReplyText, x.RepliedAtUtc, x.BuyerId)).ToList();
-        return new(sellerId, string.IsNullOrWhiteSpace(seller.Username) ? "eBay seller" : seller.Username, reputation, entries, total, page, filter);
+            Mask(x.Buyer), x.Item?.UnitPrice, x.CreatedAtUtc, Recency(x.CreatedAtUtc, now), x.ReplyText, x.RepliedAtUtc, x.BuyerId,
+            x.Item?.Title == null ? null : x.Item.ProductId)).ToList();
+        return new(sellerId, summary.Name, reputation, entries, total, query.Page, query.Sentiment) { Query = query with { Search = search }, Summary = summary };
+    }
+
+    public async Task<SellerSummary?> SummaryAsync(int sellerId, CancellationToken cancellationToken = default)
+    {
+        var seller = await db.Set<User>().AsNoTracking().Where(x => x.Id == sellerId && x.Role == "Seller")
+            .Select(x => new { x.Username, x.JoinedAtUtc }).SingleOrDefaultAsync(cancellationToken);
+        if (seller == null) return null;
+        var store = await db.Set<Store>().AsNoTracking().Where(x => x.SellerId == sellerId && x.StoreName != null && x.StoreName.Trim() != "")
+            .OrderBy(x => x.Id).Select(x => x.StoreName).FirstOrDefaultAsync(cancellationToken);
+        var sold = await db.Set<OrderItem>().AsNoTracking()
+            .Where(i => db.Set<OrderTable>().Any(o => o.Id == i.OrderId && o.SellerId == sellerId) && i.Quantity > 0)
+            .SumAsync(i => (long?)i.Quantity, cancellationToken) ?? 0;
+        // Same listing rule as the catalog: fixed price, titled, priced.
+        var listings = db.Set<Product>().AsNoTracking().Where(p => p.SellerId == sellerId && p.IsAuction == false && p.Title != null && p.Title.Trim() != "" && p.Price != null && p.Price >= 0);
+        var categories = await listings.Where(p => p.CategoryId != null).GroupBy(p => p.CategoryId!.Value)
+            .Select(g => new { Id = g.Key, Count = g.Count(), Name = db.Set<Category>().Where(c => c.Id == g.Key).Select(c => c.Name).FirstOrDefault() })
+            .OrderByDescending(x => x.Count).ThenBy(x => x.Name).Take(7).ToListAsync(cancellationToken);
+        var contact = await listings.OrderByDescending(p => p.Id).Select(p => (int?)p.Id).FirstOrDefaultAsync(cancellationToken);
+        return new(sellerId, string.IsNullOrWhiteSpace(seller.Username) ? "eBay seller" : seller.Username, store,
+            seller.JoinedAtUtc is { } joined ? DateTime.SpecifyKind(joined, DateTimeKind.Utc) : null, sold,
+            await RespondsWithin24HoursAsync(sellerId, cancellationToken),
+            categories.Select(x => new SellerCategory(x.Id, x.Name ?? "Other", x.Count)).ToList(), contact);
+    }
+
+    private sealed record TurnRow(long? Seconds);
+
+    // H02: a buyer "turn" is the first buyer message after a seller message (or the conversation start) in the last 90 days.
+    // Median time to the next seller message ≤ 24 h → "Usually responds within 24 hours". Unanswered turns older than 24 h count as slow.
+    private const string TurnsSql = """
+        WITH m AS (
+            SELECT ConversationId, Sequence, SentAtUtc, senderId, ConversationBuyerId AS BuyerId,
+                   LAG(senderId) OVER (PARTITION BY ConversationId ORDER BY Sequence) AS PreviousSender
+            FROM dbo.Message WITH (INDEX(IX_Message_SellerTurns))
+            WHERE ConversationSellerId = @seller AND ConversationId IS NOT NULL AND SentAtUtc > @since
+        ), turns AS (
+            SELECT TOP (200) ConversationId, Sequence, SentAtUtc FROM m
+            WHERE senderId = BuyerId AND (PreviousSender IS NULL OR PreviousSender <> BuyerId)
+            ORDER BY SentAtUtc DESC
+        )
+        SELECT CASE WHEN r.SentAtUtc IS NOT NULL THEN DATEDIFF_BIG(second, t.SentAtUtc, r.SentAtUtc)
+                    WHEN t.SentAtUtc < @dayAgo THEN CAST(9223372036854775807 AS bigint) END AS Seconds
+        FROM turns t
+        OUTER APPLY (SELECT TOP (1) x.SentAtUtc FROM dbo.Message x
+                     WHERE x.ConversationId = t.ConversationId AND x.Sequence > t.Sequence AND x.senderId = @seller ORDER BY x.Sequence) r
+        """;
+
+    private async Task<bool> RespondsWithin24HoursAsync(int sellerId, CancellationToken ct)
+    {
+        var now = clock.GetUtcNow().UtcDateTime;
+        var rows = await db.Database.SqlQueryRaw<TurnRow>(TurnsSql,
+            new SqlParameter("@seller", SqlDbType.Int) { Value = sellerId }, new SqlParameter("@since", SqlDbType.DateTime2) { Value = now.AddDays(-90) },
+            new SqlParameter("@dayAgo", SqlDbType.DateTime2) { Value = now.AddDays(-1) }).ToListAsync(ct);
+        var seconds = rows.Where(x => x.Seconds != null).Select(x => x.Seconds!.Value).Order().ToArray();
+        if (seconds.Length == 0) return false;
+        var median = seconds.Length % 2 == 1 ? seconds[seconds.Length / 2]
+            : (seconds[seconds.Length / 2 - 1] / 2) + (seconds[seconds.Length / 2] / 2);
+        return median <= 86_400;
     }
 
     // eBay-style partial identity: first and last character only; never exposes email or IDs.

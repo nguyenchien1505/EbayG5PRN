@@ -1,0 +1,6 @@
+@{ var feature = (string)ViewData["Feature"]!; ViewData["Title"] = feature; }
+<section class="marketplace-state demo-unavailable" aria-labelledby="unavailable-title">
+    <h1 id="unavailable-title">This feature isn't available in this demo</h1>
+    <p><strong>@feature</strong> is part of eBay, but this educational clone doesn't include it. Everything for chat, feedback and returns works as on eBay.</p>
+    <a class="button primary" asp-controller="Home" asp-action="Index">Go to the homepage</a>
+</section>

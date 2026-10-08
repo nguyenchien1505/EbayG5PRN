@@ -46,6 +46,7 @@ public sealed class SecurityTests
         "Disputes.Act POST roles:Buyer,Seller", "Disputes.Details GET roles:Buyer,Seller", "Disputes.Draft POST roles:Buyer,Seller+policy:Buyer",
         "Disputes.Index GET roles:Buyer,Seller", "Disputes.NotReceived GET roles:Buyer,Seller+policy:Buyer",
         "Disputes.Open POST roles:Buyer,Seller+policy:Buyer", "Disputes.Return GET roles:Buyer,Seller+policy:Buyer",
+        "Help.Unavailable GET public",
         "Home.Index ANY public", "Home.Search GET public", "Home.Status GET public",
         "Messages.Index GET roles:Buyer,Seller",
         "Orders.Details GET roles:Buyer,Seller", "Orders.Purchases GET roles:Buyer,Seller+policy:Buyer", "Orders.Receive POST roles:Buyer,Seller+policy:Buyer",

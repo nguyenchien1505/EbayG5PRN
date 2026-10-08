@@ -85,13 +85,35 @@ public sealed record SellerReputation(FeedbackCounts Lifetime, FeedbackCounts Mo
 }
 
 public enum FeedbackRecency { PastMonth, Past6Months, PastYear, OlderThanYear }
+/// <summary>BuyerScore is the buyer's feedback score as a buyer; the clone has no feedback for buyers yet, so it is 0 (H02).</summary>
 public sealed record FeedbackEntry(int Id, FeedbackSentiment Sentiment, string? Comment, string ItemTitle, string Buyer, decimal? UnitPrice,
-    DateTime CreatedAtUtc, FeedbackRecency Recency, string? Reply, DateTime? RepliedAtUtc, int BuyerId);
+    DateTime CreatedAtUtc, FeedbackRecency Recency, string? Reply, DateTime? RepliedAtUtc, int BuyerId, int? ProductId = null, int BuyerScore = 0);
+
+/// <summary>eBay classic profile tabs (F2). The clone only stores feedback received as a seller.</summary>
+public enum FeedbackTab { All, Buyer, Seller, Left }
+public enum FeedbackPeriod { All, PastMonth, Past6Months, PastYear }
+/// <summary>Relevant: entries with a visible comment first, then newest (clone approximation of eBay "Most relevant").</summary>
+public enum FeedbackSort { Relevant, Recent }
+public sealed record FeedbackProfileQuery(FeedbackTab Tab = FeedbackTab.All, FeedbackSentiment? Sentiment = null, FeedbackPeriod Period = FeedbackPeriod.All,
+    string? Search = null, FeedbackSort Sort = FeedbackSort.Relevant, int Page = 1, int PageSize = SellerFeedbackPage.PageSize)
+{
+    public static readonly int[] PageSizes = [25, 50, 100];
+    public const int MaxSearchLength = 100;
+    public const int MaxPageSize = 100;
+}
+
+public sealed record SellerCategory(int Id, string Name, int Listings);
+/// <summary>About-this-seller facts from clone data only (ADR-003 §3); missing facts stay null/empty and are not shown.</summary>
+public sealed record SellerSummary(int SellerId, string Name, string? StoreName, DateTime? JoinedAtUtc, long ItemsSold, bool RespondsWithin24Hours,
+    IReadOnlyList<SellerCategory> Categories, int? ContactProductId);
+
 public sealed record SellerFeedbackPage(int SellerId, string Seller, SellerReputation Reputation, IReadOnlyList<FeedbackEntry> Entries,
     int Total, int Page, FeedbackSentiment? Filter)
 {
     public const int PageSize = 25;
-    public int TotalPages => (int)Math.Ceiling(Total / (double)PageSize);
+    public FeedbackProfileQuery Query { get; init; } = new();
+    public SellerSummary? Summary { get; init; }
+    public int TotalPages => (int)Math.Ceiling(Total / (double)Query.PageSize);
 }
 public enum ReplyOutcome { Success, Invalid, NotFound, Forbidden, Conflict }
 public sealed record ReplyResult(ReplyOutcome Outcome, string? Error = null);
@@ -125,8 +147,11 @@ public interface IFeedbackService
     Task<SellerReputation> ReputationAsync(int sellerId, CancellationToken cancellationToken = default);
     /// <summary>D06 catalog cards: same rules as ReputationAsync; every requested id is present (Empty when no feedback). At most MaxBatchIds distinct ids.</summary>
     Task<IReadOnlyDictionary<int, SellerReputation>> ReputationsAsync(IReadOnlyCollection<int> sellerIds, CancellationToken cancellationToken = default);
-    /// <summary>Public F1 profile of a Seller; null when the user is missing or not a Seller.</summary>
+    /// <summary>Public F2 profile of a Seller; null when the user is missing or not a Seller. Invalid query values throw ArgumentException.</summary>
+    Task<SellerFeedbackPage?> ProfileAsync(int sellerId, FeedbackProfileQuery query, CancellationToken cancellationToken = default);
     Task<SellerFeedbackPage?> ProfileAsync(int sellerId, FeedbackSentiment? filter = null, int page = 1, CancellationToken cancellationToken = default);
+    /// <summary>About this seller (item page, profile header); null when the user is missing or not a Seller.</summary>
+    Task<SellerSummary?> SummaryAsync(int sellerId, CancellationToken cancellationToken = default);
     /// <summary>One permanent reply by the Seller who received the feedback.</summary>
     Task<ReplyResult> ReplyAsync(int sellerId, int feedbackId, string? reply, CancellationToken cancellationToken = default);
 }

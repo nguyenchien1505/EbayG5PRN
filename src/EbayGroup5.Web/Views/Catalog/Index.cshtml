@@ -6,10 +6,11 @@
     var ratings = ViewData["Ratings"] as IReadOnlyDictionary<int, RatingSummary>;
     var reputations = ViewData["Reputations"] as IReadOnlyDictionary<int, SellerReputation>; }
 <div class="catalog-heading">
-    <div><p class="eyebrow">Explore the marketplace</p><h1>@(Model.Query.Length > 0 ? $"Results for “{Model.Query}”" : "Find your next favorite")</h1><p>@Model.Total item@(Model.Total == 1 ? "" : "s")</p></div>
+    <div><p class="eyebrow">Explore the marketplace</p><h1>@(Model.SellerName != null ? $"Items for sale from {Model.SellerName}" : Model.Query.Length > 0 ? $"Results for “{Model.Query}”" : "Find your next favorite")</h1><p>@Model.Total item@(Model.Total == 1 ? "" : "s")</p></div>
 </div>
 <form class="catalog-filters" method="get" asp-action="Index">
     <input type="hidden" name="q" value="@Model.Query" />
+    @if (Model.SellerId != null) { <input type="hidden" name="seller" value="@Model.SellerId" /> }
     <label for="category">Category</label>
     <select id="category" name="categoryId">
         <option value="">All categories</option>
@@ -27,7 +28,7 @@
     @if (Model.Total == 0)
     { <h2>No matching items</h2><p>Try another search or category.</p><a class="button primary" asp-action="Index">Browse all items</a> }
     else
-    { <h2>No items on this page</h2><p>Return to the first page to see your results.</p><a class="button primary" asp-action="Index" asp-route-q="@Model.Query" asp-route-categoryId="@Model.CategoryId">First page</a> }
+    { <h2>No items on this page</h2><p>Return to the first page to see your results.</p><a class="button primary" asp-action="Index" asp-route-q="@Model.Query" asp-route-categoryId="@Model.CategoryId" asp-route-seller="@Model.SellerId">First page</a> }
     </section>
 }
 else
@@ -54,8 +55,8 @@ else
 @if (Model.TotalPages > 1 || Model.Page > 1)
 {
     <nav class="pagination" aria-label="Catalog pages">
-        @if (Model.Page > 1) { <a class="button outline" asp-action="Index" asp-route-q="@Model.Query" asp-route-categoryId="@Model.CategoryId" asp-route-page="@(Model.Page - 1)">Previous</a> }
+        @if (Model.Page > 1) { <a class="button outline" asp-action="Index" asp-route-q="@Model.Query" asp-route-categoryId="@Model.CategoryId" asp-route-seller="@Model.SellerId" asp-route-page="@(Model.Page - 1)">Previous</a> }
         <span>@(Model.Page <= Model.TotalPages ? $"Page {Model.Page} of {Model.TotalPages}" : $"Page {Model.Page} · {Model.TotalPages} pages available")</span>
-        @if (Model.Page < Model.TotalPages) { <a class="button outline" asp-action="Index" asp-route-q="@Model.Query" asp-route-categoryId="@Model.CategoryId" asp-route-page="@(Model.Page + 1)">Next</a> }
+        @if (Model.Page < Model.TotalPages) { <a class="button outline" asp-action="Index" asp-route-q="@Model.Query" asp-route-categoryId="@Model.CategoryId" asp-route-seller="@Model.SellerId" asp-route-page="@(Model.Page + 1)">Next</a> }
     </nav>
 }

@@ -25,7 +25,7 @@ public sealed class DatabaseTests
         Assert.Equal("17", SqlFixture.Scalar(reference, "SELECT COUNT(*) FROM sys.tables WHERE is_ms_shipped=0"));
 
         var target = SqlFixture.NewTarget();
-        Assert.Equal(15, MigrationRunner.Run(target));
+        Assert.Equal(16, MigrationRunner.Run(target));
         var actual = SqlFixture.Rows(target, SqlFixture.Metadata);
         Assert.True(expected.IsSubsetOf(actual), "Baseline columns/identity/PK/FK/unique must remain intact.");
         var options = new DbContextOptionsBuilder<EbayDbContext>().UseSqlServer(target).Options;
@@ -88,7 +88,7 @@ public sealed class DatabaseTests
         Assert.True(actual.SetEquals(SqlFixture.Rows(target, SqlFixture.Metadata)));
         Assert.Equal(1, await db.Set<Product>().CountAsync());
         Assert.Equal("người mua thử", (await db.Set<User>().SingleAsync()).Username);
-        Assert.Equal("15", SqlFixture.Scalar(target, "SELECT COUNT(*) FROM dbo.SchemaVersions"));
+        Assert.Equal("16", SqlFixture.Scalar(target, "SELECT COUNT(*) FROM dbo.SchemaVersions"));
         Assert.Throws<SqlException>(() => SqlFixture.Execute(target, "INSERT dbo.[User](email) VALUES(N'a05@example.invalid')"));
         SqlFixture.Execute(target, "INSERT dbo.[User](username) VALUES(N'one null email')");
         Assert.Throws<SqlException>(() => SqlFixture.Execute(target, "INSERT dbo.[User](username) VALUES(N'second null email')"));
@@ -118,7 +118,7 @@ public sealed class DatabaseTests
         Assert.True(MigrationRunner.BuildEngine(target, [new SqlScript("0001_Baseline.sql", Baseline.ReadTableDdl())]).PerformUpgrade().Successful);
         SqlFixture.Execute(target, "INSERT dbo.Category(name) VALUES(N'existing category')");
         var baseline = SqlFixture.Rows(target, SqlFixture.Metadata);
-        Assert.Equal(14, MigrationRunner.Run(target));
+        Assert.Equal(15, MigrationRunner.Run(target));
         Assert.True(baseline.IsSubsetOf(SqlFixture.Rows(target, SqlFixture.Metadata)));
         Assert.Equal("existing category", SqlFixture.Scalar(target, "SELECT name FROM dbo.Category"));
         // Exercise the same transaction/journal pipeline with a genuinely additive schema change.
@@ -152,7 +152,7 @@ public sealed class DatabaseTests
         Assert.False(engine.PerformUpgrade().Successful);
         Assert.True(before.SetEquals(SqlFixture.Rows(target, SqlFixture.Metadata)));
         Assert.Equal("original", SqlFixture.Scalar(target, "SELECT name FROM dbo.Category"));
-        Assert.Equal("15", SqlFixture.Scalar(target, "SELECT COUNT(*) FROM dbo.SchemaVersions"));
+        Assert.Equal("16", SqlFixture.Scalar(target, "SELECT COUNT(*) FROM dbo.SchemaVersions"));
     }
 
     [Fact]
@@ -160,8 +160,8 @@ public sealed class DatabaseTests
     {
         var target = SqlFixture.NewTarget();
         var results = await Task.WhenAll(Task.Run(() => MigrationRunner.Run(target)), Task.Run(() => MigrationRunner.Run(target)));
-        Assert.Equal(new[] { 0, 15 }, results.Order().ToArray());
-        Assert.Equal("15", SqlFixture.Scalar(target, "SELECT COUNT(*) FROM dbo.SchemaVersions"));
+        Assert.Equal(new[] { 0, 16 }, results.Order().ToArray());
+        Assert.Equal("16", SqlFixture.Scalar(target, "SELECT COUNT(*) FROM dbo.SchemaVersions"));
     }
 
     [Theory]
