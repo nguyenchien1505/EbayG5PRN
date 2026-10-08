@@ -1,6 +1,11 @@
 # Bắt đầu ở đây
 
-**Checkpoint:** A00–G01 hoàn tất; còn **G02** (báo cáo, demo, bàn giao). Trạng thái từng task: [tasks/INDEX](tasks/INDEX.md); bằng chứng: [evidence/INDEX](evidence/INDEX.md); truy vết toàn ma trận: [evidence/G01](evidence/G01.md). Requirement còn Pending: **OPS-04** (Jira live) và **DOC-01** (báo cáo/demo), cả hai thuộc G02. Câu hỏi mở cho G02: **Q-DEMO-001** (seed demo gắn ngày cố định), Q-TEAM-002 (hạn nộp).
+**Checkpoint:** **40/40 task kỹ thuật A00–G02 hoàn tất**; DOC-01 Done về báo cáo/setup/demo/handover.
+[G02 evidence](evidence/G02.md), runtime `e635866`/[CI37709417510](https://github.com/Twiash/EbayGroup5/actions/runs/37709417510) success.
+Còn **OPS-04 Pending**: user yêu cầu hoãn Jira live. Ngày nộp chưa xác định (Q-TEAM-002), badge unread Deferred (Q-UI-010).
+Q-DEMO-001 đã chốt: **đơn mới +clock demo**, `Start-K8s -Demo`30s/day. Không sửa seed/ngày lịch sử.
+Bàn giao: [REPORT](delivery/REPORT.md), [SETUP](delivery/SETUP.md), [DEMO](delivery/DEMO.md),
+[HANDOVER/checklist](delivery/HANDOVER.md). Task/status: [INDEX](tasks/INDEX.md); requirement: [MATRIX](requirements/MATRIX.md).
 
 1. Đọc [quy định agent](../AGENTS.md) và [handoff mới nhất](handoffs/LATEST.md).
 2. Chọn đúng task được yêu cầu trong [task index](tasks/INDEX.md); chỉ làm khi người dùng giao.

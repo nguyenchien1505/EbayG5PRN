@@ -141,3 +141,9 @@ F08 [evidence](../evidence/F08.md): Full rolling/rollback local và
 Chưa sync Jira live; giữ trạng thái thực trong bảng trên, không tạo worklog/issue/review.
 
 G01 [evidence](../evidence/G01.md): nghiệm thu UI-01 + truy vết toàn ma trận. **G01 → KAN-28/TV5 Hải Lê: hoàn tất local một phần** (KAN-28 còn G02). Không tự tạo issue/worklog; chưa sync live. Runtime 409e05d/[CI37689369159](https://github.com/Twiash/EbayGroup5/actions/runs/37689369159) success.
+
+G02 [evidence](../evidence/G02.md): báo cáo/setup/demo/handover và clone GitHub sạch pass;
+[CI37709417510](https://github.com/Twiash/EbayGroup5/actions/runs/37709417510) success trên e635866.
+**G01+G02 → KAN-28/TV5 Hải Lê: hoàn tất phần kỹ thuật local**; không ghi nhận rehearsal/review cá nhân.
+User 08/10/2026 yêu cầu Jira thật làm sau: **OPS-04 Pending**, giữ trạng thái live lịch sử
+trong bảng trên. Đợt sau theo [checklist sync](../delivery/HANDOVER.md#trạng-thái-bàn-giao-jira-hoãn-theo-user).
