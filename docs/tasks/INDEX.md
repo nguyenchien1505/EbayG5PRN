@@ -44,3 +44,18 @@ Trạng thái ở đây là đầu mối theo dõi. Planned = cần kiểm tra d
 | [F08](F08.md) | Rolling update và rollback có tải | F05, F07 | Done |
 | [G01](G01.md) | Rà ma trận yêu cầu và tinh chỉnh UI | F04, F08 | Done |
 | [G02](G02.md) | Báo cáo, hướng dẫn demo và bàn giao | G01 | Done |
+
+## Đợt H — giống eBay sau bàn giao ([ADR-003](../decisions/ADR-003-ui-fidelity-references.md))
+
+Mở 08/10/2026 theo yêu cầu người dùng; ngoài 40 task của PLAN. Ảnh mẫu: [references](../references/ui/INDEX.md).
+
+| ID | Công việc | Dependency | Status |
+|---|---|---|---|
+| [H00](H00.md) | Thư viện ảnh mẫu UI và ADR-003 | G02 | Done |
+| [H01](H01.md) | Điểm uy tín và form feedback theo eBay (tuần, DSR, R1) | H00 | Planned |
+| [H02](H02.md) | Hồ sơ feedback classic/mobile, khối About this seller | H01 | Planned |
+| [H03](H03.md) | Header, thanh danh mục, footer, trang chủ | H00 | Planned |
+| [H04](H04.md) | Trang kết quả tìm kiếm | H03 | Planned |
+| [H05](H05.md) | Trang sản phẩm và ảnh sản phẩm demo | H02, H04 | Planned |
+| [H06](H06.md) | Checkout, Purchases, Order details, tài khoản | H05, Q-UI-011 | Blocked |
+| [H07](H07.md) | Nghiệm thu UI lại và cập nhật bàn giao | H01–H06 | Planned |
