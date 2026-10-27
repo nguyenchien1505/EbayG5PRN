@@ -11,17 +11,17 @@
 
 ## Test
 
-- Test-CI local (SDK 8) 295/295 .NET + 20/20 Node, **bỏ qua NuGet audit**; trình duyệt in-app desktop/mobile trên DB tạm. Chưa chạy Test-AppStack, chưa push/GitHub CI.
+- Test-CI local trên nhánh đã gộp Q-SEC-002: audit sạch, 295/295 .NET + 20/20 Node; trình duyệt in-app desktop/mobile trên DB tạm. Chưa chạy Test-AppStack (cần build image 8.0.33), chưa push/GitHub CI.
 
 ## Chặn / câu hỏi
 
 - **Q-SEC-002 Answered:** nhánh `task/SEC-002-dotnet-8033` nâng .NET 8.0.33 / SDK 8.0.427 và package vá, đã gộp vào nhánh H05; Test-CI có audit pass.
-- Q-UI-011 (ảnh đơn mua thật, chặn H06), Q-UI-012 (upload ảnh), Q-OPS-001 (lỗi mạng rolling), Q-TEAM-002 vẫn Open.
+- Q-UI-011 trả lời một phần trên nhánh `task/Q-UI-011-references` (ảnh live + Community, H06 → Planned). Mới: Q-BIZ-007 (eBay automated feedback). Q-UI-012, Q-OPS-001, Q-TEAM-002 vẫn Open.
 
 ## Bước tiếp theo
 
 1. Push hai nhánh → GitHub CI cho H05 (đã gồm Q-SEC-002) → H05 Done, merge main.
-2. H06 khi có ảnh Q-UI-011; H07 sau cùng. Cluster `ebaygroup5` vẫn chạy G02 (chưa có 0015/0016, `H05-v1`).
+2. Gộp `task/Q-UI-011-references`; H06 chốt contract theo UI_CANDIDATES §Q-UI-011; H07 sau cùng. Cluster `ebaygroup5` vẫn chạy G02 (chưa có 0015/0016, `H05-v1`).
 
 ## Lưu ý vận hành
 
