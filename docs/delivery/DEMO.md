@@ -20,7 +20,7 @@ Refund/COD/ship/receive là mô phỏng, không chuyển tiền hoặc giao hàn
 
 | Mốc | Người | Thao tác | Kết quả giải thích |
 |---|---|---|---|
-| 0–4 phút | TV1 Dat | Catalog →detail →Buy It Now →địa chỉ →Place order; tạo A/B | Giá/tồn kho tính server, transaction, owner,3 vai trò; 17 bảng nguồn giữ nguyên |
+| 0–4 phút | TV1 Dat | Catalog →detail →Buy It Now →địa chỉ →Confirm and pay; tạo A/B | Giá/tồn kho tính server, transaction, owner,3 vai trò; 17 bảng nguồn giữ nguyên |
 | 4–8 phút | TV2 Huy | Buyer Message trên detail, Seller Messages trả lời; reload history | WSS cookie+membership, lưu SQL, UUID idempotent, sequence/cursor/read; Redis chỉ event |
 | 8–12 phút | TV3 Cuong | Seller ship A, Buyer Confirm received →Leave feedback Positive+5 sao; mở rating và seller profile | Điều kiện Delivered, rating vs sentiment, score/%12tháng, seller reply một lần |
 | 12–16 phút | TV4 Nguyên | Return A lý do Item damaged →Next →Details; đợi Draft saved/reload; gửi | Nháp server, owner/state machine; seller Accept return →buyer tracking →seller Refund |

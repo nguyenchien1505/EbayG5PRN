@@ -1,18 +1,17 @@
 @model EbayGroup5.Web.Models.RegisterForm
-@{ ViewData["Title"] = "Create an account"; }
-<section class="account-card" aria-labelledby="account-title">
+@{ ViewData["Title"] = "Create an account"; ViewData["Shell"] = "auth"; }
+@section HeaderAside { <p class="minimal-aside">Already have an account? <a asp-action="Login">Sign in</a></p> }
+@* H06a (AUTH.md, reference L0): personal (Buyer) accounts only; Business opens the Help notice. *@
+<section class="auth-card" aria-labelledby="account-title">
     <h1 id="account-title">Create an account</h1>
-    <p>Join the marketplace with a personal account.</p>
+    <nav class="auth-toggle" aria-label="Account type"><span aria-current="page">Personal</span><a asp-controller="Help" asp-action="Unavailable" asp-route-id="business-account">Business</a></nav>
     <form asp-action="Register" method="post">
         @if (!ViewData.ModelState.IsValid) { <div asp-validation-summary="All" class="validation-summary" role="alert"></div> }
-        <label asp-for="Name"></label>
-        <input asp-for="Name" autocomplete="nickname" maxlength="100" required />
-        <label asp-for="Email"></label>
-        <input asp-for="Email" autocomplete="email" type="email" maxlength="100" required />
-        <label asp-for="Password"></label>
-        <input asp-for="Password" autocomplete="new-password" minlength="12" maxlength="128" aria-describedby="password-help" required />
+        <div class="box-field"><label asp-for="Name"></label><input asp-for="Name" autocomplete="nickname" maxlength="100" required /></div>
+        <div class="box-field"><label asp-for="Email"></label><input asp-for="Email" autocomplete="email" type="email" maxlength="100" required /></div>
+        <div class="box-field"><label asp-for="Password"></label><input asp-for="Password" autocomplete="new-password" minlength="12" maxlength="128" aria-describedby="password-help" required /></div>
         <p id="password-help" class="field-help">Use 12–128 characters. Choose a password you don't use elsewhere.</p>
-        <button type="submit" class="account-submit">Create personal account</button>
+        <p class="auth-legal">By selecting <strong>Create personal account</strong>, you agree to our <a asp-controller="Help" asp-action="Unavailable" asp-route-id="policies">User Agreement</a> and acknowledge reading our <a asp-controller="Help" asp-action="Unavailable" asp-route-id="policies">User Privacy Notice</a>.</p>
+        <button type="submit" class="button primary auth-submit">Create personal account</button>
     </form>
-    <p class="account-alternative">Already have an account? <a asp-action="Login">Sign in</a></p>
 </section>

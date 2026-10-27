@@ -1,5 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using EbayGroup5.Application.Catalog;
+using EbayGroup5.Application.Feedback;
 using EbayGroup5.Core.Entities;
 
 namespace EbayGroup5.Web.Models;
@@ -13,7 +14,7 @@ public sealed class CheckoutForm
     public Guid Key { get; set; }
 }
 
-public sealed record CheckoutPage(CheckoutForm Form, CatalogDetail Product, IReadOnlyList<Address> Addresses);
+public sealed record CheckoutPage(CheckoutForm Form, CatalogDetail Product, IReadOnlyList<Address> Addresses, SellerReputation Reputation, DateTime EstimatedDelivery);
 
 public sealed class AddressForm
 {
@@ -24,5 +25,5 @@ public sealed class AddressForm
     [Required, StringLength(100), Display(Name = "Street address")] public string Street { get; set; } = "";
     [Required, StringLength(50)] public string City { get; set; } = "";
     [StringLength(50), Display(Name = "State / Region (optional)")] public string? State { get; set; }
-    [Required, StringLength(50)] public string Country { get; set; } = "";
+    [Required, StringLength(50), Display(Name = "Country or region")] public string Country { get; set; } = "";
 }

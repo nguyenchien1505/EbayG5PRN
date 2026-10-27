@@ -1,20 +1,18 @@
 @model EbayGroup5.Web.Models.LoginForm
-@{ ViewData["Title"] = "Sign in"; }
-<section class="account-card login-card" aria-labelledby="login-title">
-    <h1 id="login-title">Welcome back!</h1>
-    <p>Sign in to your account.</p>
+@{ ViewData["Title"] = "Sign in"; ViewData["Shell"] = "auth"; }
+@* H06a (AUTH.md, reference L0): one-step email + password form of B01; no social sign-in or Stay signed in. *@
+<section class="auth-card" aria-labelledby="login-title">
+    <h1 id="login-title">Sign in to your account</h1>
     @if (TempData["AccountNotice"] is string notice)
     {
         <p class="account-notice" role="status">@notice</p>
     }
+    <p class="auth-new"><span>New to eBay?</span><a class="auth-pill" asp-action="Register">Create account</a></p>
     <form asp-action="Login" method="post">
         @if (!ViewData.ModelState.IsValid) { <div asp-validation-summary="All" class="validation-summary" role="alert"></div> }
         <input asp-for="ReturnUrl" type="hidden" />
-        <label asp-for="Email"></label>
-        <input asp-for="Email" type="email" autocomplete="username" maxlength="100" required />
-        <label asp-for="Password"></label>
-        <input asp-for="Password" autocomplete="current-password" maxlength="128" required />
-        <button class="account-submit" type="submit">Sign in</button>
+        <div class="box-field"><label asp-for="Email"></label><input asp-for="Email" type="email" autocomplete="username" maxlength="100" required /></div>
+        <div class="box-field"><label asp-for="Password"></label><input asp-for="Password" autocomplete="current-password" maxlength="128" required /></div>
+        <button class="button primary auth-submit" type="submit">Sign in</button>
     </form>
-    <p class="account-alternative">New here? <a asp-action="Register">Create an account</a></p>
 </section>

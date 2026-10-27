@@ -1,15 +1,18 @@
 @model EbayGroup5.Web.Models.AddressForm
-@{ ViewData["Title"] = "Add a shipping address"; }
-<a class="back-to-catalog" asp-action="Index" asp-route-productId="@Model.ProductId" asp-route-quantity="@Model.Quantity">← Back to checkout</a>
-<section class="address-form checkout-card"><h1>Add a shipping address</h1>
+@{ ViewData["Title"] = "Add a shipping address"; ViewData["Shell"] = "checkout"; }
+@* H06a (CHECKOUT.md, reference C2 add address): same B05 fields; Address has no first/last, street 2 or ZIP columns. *@
+<section class="co-section co-address-form" aria-labelledby="address-title"><h1 id="address-title">Ship to</h1>
 <form asp-action="AddAddress" method="post">
     <input asp-for="ProductId" type="hidden" /><input asp-for="Quantity" type="hidden" />
     @if (!ViewData.ModelState.IsValid) { <div asp-validation-summary="All" class="validation-errors" role="alert"></div> }
-    <label asp-for="FullName"></label><input asp-for="FullName" autocomplete="name" required />
-    <label asp-for="Phone"></label><input asp-for="Phone" autocomplete="tel" required />
-    <label asp-for="Street"></label><input asp-for="Street" autocomplete="address-line1" required />
-    <label asp-for="City"></label><input asp-for="City" autocomplete="address-level2" required />
-    <label asp-for="State"></label><input asp-for="State" autocomplete="address-level1" />
-    <label asp-for="Country"></label><input asp-for="Country" autocomplete="country-name" required />
-    <button class="button primary" type="submit">Save address</button>
+    <div class="co-fields">
+        <div class="box-field"><label asp-for="Country"></label><input asp-for="Country" autocomplete="country-name" required /></div>
+        <div class="box-field co-wide"><label asp-for="FullName"></label><input asp-for="FullName" autocomplete="name" required /></div>
+        <div class="box-field co-wide"><label asp-for="Street"></label><input asp-for="Street" autocomplete="address-line1" required /></div>
+        <div class="box-field"><label asp-for="City"></label><input asp-for="City" autocomplete="address-level2" required /></div>
+        <div class="box-field"><label asp-for="State"></label><input asp-for="State" autocomplete="address-level1" /></div>
+        <div class="box-field co-wide"><label asp-for="Phone"></label><input asp-for="Phone" autocomplete="tel" required /></div>
+    </div>
+    <div class="co-form-actions"><button class="button primary" type="submit">Add</button>
+        <a class="button outline co-cancel" asp-action="Index" asp-route-productId="@Model.ProductId" asp-route-quantity="@Model.Quantity">Cancel</a></div>
 </form></section>

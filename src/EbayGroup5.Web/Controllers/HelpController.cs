@@ -14,6 +14,8 @@ public sealed class HelpController : Controller
         ["advanced-search"] = "Advanced search", ["saved"] = "Saved searches and sellers", ["buying-help"] = "Bidding & buying help",
         ["charity"] = "eBay for Charity", ["seller-center"] = "Seller Center", ["about"] = "About eBay", ["policies"] = "Policies",
         ["community"] = "Community", ["site-map"] = "Site map",
+        // H06a register: only personal (Buyer) accounts exist.
+        ["business-account"] = "Business accounts",
     };
 
     [HttpGet]
