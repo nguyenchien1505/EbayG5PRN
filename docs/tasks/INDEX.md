@@ -56,6 +56,6 @@ Mở 08/10/2026 theo yêu cầu người dùng; ngoài 40 task của PLAN. Ảnh
 | [H02](H02.md) | Hồ sơ feedback classic/mobile, khối About this seller | H01 | Done |
 | [H03](H03.md) | Header, thanh danh mục, footer, trang chủ | H00 | Done |
 | [H04](H04.md) | Trang kết quả tìm kiếm | H03 | Done |
-| [H05](H05.md) | Trang sản phẩm và ảnh sản phẩm demo | H02, H04 | InProgress |
+| [H05](H05.md) | Trang sản phẩm và ảnh sản phẩm demo | H02, H04 | Done |
 | [H06](H06.md) | Checkout, Purchases, Order details, tài khoản | H05, Q-UI-011 | Blocked |
 | [H07](H07.md) | Nghiệm thu UI lại và cập nhật bàn giao | H01–H06 | Planned |
