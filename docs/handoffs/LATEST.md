@@ -1,30 +1,33 @@
-# Handoff — Đợt H (giống eBay sau bàn giao)
+# Handoff — OPS-001 (Q-OPS-001 lỗi mạng rolling)
 
-27/10/2026. Branch `task/H05-item-page` từ main `f80157b` (xem `git log --oneline --grep=H05`). Handoff trước [H04](H04.md) (quyết định 08/10, H00–H04).
+27/10/2026. Branch `task/OPS-001-rolling-drain` từ `task/H05-item-page` `49f250a` (đã gồm Q-SEC-002, chưa gộp main);
+xem `git log --oneline --grep=OPS-001`. Handoff trước [H05](H05.md) (H05, Q-SEC-002, Q-UI-011).
 
-## H05 — trang sản phẩm (Done)
+## Đã xong
 
-- Contract [CATALOG §Quyết định H05](../architecture/CATALOG.md#quyết-định-h05-trang-sản-phẩm-giống-ebay); [evidence](../evidence/H05.md).
-- Cart/Watchlist: người dùng giao agent chốt → dẫn tới `/Help/Unavailable/cart|watchlist`, không có giỏ hàng/theo dõi thật.
-- Ảnh: `Product.images` = mảng JSON đường dẫn `/img/products/…` (lọc trong `CatalogImages.Parse`); 6 SVG tự vẽ; seed `H05-v1` trong `DemoSeedRunner` (sau `A06-v1`, có journal, chỉ ghi `images IS NULL`).
-- File chính: `Views/Catalog/Details.cshtml`, `wwwroot/js/item.js`, `site.css` (khối H05), `CatalogController` (danh mục, ngày giao dự kiến từ `DisputeTiming`), `ICatalogService.cs`, `DemoSeedRunner.cs`, test `SearchResultsTests`/`DemoSeedTests`.
+- Q-OPS-001 Answered: drain không lỗi (nginx bỏ pod cũ ≤1 s, không retry/connect pod chết). Inbox chạy ~62 round trip SQL
+  tuần tự; trên runner CI 2 vCPU bão hoà, đuôi inbox vượt timeout 5 s của probe khi thay pod. Chi tiết, số đo, giới hạn:
+  [ROLLING §Q-OPS-001](../architecture/ROLLING.md#q-ops-001--lỗi-mạng-chập-chờn-khi-thay-pod).
+- Sửa `ChatService.InboxAsync` thành một câu SQL (DTO/quy tắc giữ nguyên; CHAT.md cập nhật). Gate/timeout/retry không đổi.
+- `RollingLoad` report thêm `networkErrorSamples` (Timeout vs lỗi kết nối) — runbook ROLLING cập nhật.
+- Task card [OPS-001](../tasks/OPS-001.md), INDEX task/câu hỏi.
 
 ## Test
 
-- Test-CI local trên nhánh đã gộp Q-SEC-002: audit sạch, 295/295 .NET + 20/20 Node; trình duyệt in-app desktop/mobile trên DB tạm. GitHub CI 40511849948 success ở attempt 2 (attempt 1 đỏ vì Q-OPS-001). Ba nhánh đã push; chưa gộp main.
-
-## Chặn / câu hỏi
-
-- **Q-SEC-002 Answered:** nhánh `task/SEC-002-dotnet-8033` nâng .NET 8.0.33 / SDK 8.0.427 và package vá, đã gộp vào nhánh H05; Test-CI có audit pass.
-- Q-UI-011 trả lời một phần trên nhánh `task/Q-UI-011-references` (ảnh live + Community, H06 → Planned). Mới: Q-BIZ-007 (eBay automated feedback). Q-UI-012, Q-OPS-001, Q-TEAM-002 vẫn Open.
+- Test-CI local: 295/295 .NET + Node + NuGet audit pass (hai lần, lần hai có assertion inbox = summary).
+- Rolling Short local, node kind giới hạn `docker update --cpus 2` (chỉ để mô phỏng runner, không commit): 2 lần liên tiếp PASS,
+  0 lỗi mạng/5xx. Trước sửa local cũng pass (không tái hiện được lỗi gốc) — bằng chứng cuối là GitHub CI attempt 1.
+- GitHub CI: **chưa chạy** (chưa push).
 
 ## Bước tiếp theo
 
-1. Gộp `task/H05-item-page` (đã gồm Q-SEC-002) rồi `task/Q-UI-011-references` vào main. Task sửa Q-OPS-001 nên làm sớm (lỗi rolling xuất hiện thường hơn trên 8.0.33).
-2. Gộp `task/Q-UI-011-references`; H06 chốt contract theo UI_CANDIDATES §Q-UI-011; H07 sau cùng. Cluster `ebaygroup5` vẫn chạy G02 (chưa có 0015/0016, `H05-v1`).
+1. Người dùng đồng ý → push `task/OPS-001-rolling-drain`, xem CI attempt 1; nếu còn `status 0`, đọc `networkErrorSamples`
+   trong artifact `rolling-report` (loại lỗi + UTC) trước khi đổi gì khác.
+2. Gộp theo thứ tự: `task/H05-item-page` → `task/OPS-001-rolling-drain` (nhánh này chứa H05) → `task/Q-UI-011-references`.
+3. Còn mở: Q-UI-012, Q-TEAM-002; H06 chốt contract theo UI_CANDIDATES §Q-UI-011; H07 sau cùng. Cluster `ebaygroup5` vẫn chạy G02.
 
 ## Lưu ý vận hành
 
-- SDK 8 ở `%LOCALAPPDATA%\EbayGroup5\dotnet`: dot-source `scripts/Use-LocalDotnet.ps1` trước khi build (PATH hệ thống chỉ có SDK 10).
-- Stage file cụ thể; `src/EbayGroup5.Web/Properties/launchSettings.json` là file của người dùng. Không chạy Test-CI cùng Test-AppStack.
+- SDK 8 ở `%LOCALAPPDATA%\EbayGroup5\dotnet`: dot-source `scripts/Use-LocalDotnet.ps1` trước khi build.
+- Stage file cụ thể; `src/EbayGroup5.Web/Properties/launchSettings.json` là file của người dùng. Không chạy Test-CI cùng Test-AppStack/rolling.
 - eBay chặn Chrome headless: không vượt chặn; ảnh mẫu chụp bằng trình duyệt in-app hoặc người dùng gửi, che thông tin cá nhân.

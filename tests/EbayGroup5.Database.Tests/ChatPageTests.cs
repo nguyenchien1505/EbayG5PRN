@@ -68,6 +68,8 @@ public sealed class ChatPageTests
         var dto = (await response.Content.ReadFromJsonAsync<ChatConversationDto>())!;
         Assert.Equal("<img src=x onerror=alert(1)> Seller", dto.PeerName); Assert.Equal(new string('a', 119), dto.LastMessagePreview);
         Assert.Equal(TimeSpan.Zero, dto.LastMessageAtUtc!.Value.Offset); Assert.Equal("1", dto.UnreadCount); Assert.Equal(9.99m, dto.InitialContext!.UnitPrice);
+        // Q-OPS-001: the single-statement inbox page applies the same peer/preview/unread rules as the summary.
+        Assert.Equal(dto, Assert.Single((await service.InboxAsync(f.Buyer)).Conversations));
         Assert.Equal("application/json", response.Content.Headers.ContentType!.MediaType);
         var json = await response.Content.ReadAsStringAsync(); Assert.DoesNotContain("email", json, StringComparison.OrdinalIgnoreCase); Assert.DoesNotContain("password", json, StringComparison.OrdinalIgnoreCase);
         Assert.Equal(HttpStatusCode.NotFound, (await other.GetAsync("/api/v1/chat/conversations/" + opened.Conversation.Id)).StatusCode);

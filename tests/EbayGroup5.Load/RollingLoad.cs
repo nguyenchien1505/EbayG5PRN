@@ -18,7 +18,7 @@ public static class RollingLoad
 {
     private sealed record Pair(string Buyer, string Seller, int Conversation, int BuyerId, int SellerId);
     private sealed record Delivery(int Receiver, long Started);
-    private sealed record Sample(string Phase, string Route, int Status, double Ms);
+    private sealed record Sample(string Phase, string Route, int Status, double Ms, string? Error, DateTime Utc);
     private sealed class Side(HttpClient http, HubConnection hub, int me, int conversation)
     {
         public HttpClient Http { get; } = http;
@@ -155,11 +155,12 @@ public static class RollingLoad
                 {
                     foreach (var route in routes)
                     {
-                        var phase = Phase(); var begin = clock.ElapsedTicks; var status = 0;
+                        var phase = Phase(); var begin = clock.ElapsedTicks; var status = 0; string? error = null;
                         try { using var response = await http.GetAsync(route); status = (int)response.StatusCode; }
-                        catch (HttpRequestException) { }
-                        catch (TaskCanceledException) { }
-                        samples.Add(new(phase, route.Split('?')[0], status, (clock.ElapsedTicks - begin) * 1000.0 / Stopwatch.Frequency));
+                        // Q-OPS-001: keep the failure kind (client timeout vs reset/refused) so a status 0 can be diagnosed.
+                        catch (HttpRequestException ex) { error = $"{ex.HttpRequestError}/{(ex.InnerException as IOException)?.InnerException?.GetType().Name ?? ex.InnerException?.GetType().Name}"; }
+                        catch (TaskCanceledException) { error = "Timeout"; }
+                        samples.Add(new(phase, route.Split('?')[0], status, (clock.ElapsedTicks - begin) * 1000.0 / Stopwatch.Frequency, error, DateTime.UtcNow));
                     }
                     await Task.Delay(500);
                 }
@@ -223,6 +224,7 @@ public static class RollingLoad
                 acked = acked.Count, delivered = acked.Count - missing, missing, sqlMissing, sqlDuplicates,
                 sendRetries = retries, finalSendErrors = failures, historyErrors, terminalClosures = closed,
                 reconnects = recoveries.Count, maxRecoveryMs = maxRecovery,
+                networkErrorSamples = all.Where(x => x.Status == 0).Select(x => new { x.Phase, x.Route, x.Ms, x.Error, x.Utc }).ToArray(),
                 recoveries = recoveries.Select(x => new { x.Phase, x.Ms }).ToArray(), chatP95Ms = Percentile(latencies, .95)
             };
             await File.WriteAllTextAsync(output, JsonSerializer.Serialize(report, new JsonSerializerOptions { WriteIndented = true }));
