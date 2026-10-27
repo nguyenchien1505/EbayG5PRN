@@ -20,7 +20,7 @@ Checkpoint A06. Baseline/mapping và demo seed có; chưa có nghiệp vụ/auth
 | `scripts/Initialize-Database.ps1`, `scripts/Test-Database.ps1` | Bootstrap app credentials/migrations và kiểm thử SQL cô lập |
 | `tests/EbayGroup5.Database.Tests/` | Metadata nguồn độc lập, model/roundtrip/constraints/permissions, upgrade/rerun/rollback/concurrency |
 
-Web tham chiếu Application + Infrastructure, đăng ký DbContext nhưng không tự migrate/seed. EF SQL Server 8.0.31; console DbUp SQL Server 7.2.0 riêng. Không có EF migrations, package Redis backplane hoặc repository lớp bọc dư thừa. NuGet lock gồm dependencies thật.
+Web tham chiếu Application + Infrastructure, đăng ký DbContext nhưng không tự migrate/seed. EF SQL Server 8.0.33; console DbUp SQL Server 7.2.0 riêng. Không có EF migrations, package Redis backplane hoặc repository lớp bọc dư thừa. NuGet lock gồm dependencies thật.
 
 Lệnh chạy: [LOCAL_SETUP](../runbooks/LOCAL_SETUP.md). Thêm đường dẫn test thực tế vào đây khi tạo test project.
 
