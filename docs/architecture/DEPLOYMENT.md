@@ -31,7 +31,7 @@ Requirement:
 
 | File | Nội dung |
 |---|---|
-| `Dockerfile` | Multi-stage. Build trên `dotnet/sdk:8.0.425-bookworm-slim@sha256:ec9c…`, `dotnet restore --locked-mode` chỉ cho Web và Database. Target **`web`** và **`migrate`** đều trên `dotnet/aspnet:8.0.31-bookworm-slim@sha256:a3cd…`, chạy user `app` (không root). Web nghe HTTP 8080 trong mạng nội bộ |
+| `Dockerfile` | Multi-stage. Build trên `dotnet/sdk:8.0.427-bookworm-slim@sha256:ff39…`, `dotnet restore --locked-mode` chỉ cho Web và Database. Target **`web`** và **`migrate`** đều trên `dotnet/aspnet:8.0.31-bookworm-slim@sha256:a3cd…`, chạy user `app` (không root). Web nghe HTTP 8080 trong mạng nội bộ |
 | `.dockerignore` | Loại `bin/obj`, `artifacts`, `secrets`, `.env*`, `.git`, `tests`, `docs` (trừ bản schema nguồn mà project Database embed), `src/EbayGroup5.Web/Properties` |
 | `deploy/nginx/templates/default.conf.template` | `nginx:1.28.3-alpine@sha256:a8b3…`. Port 8080 → 308 sang HTTPS. Port 8443 TLS 1.2/1.3 (HTTP/2). `/hubs/chat` có Upgrade/Connection cho WebSocket, read timeout 120 giây. Bật `server_tokens off`. Log không có query string. **Ghi đè** `X-Forwarded-For` bằng `$remote_addr`, đặt `X-Forwarded-Proto https`. `client_max_body_size 1m` |
 | `compose.app.yaml` | Dùng kèm `compose.yaml`: `migrate` (chạy một lần) → `web` (healthcheck `/health/ready`) → `nginx`. Mạng `app` có subnet cố định để Nginx có IP tĩnh. Web nằm ở cả `default` (SQL/Redis) và `app`. Chỉ Nginx publish port, trên `127.0.0.1`. Từ F02: 2 replica web và key ring trên Redis (xem [SCALE_OUT](SCALE_OUT.md)); volume `dataprotection-keys` của F01 đã bỏ |

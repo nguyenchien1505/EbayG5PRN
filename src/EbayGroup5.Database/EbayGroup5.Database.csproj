@@ -3,6 +3,8 @@
   <ItemGroup>
     <ProjectReference Include="../EbayGroup5.Infrastructure/EbayGroup5.Infrastructure.csproj" />
     <PackageReference Include="dbup-sqlserver" Version="7.2.0" />
+    <!-- Q-SEC-002: dbup-sqlserver → Microsoft.Data.SqlClient still resolves Pkcs 8.0.1 (CVE-2026-84008/70162); pin the patched build. -->
+    <PackageReference Include="System.Security.Cryptography.Pkcs" Version="8.0.2" />
     <EmbeddedResource Include="../../docs/requirements/sources/clone_ebay_sqlserver_schema.sql" LogicalName="Baseline.Source.sql" />
     <EmbeddedResource Include="Scripts/*.sql" />
     <EmbeddedResource Include="Seed/v1.sql" LogicalName="DemoSeed.v1.sql" />

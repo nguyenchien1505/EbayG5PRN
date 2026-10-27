@@ -1,5 +1,5 @@
 # F01 (docs/architecture/DEPLOYMENT.md): web and migration images from one locked build; base images pinned by digest.
-FROM mcr.microsoft.com/dotnet/sdk:8.0.425-bookworm-slim@sha256:ec9c0a0dc5f60adc2065762050638dd5ed5facfc53716d4580a42d86027c8e80 AS build
+FROM mcr.microsoft.com/dotnet/sdk:8.0.427-bookworm-slim@sha256:ff39a765f04619c8d146796fc09b38499ae5984f4a2a4c3a0a57d0022855daee AS build
 WORKDIR /src
 COPY global.json Directory.Build.props ./
 COPY src/EbayGroup5.Core/EbayGroup5.Core.csproj src/EbayGroup5.Core/packages.lock.json src/EbayGroup5.Core/
@@ -15,13 +15,13 @@ COPY docs/requirements/sources/clone_ebay_sqlserver_schema.sql docs/requirements
 RUN dotnet publish src/EbayGroup5.Web/EbayGroup5.Web.csproj -c Release --no-restore -o /out/web /p:UseAppHost=false \
     && dotnet publish src/EbayGroup5.Database/EbayGroup5.Database.csproj -c Release --no-restore -o /out/migrate /p:UseAppHost=false
 
-FROM mcr.microsoft.com/dotnet/aspnet:8.0.31-bookworm-slim@sha256:a3cd573ac05cf88ca496e3309cb7f7c44aa16664352d1ee41eda93154f50cdbf AS migrate
+FROM mcr.microsoft.com/dotnet/aspnet:8.0.33-bookworm-slim@sha256:63a1e42746a20795273c219f1577a8826644f12f67d829e818d8ccec92915493 AS migrate
 WORKDIR /app
 COPY --from=build /out/migrate .
 USER app
 ENTRYPOINT ["dotnet", "EbayGroup5.Database.dll"]
 
-FROM mcr.microsoft.com/dotnet/aspnet:8.0.31-bookworm-slim@sha256:a3cd573ac05cf88ca496e3309cb7f7c44aa16664352d1ee41eda93154f50cdbf AS web
+FROM mcr.microsoft.com/dotnet/aspnet:8.0.33-bookworm-slim@sha256:63a1e42746a20795273c219f1577a8826644f12f67d829e818d8ccec92915493 AS web
 WORKDIR /app
 # Data Protection keys live in a volume mounted here; the directory must exist and belong to the non-root user.
 RUN mkdir -p /home/app/.aspnet/DataProtection-Keys && chown -R app:app /home/app/.aspnet

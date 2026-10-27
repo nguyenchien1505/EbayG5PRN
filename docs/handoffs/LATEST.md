@@ -15,12 +15,12 @@
 
 ## Chặn / câu hỏi
 
-- **Q-SEC-002 (mới):** NuGet audit đỏ vì advisory mới cho MessagePack, Cryptography.Pkcs/Xml, SignalR.Common 8.0.31 → Test-CI và GitHub CI sẽ fail ở audit cho tới khi có task nâng package. Không nới cổng.
+- **Q-SEC-002 Answered:** nhánh `task/SEC-002-dotnet-8033` nâng .NET 8.0.33 / SDK 8.0.427 và package vá, đã gộp vào nhánh H05; Test-CI có audit pass.
 - Q-UI-011 (ảnh đơn mua thật, chặn H06), Q-UI-012 (upload ảnh), Q-OPS-001 (lỗi mạng rolling), Q-TEAM-002 vẫn Open.
 
 ## Bước tiếp theo
 
-1. Task nâng package cho Q-SEC-002 (merge trước hoặc cùng đợt) → push → GitHub CI cho H05 → H05 Done, merge main.
+1. Push hai nhánh → GitHub CI cho H05 (đã gồm Q-SEC-002) → H05 Done, merge main.
 2. H06 khi có ảnh Q-UI-011; H07 sau cùng. Cluster `ebaygroup5` vẫn chạy G02 (chưa có 0015/0016, `H05-v1`).
 
 ## Lưu ý vận hành
