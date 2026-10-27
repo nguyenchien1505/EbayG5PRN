@@ -23,18 +23,22 @@ public sealed class ChatService(EbayDbContext db, ILogger<ChatService> logger) :
     private async Task<ChatConversationDto> ConversationDto(ChatConversation c, int actor, CancellationToken ct)
     {
         var ownRead = actor == c.BuyerId ? c.BuyerReadSequence : c.SellerReadSequence;
-        var peerRead = actor == c.BuyerId ? c.SellerReadSequence : c.BuyerReadSequence;
         var unread = await db.Set<Message>().LongCountAsync(x => x.ConversationId == c.Id && x.SenderId != actor && x.Sequence > ownRead, ct);
         var peerId = actor == c.BuyerId ? c.SellerId : c.BuyerId;
         var peerName = await db.Set<User>().Where(x => x.Id == peerId).Select(x => x.Username).SingleOrDefaultAsync(ct);
         var latest = await db.Set<Message>().AsNoTracking().Where(x => x.ConversationId == c.Id && x.Sequence <= c.LastSequence)
             .OrderByDescending(x => x.Sequence).Select(x => new { Preview = x.Content!.Substring(0, x.Content.Length > 120 ? 120 : x.Content.Length), x.SentAtUtc }).FirstOrDefaultAsync(ct);
-        var preview = latest?.Preview;
+        return ConversationDto(c, actor, unread, peerName, latest?.Preview, latest?.SentAtUtc);
+    }
+    private static ChatConversationDto ConversationDto(ChatConversation c, int actor, long unread, string? peerName, string? preview, DateTime? sent)
+    {
+        var ownRead = actor == c.BuyerId ? c.BuyerReadSequence : c.SellerReadSequence;
+        var peerRead = actor == c.BuyerId ? c.SellerReadSequence : c.BuyerReadSequence;
         if (preview?.Length > 0 && char.IsHighSurrogate(preview[^1])) preview = preview[..^1];
         return new(c.Id, c.BuyerId, c.SellerId, ChatCursor.Format(c.LastSequence), ChatCursor.Format(ownRead), ChatCursor.Format(peerRead),
             Utc(c.UpdatedAtUtc), Context(c.ContextProductId, c.ContextOrderItemId, c.ContextTitle, c.ContextUnitPrice), ChatCursor.Format(unread),
             string.IsNullOrWhiteSpace(peerName) ? (actor == c.BuyerId ? "Seller" : "Buyer") : peerName, preview,
-            latest?.SentAtUtc is DateTime sent ? Utc(sent) : null);
+            sent is DateTime value ? Utc(value) : null);
     }
     private Task<User?> UserAsync(int id, CancellationToken ct) => db.Set<User>()
         .FromSqlInterpolated($"SELECT * FROM dbo.[User] WITH (HOLDLOCK) WHERE id={id}").AsNoTracking().SingleOrDefaultAsync(ct);
@@ -141,12 +145,21 @@ public sealed class ChatService(EbayDbContext db, ILogger<ChatService> logger) :
             var time = cursor.UpdatedAtUtc.UtcDateTime;
             rows = rows.Where(x => x.UpdatedAtUtc < time || x.UpdatedAtUtc == time && x.Id < cursor.ConversationId);
         }
-        var page = await rows.OrderByDescending(x => x.UpdatedAtUtc).ThenByDescending(x => x.Id).Take(limit + 1).ToListAsync(ct);
+        // Q-OPS-001: one statement for the page and its unread/peer/preview columns (was 3 queries per conversation, ~62 round trips,
+        // whose tail passed 5 s on a CPU-saturated 2-vCPU CI runner during rolling updates). Same rules as ConversationDto above.
+        var page = await rows.OrderByDescending(x => x.UpdatedAtUtc).ThenByDescending(x => x.Id).Take(limit + 1).Select(c => new
+        {
+            Conversation = c,
+            Unread = db.Set<Message>().LongCount(x => x.ConversationId == c.Id && x.SenderId != actorId &&
+                x.Sequence > (actorId == c.BuyerId ? c.BuyerReadSequence : c.SellerReadSequence)),
+            PeerName = db.Set<User>().Where(x => x.Id == (actorId == c.BuyerId ? c.SellerId : c.BuyerId)).Select(x => x.Username).FirstOrDefault(),
+            Latest = db.Set<Message>().Where(x => x.ConversationId == c.Id && x.Sequence <= c.LastSequence).OrderByDescending(x => x.Sequence)
+                .Select(x => new { Preview = x.Content!.Substring(0, x.Content.Length > 120 ? 120 : x.Content.Length), x.SentAtUtc }).FirstOrDefault()
+        }).ToListAsync(ct);
         var hasMore = page.Count > limit;
         if (hasMore) page.RemoveAt(limit);
-        var dtos = new List<ChatConversationDto>();
-        foreach (var c in page) dtos.Add(await ConversationDto(c, actorId, ct));
-        var last = page.LastOrDefault();
+        var dtos = page.Select(x => ConversationDto(x.Conversation, actorId, x.Unread, x.PeerName, x.Latest?.Preview, x.Latest?.SentAtUtc)).ToList();
+        var last = page.LastOrDefault()?.Conversation;
         await transaction.CommitAsync(ct);
         return new(dtos, hasMore && last != null ? new(Utc(last.UpdatedAtUtc), last.Id) : null);
     }

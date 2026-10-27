@@ -18,6 +18,7 @@ nhưng **không được upload**. CI chỉ upload report. Pass xoá đúng clus
 `-KeepCluster` hoặc fail giữ cluster để đọc log. `Clear-TestArtifacts.ps1 -Apply`
 chỉ dọn cluster test có prefix strict, không dọn cluster người dùng.
 
-Đọc `http5xx/networkErrors/httpErrors`, số ACK/delivery/SQL missing/duplicate,
+Đọc `http5xx/networkErrors/httpErrors` (`networkErrorSamples` ghi từng status 0: `Timeout` = quá 5 s của probe,
+còn lại là lỗi kết nối dạng `HttpRequestError/exception`, ví dụ `ConnectionError/SocketException`), số ACK/delivery/SQL missing/duplicate,
 max recovery và samples mỗi phase. Một report trống/không reconnect/không đổi pod
 không phải minh chứng đạt. Rollback chỉ ứng dụng qua revision, không rollback database.

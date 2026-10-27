@@ -45,6 +45,25 @@ không rollback SQL, không đổi nghiệp vụ, không reset dữ liệu/clust
   F07 đã chứng minh CD vào cluster local; F08 kiểm transition trên cluster cô lập.
 - Bảo đảm một node kind, không chứng minh multi-node/SQL failover hoặc E2EE.
 
+## Q-OPS-001 — lỗi mạng chập chờn khi thay pod
+
+27/10/2026, task [OPS-001](../tasks/OPS-001.md). Gate và timeout probe không đổi; không thêm retry phía client.
+
+- Triệu chứng CI: 1–4 `status 0` chỉ ở `api/v1/chat/conversations` trong update/rollback, 0 5xx, không mất tin.
+  Probe đếm `status 0` cho cả lỗi kết nối lẫn timeout 5 s của HttpClient; report nay có `networkErrorSamples` để phân biệt.
+- Đã loại trừ bằng nginx log có upstream connect/response time (kind local): nginx bỏ pod cũ ≤1 s sau khi pod bị xoá,
+  trước khi preStop 10 s hết; không request nào retry hay connect tới pod đã dừng; CoreDNS tắt cache `cluster.local`;
+  WSS chỉ đứt lúc SIGTERM. Drain/preStop/Kestrel shutdown/`proxy_next_upstream` không phải nguyên nhân.
+- Nguyên nhân (suy luận từ đo local; artifact CI cũ không có loại lỗi/log nginx): inbox chạy 1 + 1 + 3×20 ≈ 62 round trip SQL tuần tự trong một transaction (unread, tên peer, preview
+  cho từng hội thoại). Runner CI 2 vCPU đã bão hoà (kind, SQL, 2–3 pod, client tải): p95 inbox lúc warmup ~0,7 s
+  (local không giới hạn CPU: 0,04 s). Khi thay pod, pod mới nguội (JIT/EF) và WSS reconnect tạo burst CPU; mỗi round trip
+  chờ CPU nên đuôi inbox vượt 5 s. Route khác chỉ vài round trip nên không vượt.
+- Sửa: một câu SQL cho cả trang inbox (subquery unread/peer/preview theo dòng), giữ transaction, HOLDLOCK actor và
+  quy tắc DTO; test so DTO inbox với summary. Đã thử làm ấm pool SQL trước khi listen: không cải thiện rõ, bỏ.
+- Local, node kind giới hạn 2 CPU (CFS): p95 inbox update/rollback/ổn định 495–500/691–808/203–277 ms → 95/315/37 ms
+  (run A), 187/99/9 ms (run B); 0 lỗi mạng/5xx. Chưa tái hiện được lỗi gốc ở local (24 CPU), nên bằng chứng cuối là GitHub CI.
+- Tần suất tăng từ 8.0.33 chưa quy được nguyên nhân (SqlClient 5.1.9 không đổi, chỉ 2 lần chạy).
+
 Nguồn: [Kubernetes Deployment/rollback](https://kubernetes.io/docs/concepts/workloads/controllers/deployment/),
 [pod termination](https://kubernetes.io/docs/concepts/workloads/pods/pod-lifecycle/#pod-termination-flow),
 [ngưỡng dự án](../PLAN.md#91-ngưỡng-nghiệm-thu-của-dự-án).
