@@ -124,3 +124,13 @@ Không có ảnh thật của trang request details. Clone thiết kế trang n�
 ### D2
 
 Giữ như đã chốt (09/2024, giao diện hiện hành).
+
+## Q-UI-011 — màn cần đơn mua thật (27/10/2026)
+
+Người dùng không đặt được đơn thật và giao agent tự khảo sát bằng trình duyệt tích hợp (đã đăng nhập eBay của người dùng); phần không lấy được thì suy ra từ Help/Community. Tài khoản **chưa có đơn nào**. Không bấm Confirm and pay, không gửi tin, không đổi cài đặt; chỉ mở hội thoại đã đọc. Ảnh và nguồn ở [references](../references/ui/INDEX.md).
+
+- **Chụp live được:** P3 Purchases (trống), CT Cart, C2 Checkout (thay C1), M2 Messages 2026, FB0, AC. Chuông thông báo khi trống: panel "Notifications" + "There are no new notifications." (chỉ có text).
+- **Community (Đề xuất, agent chọn, người dùng có thể đổi):** FB2 form feedback kiểu mới 09/2026 (phía seller), OD Order details desktop 02/2025 (phía seller), RD bảng Details của return 10/2026.
+- **Từ [Help 4007](https://www.ebay.com/help/buying/leaving-feedback-sellers/leaving-feedback-sellers?id=4007) (đọc 27/10/2026):** buyer để Positive/Neutral/Negative, sao tổng cho item khi đủ điều kiện, đánh giá từng mặt (arrived on time, mô tả, phí ship, liên lạc), comment, tối đa 5 ảnh; hạn 60 ngày sau giao; "Verified purchase" cạnh feedback. **Mới so với D03/H01:** "eBay automated feedback" — eBay tự để Positive nếu buyer không đánh giá trong 7 ngày sau giao, giao đúng hạn và không có dấu hiệu sự cố; feedback của buyer trong 60 ngày thay bản tự động, bản tự động bị gỡ nếu mở return. Clone chưa có — [Q-BIZ-007](../questions/INDEX.md).
+- **Suy ra cho buyer:** Purchases có đơn = thẻ đơn với View order details, More actions ▾ (Contact seller, Return this item, Hide order — [Help 4047](https://www.ebay.com/help/buying/search-tips/purchase-history?id=4047)) như P1/P2; Order details theo bố cục OD (thẻ trạng thái + tiến trình + nút hành động, Shipping, Item, cột Order/Payment với "What you paid"). Form return/INR giữ E1/E1m/E0/H1 đã chốt; trang request theo RD.
+- **Không có nguồn:** email giao dịch (clone không gửi email, ngoài phạm vi); form feedback buyer đủ trường ở giao diện mới (trường theo R1 + Help 4007, kiểu theo FB2).
