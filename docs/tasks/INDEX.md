@@ -58,7 +58,7 @@ Mở 08/10/2026 theo yêu cầu người dùng; ngoài 40 task của PLAN. Ảnh
 | [H04](H04.md) | Trang kết quả tìm kiếm | H03 | Done |
 | [H05](H05.md) | Trang sản phẩm và ảnh sản phẩm demo | H02, H04 | Done |
 | [H06](H06.md) | Checkout, Purchases, Order details, tài khoản (tách H06a/H06b) | H05, Q-UI-011 (một phần) | InProgress |
-| [H06a](H06a.md) | Checkout (C2), đăng nhập/đăng ký (L0), shell tối giản | H05 | InProgress |
+| [H06a](H06a.md) | Checkout (C2), đăng nhập/đăng ký (L0), shell tối giản | H05 | Done |
 | [H06b](H06b.md) | Purchases, Order details, Account (My eBay) | H06a | Planned |
 | [H07](H07.md) | Nghiệm thu UI lại và cập nhật bàn giao | H01–H06 | Planned |
 | [OPS-001](OPS-001.md) | Lỗi mạng chập chờn khi rolling (Q-OPS-001): inbox một câu SQL | F08, Q-SEC-002 | Done |

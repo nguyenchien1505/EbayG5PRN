@@ -1,6 +1,6 @@
 # Handoff — H06a (checkout, đăng nhập/đăng ký theo eBay)
 
-28/10/2026. Nhánh `task/H06a-checkout-signin` từ main `957deb4` (OPS-001); commit theo `git log --oneline --grep=H06a`. **Chưa push/merge** — chờ người dùng.
+28/10/2026. Nhánh `task/H06a-checkout-signin` từ main `957deb4` (OPS-001); commit theo `git log --oneline --grep=H06a`. Đã push nhánh; **chưa merge main** — chờ người dùng.
 Handoff trước: [OPS-001](OPS-001.md).
 
 ## Đã xong
@@ -17,7 +17,8 @@ Handoff trước: [OPS-001](OPS-001.md).
 - Trình duyệt in-app trên SQL/Redis tạm (container riêng, đã xoá): desktop + 375 px, 0 tràn ngang, 0 lỗi console; luồng thêm địa chỉ → Confirm and pay → confirmation chạy.
 - **Test-CI local pass: 295/295 .NET + 20/20 Node**, NuGet audit sạch, 0 warning, Verify-Planning/Migrations/ClientAssets/Secrets pass.
 - **Test-AppStack local pass** (sau Test-CI, không chạy cùng lúc): J1–J7 (J1 bấm "Confirm and pay"), smoke HTTPS/WSS, CSP, 2 replica.
-- **Chưa chạy:** GitHub CI, `-Screens` (H07).
+- GitHub CI [40551007118](https://github.com/Twiash/EbayGroup5/actions/runs/40551007118) trên `ffc22b5` (gồm merge main `b108356`): success attempt 1 — 295/295 .NET, J1–J7 + smoke HTTPS/WSS, load Short 0 lỗi, K8s, rolling 5.328 mẫu 0 HTTP 5xx, ACK 1.212 đủ.
+- **Chưa chạy:** `-Screens` (H07).
 
 ## Chặn / câu hỏi
 
@@ -26,7 +27,7 @@ Handoff trước: [OPS-001](OPS-001.md).
 
 ## Bước tiếp theo
 
-1. Người dùng cho push → GitHub CI (J1–J7 kiểm chữ "Confirm and pay"), rồi merge main; H06a Done.
+1. Người dùng cho merge `task/H06a-checkout-signin` vào main (CI đã xanh).
 2. H06b theo contract ORDERS §H06b; sau đó H07.
 3. Cluster demo vẫn chạy G02: deploy lại trước demo.
 
