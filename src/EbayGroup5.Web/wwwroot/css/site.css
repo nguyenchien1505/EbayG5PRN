@@ -88,9 +88,6 @@ main.shell-width { flex: 1; padding-block: 32px 64px; }
 .validation-summary { color: #a11b0a; }
 .validation-summary-valid { display: none; }
 .validation-errors { color:#a11b0a; background:#fff1f0; border-left:4px solid #e0103a; padding:12px 20px; margin:16px 0; }
-.login-card { max-width: 22rem; }
-.login-card h1 { font-size: 1.75rem; }
-.account-alternative { text-align: center; font-size: .9rem; margin-top: 1.5rem; }
 .account-card a { color: #2448bf; }
 .account-notice { padding: .75rem; background: #edf6ed; border-radius: .5rem; }
 @media (max-width: 480px) { main { margin-top: 1.5rem; padding: 0 1rem; } .account-card { margin: 2rem auto; } }
@@ -117,11 +114,6 @@ main.shell-width { flex: 1; padding-block: 32px 64px; }
 .address-choice { display:flex; align-items:flex-start; gap:12px; margin:0 0 20px; line-height:1.6; }
 .address-choice input { margin-top:7px; }
 .quantity-input { display:block; width:90px; padding:10px; margin-top:8px; border:1px solid #888; border-radius:8px; }
-.address-form { max-width:620px; margin:24px auto 48px; }
-.address-form label { display:block; margin:16px 0 6px; }
-.address-form input:not([type=hidden]) { width:100%; padding:12px; border:1px solid #888; border-radius:8px; box-sizing:border-box; }
-.address-form button { margin-top:24px; }
-.confirmation-card { max-width:700px; margin:36px auto; }
 @media(max-width:760px) { .checkout-grid { grid-template-columns:1fr; gap:20px; } .checkout-summary { position:static; } .checkout-card { padding:20px; } }
 
 .order-filters { display:flex; flex-wrap:wrap; gap:14px; align-items:center; margin:24px 0; }
@@ -629,3 +621,78 @@ main.shell-width { flex: 1; padding-block: 32px 64px; }
 .item-description-text { white-space:pre-wrap; font-size:14px; }
 .product-photo { display:block; width:100%; aspect-ratio:1; object-fit:contain; background:#f3f3f3; border-radius:12px; }
 @media(max-width:700px) { .item-about-body { padding:8px 16px 20px; } .item-specifics { grid-template-columns:100px minmax(0,1fr); } }
+
+/* H06a (CHECKOUT.md, AUTH.md; references C2, L0): minimal shell, checkout, sign in and register. */
+.minimal-header { border-bottom: 0; }
+.minimal-header .brand-row { gap: 12px; padding-block: 20px 8px; }
+.minimal-header .wordmark { font-size: 46px; }
+.minimal-title { font-size: 26px; font-weight: 700; margin-top: 10px; }
+.minimal-aside { margin: 0 0 0 auto; font-size: 14px; color: #555; }
+.minimal-aside a { color: #191919; }
+.site-footer .footer-legal:first-child { margin-top: 0; padding-top: 0; border-top: 0; }
+.box-field { position: relative; border: 1px solid #8f8f8f; border-radius: 8px; background: #f7f7f7; padding: 6px 12px; }
+.box-field:focus-within { border-color: #191919; outline: 1px solid #191919; }
+.box-field label { display: block; font-size: 12px; color: #555; }
+.box-field input { display: block; box-sizing: border-box; width: 100%; border: 0; padding: 2px 0; background: transparent; font: inherit; color: #191919; }
+.box-field input:focus { outline: 0; }
+.co-grid { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 16px 40px; align-items: start; max-width: 1000px; margin: 8px auto 48px; }
+.co-main { min-width: 0; }
+.co-section { border-bottom: 1px solid #e5e5e5; padding-block: 8px 28px; overflow-wrap: anywhere; }
+.co-section:last-child { border-bottom: 0; }
+.co-section h1, .co-section h2 { font-size: 22px; margin: 16px 0; }
+.co-option { display: flex; gap: 12px; align-items: flex-start; border: 1px solid #8f8f8f; border-radius: 8px; padding: 12px 14px; margin-bottom: 10px; line-height: 1.5; }
+.co-option .co-muted { display: block; margin: 2px 0 0; }
+.co-option input, .co-delivery-option input { margin-top: 4px; accent-color: #3665f3; }
+.co-muted { color: #707070; font-size: 14px; margin: 6px 0; }
+.co-link { color: #191919; font-size: 14px; }
+.co-seller { display: flex; gap: 10px; align-items: center; font-size: 14px; margin-bottom: 14px; }
+.co-seller .seller-avatar { width: 32px; height: 32px; font-size: 14px; }
+.co-seller a { color: #191919; }
+.co-seller small { display: block; color: #707070; font-size: 12px; }
+.co-item { display: flex; gap: 16px; align-items: flex-start; }
+.co-item-image { width: 72px; height: 72px; flex-shrink: 0; object-fit: contain; border-radius: 8px; }
+.co-item-image.product-placeholder svg { width: 36px; height: 36px; }
+.co-item-text { min-width: 0; flex: 1; }
+.co-item-title { color: #191919; font-size: 15px; }
+.co-item-price { font-weight: 700; margin: 6px 0 12px; }
+.co-quantity { width: 104px; }
+.co-delivery { border: 0; padding: 0; margin: 16px 0 0; }
+.co-delivery legend { font-weight: 700; font-size: 14px; padding: 0; margin-bottom: 10px; }
+.co-delivery-option { display: flex; gap: 12px; align-items: flex-start; font-size: 14px; line-height: 1.5; }
+.co-summary { position: sticky; top: 24px; background: #f7f7f7; border-radius: 16px; padding: 20px 18px; font-size: 14px; }
+.co-summary h2 { font-size: 22px; margin: 0 0 14px; }
+.co-lines { margin: 0; display: grid; gap: 6px; }
+.co-lines div { display: flex; justify-content: space-between; gap: 12px; }
+.co-lines dd { margin: 0; }
+.co-total { display: flex; justify-content: space-between; gap: 12px; border-top: 1px solid #ddd; margin: 16px 0; padding-top: 16px; font-weight: 700; font-size: 16px; }
+.co-pay { width: 100%; }
+.co-pay:disabled { background: #c7c7c7; color: #fff; cursor: not-allowed; }
+.co-pay-note { text-align: center; margin: 10px 0; }
+.co-guarantee { display: flex; gap: 8px; align-items: flex-start; font-size: 12px; line-height: 1.5; }
+.co-guarantee svg { width: 20px; height: 20px; flex-shrink: 0; fill: #3665f3; }
+.co-address-form, .confirmation-card { max-width: 620px; margin: 8px auto 48px; border-bottom: 0; }
+.co-fields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.co-wide { grid-column: 1 / -1; }
+.co-form-actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 20px; }
+.co-form-actions .button { min-height: 40px; padding: 8px 24px; }
+.co-cancel { border-color: #3665f3; color: #3665f3; }
+.auth-card { max-width: 400px; margin: 24px auto 48px; }
+.auth-card h1 { font-size: 26px; margin: 0 0 20px; }
+.auth-card form { display: grid; gap: 14px; }
+.auth-card .field-help { margin: -6px 0 0; }
+.auth-new { display: flex; justify-content: space-between; align-items: center; gap: 12px; background: #f7f7f7; border-radius: 8px; padding: 8px 10px 8px 14px; margin: 0 0 20px; font-size: 14px; font-weight: 700; }
+.auth-pill { border: 1px solid #191919; border-radius: 20px; padding: 4px 14px; color: #191919; font-weight: 400; text-decoration: none; white-space: nowrap; }
+.auth-pill:hover { background: #fff; }
+.auth-submit { width: 100%; }
+.auth-toggle { display: grid; grid-template-columns: 1fr 1fr; border: 1px solid #191919; border-radius: 20px; padding: 2px; margin-bottom: 16px; font-size: 14px; text-align: center; }
+.auth-toggle > * { padding: 6px; border-radius: 18px; color: #191919; text-decoration: none; }
+.auth-toggle [aria-current] { background: #191919; color: #fff; }
+.auth-legal { font-size: 12px; color: #555; margin: 0; }
+.auth-legal a { color: #3665f3; }
+@media (max-width: 760px) {
+    .co-grid { grid-template-columns: minmax(0, 1fr); }
+    .co-summary { position: static; }
+    .minimal-title { font-size: 22px; }
+    .minimal-aside { flex-basis: 100%; margin: 0; }
+}
+@media (max-width: 480px) { .co-fields { grid-template-columns: minmax(0, 1fr); } .co-form-actions .button { flex: 1; } }

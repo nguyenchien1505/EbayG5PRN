@@ -5,7 +5,8 @@ if (quantity) {
     quantity.addEventListener("input", () => {
         const count = Number(quantity.value);
         document.getElementById("summary-quantity").textContent = quantity.value;
-        document.getElementById("summary-total").textContent = "US $" + (count * unitPrice).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        const total = "US $" + (count * unitPrice).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        document.querySelectorAll("[data-summary-total]").forEach(x => { x.textContent = total; });
         if (Number.isInteger(count) && count >= 1 && count <= 99) {
             const addressLink = document.getElementById("add-address");
             const addressUrl = new URL(addressLink.href);

@@ -1,10 +1,11 @@
 @model EbayGroup5.Application.Checkout.OrderConfirmation
 @using System.Globalization
-@{ ViewData["Title"] = "Order placed"; }
-<section class="checkout-card confirmation-card"><h1>Your order is placed</h1><p>Order #@Model.Id · @Model.Status</p>
-<p>@Model.Quantity item(s) × US $@Model.UnitPrice.ToString("N2", CultureInfo.InvariantCulture)</p>
-<p><strong>Total: US $@Model.Total.ToString("N2", CultureInfo.InvariantCulture)</strong></p>
+@{ ViewData["Title"] = "Order placed"; ViewData["Shell"] = "checkout"; }
+@* H06a (CHECKOUT.md): no eBay reference without a real order, so the B05 content stays in the checkout style. *@
+<section class="co-section confirmation-card"><h1>Your order is placed</h1><p>Order #@Model.Id · @Model.Status</p>
+<dl class="co-lines"><div><dt>Item (@Model.Quantity) × US $@Model.UnitPrice.ToString("N2", CultureInfo.InvariantCulture)</dt><dd>US $@Model.Total.ToString("N2", CultureInfo.InvariantCulture)</dd></div><div><dt>Shipping</dt><dd>Free</dd></div></dl>
+<p class="co-total"><span>Order total</span><strong>US $@Model.Total.ToString("N2", CultureInfo.InvariantCulture)</strong></p>
 <h2>Ship to</h2><p>@Model.Address.FullName<br />@Model.Address.Street<br />@Model.Address.City @Model.Address.State<br />@Model.Address.Country<br />@Model.Address.Phone</p>
-<h2>Cash on delivery (demo)</h2><p>Payment: @Model.PaymentStatus. No real payment or delivery is arranged.</p>
-<a class="button primary" asp-controller="Orders" asp-action="Details" asp-route-id="@Model.Id">View order details</a>
-<a class="button outline" asp-controller="Catalog" asp-action="Index">Continue shopping</a></section>
+<h2>Pay with</h2><p>Cash on delivery · @Model.PaymentStatus. No real payment or delivery is arranged.</p>
+<div class="co-form-actions"><a class="button primary" asp-controller="Orders" asp-action="Details" asp-route-id="@Model.Id">View order details</a>
+<a class="button outline" asp-controller="Catalog" asp-action="Index">Continue shopping</a></div></section>

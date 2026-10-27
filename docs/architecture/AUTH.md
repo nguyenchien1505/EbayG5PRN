@@ -15,3 +15,11 @@ Nguồn: [Microsoft cookie auth](https://learn.microsoft.com/en-us/aspnet/core/s
 Luồng hoàn chỉnh: Register thành công redirect Login với TempData notice; Login lỗi 401 + view chung, password xóa; Login thành công redirect local hoặc Me view; logout POST qua nút Sign out. Navigation tới Sign in/Register hoặc Your account. UI English; không hiển thị chức năng social/reset chưa triển khai.
 
 B02 đã triển khai policy/resource checks, cookie revalidation, IP gate và rate limit; xem [SECURITY](SECURITY.md). Giới hạn triển khai vẫn theo F01/F02.
+
+## Quyết định H06a (đăng nhập/đăng ký theo L0)
+
+28/10/2026, [ADR-003](../decisions/ADR-003-ui-fidelity-references.md): L0 (live 06/10/2026) thay L1. Luồng, field, rate limit, lỗi và Buyer-only của B01 không đổi.
+
+- **Shell:** header chỉ logo; trang Register có "Already have an account? Sign in" bên phải; footer chỉ dòng legal.
+- **Sign in:** "Sign in to your account", hộp xám "New to eBay?" + nút "Create account", Email + Password **cùng một form** (eBay tách hai bước email → password; clone giữ một bước của B01), nút "Sign in" xanh full width. Không social, Stay signed in, reset (như B01).
+- **Register:** "Create an account", toggle Personal (đang chọn) / Business (link `/Help/Unavailable/business-account` vì chỉ đăng ký Buyer), một ô Display name (giữ trường `Name` B01 thay First/Last), Email, Password + gợi ý 12–128, dòng "By selecting Create personal account…" với User Agreement/User Privacy Notice → `/Help/Unavailable/policies`, nút "Create personal account". Không nút hiện mật khẩu, không social.

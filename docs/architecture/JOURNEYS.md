@@ -35,7 +35,7 @@ Ngoài phạm vi: kiểm thử bảo mật chuyên sâu (F04), đo tải/latency
 
 | # | Vai trò | Luồng | Khẳng định |
 |---|---|---|---|
-| J1 | Buyer | Đăng nhập → catalog → sản phẩm → Buy It Now → chọn địa chỉ → Place order | Có trang xác nhận; Purchases có đơn mới |
+| J1 | Buyer | Đăng nhập → catalog → sản phẩm → Buy It Now → chọn địa chỉ → Confirm and pay (H06a; trước là Place order) | Có trang xác nhận; Purchases có đơn mới |
 | J2 | Buyer + Seller (2 context song song) | Buyer bấm **Message** trên seller card, gửi tin; Seller mở **Messages**, thấy tin **realtime**, trả lời; Buyer thấy trả lời realtime trong panel | WSS qua Nginx; hai context có thể nằm trên hai replica khác nhau (Redis backplane). Nội dung tin chỉ dùng chuỗi đánh dấu ngẫu nhiên |
 | J3 | Seller → Buyer | Seller: Sales → đơn J1 → Mark as shipped. Buyer: đơn → Confirm received → Leave feedback (5 sao + comment, seller feedback Positive) | Trang sản phẩm có review đã xác minh; hồ sơ seller có feedback |
 | J4 | Buyer + Seller | Buyer: Return this item → lý do Item damaged → details → Confirm return. Seller: Returns and requests → See details → Accept the return → Continue → Accept return. Buyer: I shipped the item + tracking. Seller: Refund | Trạng thái cuối "Closed — refunded"; timeline có thông báo tự động của eBay |

@@ -245,7 +245,7 @@ await Step("J1 buyer finds an item and places a COD order", async () =>
     await Expect(buyer.GetByRole(AriaRole.Heading, new() { Name = "Wireless Headphones" })).ToBeVisibleAsync();
     await buyer.GetByRole(AriaRole.Link, new() { Name = "Buy It Now" }).ClickAsync();
     await buyer.Locator("input[name=AddressId]").First.CheckAsync();
-    await buyer.GetByRole(AriaRole.Button, new() { Name = "Place order" }).ClickAsync();
+    await buyer.GetByRole(AriaRole.Button, new() { Name = "Confirm and pay" }).ClickAsync();
     await Expect(buyer.GetByRole(AriaRole.Heading, new() { Name = "Your order is placed" })).ToBeVisibleAsync();
     order = int.Parse(Regex.Match(await buyer.Locator(".confirmation-card").InnerTextAsync(), @"Order #(\d+)").Groups[1].Value);
     await buyer.GotoAsync("/Orders/Purchases");
@@ -400,7 +400,7 @@ if (options.TryGetValue("--demo-clock", out var demoClock) && int.TryParse(demoC
         await buyer.GetByRole(AriaRole.Link, new() { Name = "Wireless Headphones" }).First.ClickAsync();
         await buyer.GetByRole(AriaRole.Link, new() { Name = "Buy It Now" }).ClickAsync();
         await buyer.Locator("input[name=AddressId]").First.CheckAsync();
-        await buyer.GetByRole(AriaRole.Button, new() { Name = "Place order" }).ClickAsync();
+        await buyer.GetByRole(AriaRole.Button, new() { Name = "Confirm and pay" }).ClickAsync();
         await Expect(buyer.GetByRole(AriaRole.Heading, new() { Name = "Your order is placed" })).ToBeVisibleAsync();
         var freshOrder = int.Parse(Regex.Match(await buyer.Locator(".confirmation-card").InnerTextAsync(), @"Order #(\d+)").Groups[1].Value);
         // This is a fresh transaction; do not edit the seeded dates or database state.

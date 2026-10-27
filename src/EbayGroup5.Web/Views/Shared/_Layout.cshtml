@@ -10,6 +10,8 @@
     var me = User.FindFirstValue(ClaimTypes.NameIdentifier);
     var firstName = (User.Identity?.Name ?? "").Split(' ', StringSplitOptions.RemoveEmptyEntries).FirstOrDefault() ?? "";
     int? selectedCategory = int.TryParse(Context.Request.Query["categoryId"], out var categoryValue) ? categoryValue : null;
+    // H06a (references C2, L0): checkout and sign-in pages use eBay's minimal header and legal-only footer.
+    var minimalShell = ViewData["Shell"] as string;
 }
 <!DOCTYPE html>
 <html lang="en">
@@ -22,6 +24,18 @@
 </head>
 <body>
     <a class="skip-link" href="#main-content">Skip to main content</a>
+    @if (minimalShell != null)
+    {
+        <header class="site-header minimal-header">
+            <div class="brand-row shell-width">
+                <a class="wordmark" asp-controller="Home" asp-action="Index" aria-label="eBay Clone home"><span>e</span><span>b</span><span>a</span><span>y</span></a>
+                @if (minimalShell == "checkout") { <span class="minimal-title">Checkout</span> }
+                @await RenderSectionAsync("HeaderAside", required: false)
+            </div>
+        </header>
+    }
+    else
+    {
     <header class="site-header">
         <div class="utility-row shell-width">
             <nav class="utility-left" aria-label="Account and help">
@@ -121,8 +135,11 @@
             </nav>
         }
     </header>
+    }
     <main id="main-content" class="shell-width" tabindex="-1">@if (TempData["SiteNotice"] is string siteNotice) { <p class="account-notice" role="status">@siteNotice</p> }@RenderBody()</main>
     <footer class="site-footer">
+        @if (minimalShell == null)
+        {
         <div class="shell-width footer-columns">
             <section><h2>Buy</h2><a asp-controller="Account" asp-action="Register">Registration</a><a asp-controller="Help" asp-action="Unavailable" asp-route-id="buying-help">Bidding &amp; buying help</a><a asp-controller="Catalog" asp-action="Index">Stores</a><a asp-controller="Help" asp-action="Unavailable" asp-route-id="charity">eBay for Charity</a></section>
             <section><h2>Sell</h2><a asp-controller="Help" asp-action="Unavailable" asp-route-id="sell">Start selling</a><a asp-controller="Help" asp-action="Unavailable" asp-route-id="seller-center">Seller Center</a></section>
@@ -130,6 +147,7 @@
             <section><h2>About eBay</h2><a asp-controller="Help" asp-action="Unavailable" asp-route-id="about">Company info</a><a asp-controller="Help" asp-action="Unavailable" asp-route-id="policies">Policies</a><a asp-controller="Help" asp-action="Unavailable" asp-route-id="site-map">Site map</a></section>
             <section><h2>Help &amp; Contact</h2><a asp-controller="Help" asp-action="Unavailable" asp-route-id="help-contact">Contact us</a><a asp-controller="Disputes" asp-action="Index">eBay Returns</a><a asp-controller="Help" asp-action="Unavailable" asp-route-id="community">Community</a></section>
         </div>
+        }
         <div class="shell-width footer-legal">eBay Clone · Group 5 <span>Educational demo built for a university course. Not affiliated with eBay Inc.</span></div>
     </footer>
     <script src="~/js/shell.js" asp-append-version="true"></script>

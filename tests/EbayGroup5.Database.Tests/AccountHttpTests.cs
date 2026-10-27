@@ -298,7 +298,7 @@ public sealed class AccountHttpTests
         DemoSeedRunner.Run(target);
         using var factory = new Factory(target);
         using var client = factory.CreateClient(new WebApplicationFactoryClientOptions { AllowAutoRedirect = false, BaseAddress = new Uri("https://localhost") });
-        Assert.Contains("Welcome back!", await client.GetStringAsync("/Account/Login"));
+        Assert.Contains("Sign in to your account", await client.GetStringAsync("/Account/Login"));
 
         foreach (var email in new[] { "missing@example.invalid", "buyer.a06@example.invalid", "not-email" })
         {

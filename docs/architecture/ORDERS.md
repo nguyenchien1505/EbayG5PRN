@@ -12,3 +12,12 @@ Contract chốt trước code 06/10/2026, baseline27d5399/B05 runtime6d14618 + C
 - UI P1 đã chốt: order context/date/status + item + total + nhóm action. Buyer purchase và Seller sales dùng cùng card; Seller label/action theo contract demo. Mobile xếp card thành một cột từ cùng P1, chi tiết responsive theo shell/C1 đã duyệt, không tuyên bố là screenshot mobile eBay. Không fake review/dispute/chat actions trước module tương ứng.
 
 Files triển khai theo scope đã ghi trước code: Application/Orders DTO/interface; Infrastructure/Orders service; OrderTable SellerId/EF/B05 creation; DbUp0005 + manifest/seed runner ancillary snapshot; Web OrdersController/views/header/checkout confirmation link; SQL/HTTP OrderTests; docs/task/matrix/handoff.
+
+## Quyết định H06b (Purchases, Order details, Account — chốt 28/10/2026, chưa code)
+
+[ADR-003](../decisions/ADR-003-ui-fidelity-references.md); mẫu P3/P1/P2 (Purchases), OD (Order details), AC (Account); trạng thái có đơn suy ra theo [UI_CANDIDATES §Q-UI-011](UI_CANDIDATES.md#q-ui-011--màn-cần-đơn-mua-thật-27102026). Hành vi B06 và điểm vào nhóm 5 không đổi.
+
+- **My eBay shell** (P3/AC): tiêu đề "My eBay", tab Activity / Messages / Account; Activity có cột trái chỉ các mục clone có (Purchases; Seller: Sales; Returns and requests), mục khác bỏ.
+- **Purchases (P3 + P1/P2):** tiêu đề "Purchases", pill theo bộ lọc B06/D06 hiện có (All Purchases, Ready for feedback, các status), "Orders", trống "No orders were found". Thẻ đơn P1: ngày/số đơn/total, ảnh đầu item (H05), status, nút View order details, Leave feedback, More actions ▾ (Contact seller, I didn't receive it, Return this item, See request details) — giữ đúng điều kiện hiện tại. Không có ô "Search your orders", "See orders", Unpaid/Show hidden/Hide order vì không có dữ liệu/tính năng.
+- **Order details (OD, phía buyer):** "Order details"; thẻ trạng thái (Pending → "Order placed", Shipped, Delivered on…) + tiến trình Paid/Shipped/Delivered chỉ với ngày có dữ liệu + nút hành động (Confirm received, Leave feedback, Contact seller, dispute entries như hiện tại); khối Shipping (Ship to, carrier/tracking demo), Item; cột phải Order (số đơn, ngày) và Payment ("What you paid": subtotal, Shipping Free, Order total, COD). Seller dùng cùng bố cục với Mark as shipped.
+- **Account (AC):** cột chỉ các link clone có (Personal Info: Feedback profile cho Seller; Addresses chỉ hiển thị nếu có màn; Sign out), còn lại bỏ.

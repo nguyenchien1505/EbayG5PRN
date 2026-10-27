@@ -198,7 +198,7 @@ public sealed class CheckoutTests
         Assert.Equal(HttpStatusCode.Redirect, (await client.GetAsync($"/Checkout?productId={s.Product}")).StatusCode);
         await Login(client);
         var html = await client.GetStringAsync($"/Checkout?productId={s.Product}");
-        Assert.Contains("Place order", html);
+        Assert.Contains("Confirm and pay", html);
         Assert.DoesNotContain($"value=\"{s.OtherAddress}\"", html);
         var fields = new Dictionary<string,string> { ["ProductId"] = s.Product.ToString(), ["AddressId"] = s.OtherAddress.ToString(), ["Quantity"] = "2",
             ["ExpectedUnitPrice"] = "49.90", ["Key"] = Field(html,"Key"), ["BuyerId"] = s.Other.ToString(), ["TotalPrice"] = "0.01", ["Method"] = "Paid" };

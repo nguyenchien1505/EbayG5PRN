@@ -1,6 +1,8 @@
 using System.Security.Claims;
 using EbayGroup5.Application.Catalog;
 using EbayGroup5.Application.Checkout;
+using EbayGroup5.Application.Disputes;
+using EbayGroup5.Application.Feedback;
 using EbayGroup5.Web.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -9,7 +11,7 @@ namespace EbayGroup5.Web.Controllers;
 
 [Authorize(Policy = "Buyer")]
 [ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
-public sealed class CheckoutController(ICatalogService catalog, ICheckoutService checkout) : Controller
+public sealed class CheckoutController(ICatalogService catalog, ICheckoutService checkout, IFeedbackService feedback, DisputeTiming timing) : Controller
 {
     private int BuyerId => int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
 
@@ -20,9 +22,9 @@ public sealed class CheckoutController(ICatalogService catalog, ICheckoutService
         var product = await catalog.FindAsync(productId, cancellationToken);
         if (product == null) return NotFound();
         var addresses = await checkout.AddressesAsync(BuyerId, cancellationToken);
-        return View(new CheckoutPage(new CheckoutForm { ProductId = productId, Quantity = quantity,
+        return View(await PageAsync(new CheckoutForm { ProductId = productId, Quantity = quantity,
             AddressId = addresses.FirstOrDefault(x => x.Id == addressId)?.Id ?? addresses.FirstOrDefault()?.Id ?? 0,
-            ExpectedUnitPrice = product.Item.Price, Key = Guid.NewGuid() }, product, addresses));
+            ExpectedUnitPrice = product.Item.Price, Key = Guid.NewGuid() }, product, addresses, cancellationToken));
     }
 
     [HttpPost]
@@ -39,8 +41,12 @@ public sealed class CheckoutController(ICatalogService catalog, ICheckoutService
         // Show the refreshed quote. A conflict never commits the request key.
         form.ExpectedUnitPrice = product.Item.Price;
         ModelState.Remove(nameof(form.ExpectedUnitPrice));
-        return View("Index", new CheckoutPage(form, product, await checkout.AddressesAsync(BuyerId, cancellationToken)));
+        return View("Index", await PageAsync(form, product, await checkout.AddressesAsync(BuyerId, cancellationToken), cancellationToken));
     }
+
+    // H06a (CHECKOUT.md, C2): seller line and the same estimated delivery the item page shows and the order stores.
+    private async Task<CheckoutPage> PageAsync(CheckoutForm form, CatalogDetail product, IReadOnlyList<EbayGroup5.Core.Entities.Address> addresses, CancellationToken cancellationToken) =>
+        new(form, product, addresses, await feedback.ReputationAsync(product.Item.SellerId, cancellationToken), timing.EstimatedDelivery(DateTime.UtcNow));
 
     [HttpGet]
     public async Task<IActionResult> AddAddress(int productId, int quantity = 1, CancellationToken cancellationToken = default)
