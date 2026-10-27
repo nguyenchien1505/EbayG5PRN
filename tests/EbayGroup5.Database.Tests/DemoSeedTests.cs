@@ -30,7 +30,23 @@ public sealed class DemoSeedTests
         Assert.Equal("3", SqlFixture.Scalar(target, "SELECT COUNT(*) FROM dbo.Product WHERE price=99"));
         Assert.Equal("Edited", SqlFixture.Scalar(target, "SELECT username FROM dbo.[User] WHERE email='buyer.a06@example.invalid'"));
         Assert.Equal("0", SqlFixture.Scalar(target, "SELECT COUNT(*) FROM dbo.ShippingInfo"));
-        Assert.Equal("1", SqlFixture.Scalar(target, "SELECT COUNT(*) FROM dbo.DemoSeedHistory"));
+        Assert.Equal("2", SqlFixture.Scalar(target, "SELECT COUNT(*) FROM dbo.DemoSeedHistory"));
+    }
+
+    [Fact]
+    public void Image_step_upgrades_an_older_seed_once_and_keeps_user_changed_images()
+    {
+        var target = SqlFixture.NewTarget();
+        MigrationRunner.Run(target);
+        Assert.True(DemoSeedRunner.Run(target));
+        Assert.Equal("3", SqlFixture.Scalar(target, "SELECT COUNT(*) FROM dbo.Product WHERE images LIKE N'[[]\"/img/products/%'"));
+        // Database seeded before H05: v1 journal only, images NULL; one listing already edited by a user.
+        SqlFixture.Execute(target, "DELETE dbo.DemoSeedHistory WHERE Version=N'H05-v1'; UPDATE dbo.Product SET images=NULL; UPDATE dbo.Product SET images=N'[]' WHERE title=N'Desk Lamp';");
+        Assert.True(DemoSeedRunner.Run(target));
+        Assert.Equal("[]", SqlFixture.Scalar(target, "SELECT images FROM dbo.Product WHERE title=N'Desk Lamp'"));
+        Assert.Equal("[\"/img/products/headphones-1.svg\",\"/img/products/headphones-2.svg\"]", SqlFixture.Scalar(target, "SELECT images FROM dbo.Product WHERE title=N'Wireless Headphones'"));
+        Assert.Equal("3", SqlFixture.Scalar(target, "SELECT COUNT(*) FROM dbo.Product"));
+        Assert.False(DemoSeedRunner.Run(target));
     }
 
     [Fact]
@@ -58,7 +74,7 @@ public sealed class DemoSeedTests
             Assert.Equal("0", SqlFixture.Scalar(target, $"SELECT COUNT(*) FROM dbo.[{table}]"));
         SqlFixture.Execute(target, "DISABLE TRIGGER dbo.SeedFault ON dbo.Payment;");
         Assert.True(DemoSeedRunner.Run(target));
-        Assert.Equal("1", SqlFixture.Scalar(target, "SELECT COUNT(*) FROM dbo.DemoSeedHistory"));
+        Assert.Equal("2", SqlFixture.Scalar(target, "SELECT COUNT(*) FROM dbo.DemoSeedHistory"));
     }
 
     [Fact]

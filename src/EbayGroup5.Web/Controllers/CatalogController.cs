@@ -1,4 +1,5 @@
 using EbayGroup5.Application.Catalog;
+using EbayGroup5.Application.Disputes;
 using EbayGroup5.Application.Feedback;
 using EbayGroup5.Application.Reviews;
 using EbayGroup5.Web.Models;
@@ -6,7 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace EbayGroup5.Web.Controllers;
 
-public sealed class CatalogController(ICatalogService catalog, IReviewService reviews, IFeedbackService feedback) : Controller
+public sealed class CatalogController(ICatalogService catalog, IReviewService reviews, IFeedbackService feedback, DisputeTiming timing) : Controller
 {
     [HttpGet]
     // H04 (reference SR): sort, buying format tab, price range, items per page and list/gallery view on top of q/category/seller.
@@ -46,6 +47,10 @@ public sealed class CatalogController(ICatalogService catalog, IReviewService re
         ViewData["Reviews"] = await reviews.ProductReviewsAsync(id, cancellationToken: cancellationToken);
         var sellerFeedback = await feedback.ProfileAsync(result.Item.SellerId, new FeedbackProfileQuery(Sentiment: filter, PageSize: 8), cancellationToken);
         ViewData["SellerReputation"] = sellerFeedback?.Reputation ?? await feedback.ReputationAsync(result.Item.SellerId, cancellationToken);
+        // H05 (IT-1/2): breadcrumb category and the same estimated delivery formula checkout stores on the order.
+        if (result.Item.CategoryId is int categoryId)
+            ViewData["Category"] = (await catalog.CategoriesAsync(cancellationToken)).FirstOrDefault(x => x.Id == categoryId);
+        ViewData["EstimatedDelivery"] = timing.EstimatedDelivery(DateTime.UtcNow);
         if (sellerFeedback?.Summary is { } summary)
             ViewData["AboutSeller"] = new Models.AboutSellerView(id, summary, sellerFeedback.Reputation, feedback.DetailedRatingsMinimum, sellerFeedback, filter?.ToString().ToLowerInvariant());
         return View(result);

@@ -1,27 +1,30 @@
 # Handoff — Đợt H (giống eBay sau bàn giao)
 
-09/10/2026. Main sau phiên này: H00–H04 (xem `git log --oneline --grep=H0`). Handoff trước [G02](G02.md).
+27/10/2026. Branch `task/H05-item-page` từ main `f80157b` (xem `git log --oneline --grep=H05`). Handoff trước [H04](H04.md) (quyết định 08/10, H00–H04).
 
-## Quyết định người dùng (08/10/2026)
+## H05 — trang sản phẩm (InProgress, chờ GitHub CI)
 
-- Uy tín seller (G5-05) làm lại theo eBay; màn nhóm khác: UI giống eBay, backend giản lược ([ADR-003](../decisions/ADR-003-ui-fidelity-references.md)).
-- Ảnh UI đã chốt lưu trong repo: [references/ui](../references/ui/INDEX.md). Người dùng sẽ đặt mua thật để chụp màn cần đơn hàng (Q-UI-011).
-- 09/10/2026: người dùng yêu cầu "hoàn thành task hiện tại rồi dừng lại" → dừng sau H04.
+- Contract [CATALOG §Quyết định H05](../architecture/CATALOG.md#quyết-định-h05-trang-sản-phẩm-giống-ebay); [evidence](../evidence/H05.md).
+- Cart/Watchlist: người dùng giao agent chốt → dẫn tới `/Help/Unavailable/cart|watchlist`, không có giỏ hàng/theo dõi thật.
+- Ảnh: `Product.images` = mảng JSON đường dẫn `/img/products/…` (lọc trong `CatalogImages.Parse`); 6 SVG tự vẽ; seed `H05-v1` trong `DemoSeedRunner` (sau `A06-v1`, có journal, chỉ ghi `images IS NULL`).
+- File chính: `Views/Catalog/Details.cshtml`, `wwwroot/js/item.js`, `site.css` (khối H05), `CatalogController` (danh mục, ngày giao dự kiến từ `DisputeTiming`), `ICatalogService.cs`, `DemoSeedRunner.cs`, test `SearchResultsTests`/`DemoSeedTests`.
 
-## Đã xong (đều có GitHub CI success trên hash runtime)
+## Test
 
-- **H00** thư viện ảnh + ADR-003. **H01** quy tắc uy tín eBay (tuần Pacific lưu bằng trigger, DSR, sao, form R1; DbUp 0015) — [evidence](../evidence/H01.md).
-- **H02** hồ sơ feedback F2/F2m, About this seller/Seller feedback, `/Catalog?seller=`, `/Help/Unavailable/{key}` (DbUp 0016) — [evidence](../evidence/H02.md).
-- **H03** header/thanh danh mục/footer/trang chủ thật — [evidence](../evidence/H03.md). **H04** trang kết quả tìm kiếm SR — [evidence](../evidence/H04.md).
+- Test-CI local (SDK 8) 295/295 .NET + 20/20 Node, **bỏ qua NuGet audit**; trình duyệt in-app desktop/mobile trên DB tạm. Chưa chạy Test-AppStack, chưa push/GitHub CI.
 
-## Còn lại
+## Chặn / câu hỏi
 
-- **H05** trang sản phẩm + ảnh sản phẩm demo (Planned, chưa bắt đầu). **H06** Blocked chờ ảnh Q-UI-011. **H07** nghiệm thu lại UI + cập nhật REPORT/DEMO/UI_ACCEPTANCE (ảnh `docs/evidence/ui` vẫn là bản G01).
-- Q-UI-012 (ảnh kèm feedback/chat) Open; Q-OPS-001 (lỗi mạng chập chờn ở rolling) Open.
-- Cluster demo `ebaygroup5` vẫn chạy image G02; chưa deploy H01–H04 (0015/0016 chưa áp vào cluster đó).
+- **Q-SEC-002 (mới):** NuGet audit đỏ vì advisory mới cho MessagePack, Cryptography.Pkcs/Xml, SignalR.Common 8.0.31 → Test-CI và GitHub CI sẽ fail ở audit cho tới khi có task nâng package. Không nới cổng.
+- Q-UI-011 (ảnh đơn mua thật, chặn H06), Q-UI-012 (upload ảnh), Q-OPS-001 (lỗi mạng rolling), Q-TEAM-002 vẫn Open.
+
+## Bước tiếp theo
+
+1. Task nâng package cho Q-SEC-002 (merge trước hoặc cùng đợt) → push → GitHub CI cho H05 → H05 Done, merge main.
+2. H06 khi có ảnh Q-UI-011; H07 sau cùng. Cluster `ebaygroup5` vẫn chạy G02 (chưa có 0015/0016, `H05-v1`).
 
 ## Lưu ý vận hành
 
-- Stage file cụ thể; `src/EbayGroup5.Web/Properties/launchSettings.json` là file của người dùng (đã có trong `.git/info/exclude`). Không Co-Authored-By Claude.
-- Test-CI giờ dùng SQL 3 GB (mỗi test giữ DB riêng). Không chạy Test-CI cùng lúc Test-AppStack; dọn bằng `scripts/Clear-TestArtifacts.ps1 [-Apply]`.
-- eBay chặn Chrome headless: không vượt chặn; ảnh mẫu chụp bằng trình duyệt in-app hoặc người dùng gửi, che tên/mã bưu chính trước khi lưu.
+- SDK 8 ở `%LOCALAPPDATA%\EbayGroup5\dotnet`: dot-source `scripts/Use-LocalDotnet.ps1` trước khi build (PATH hệ thống chỉ có SDK 10).
+- Stage file cụ thể; `src/EbayGroup5.Web/Properties/launchSettings.json` là file của người dùng. Không chạy Test-CI cùng Test-AppStack.
+- eBay chặn Chrome headless: không vượt chặn; ảnh mẫu chụp bằng trình duyệt in-app hoặc người dùng gửi, che thông tin cá nhân.

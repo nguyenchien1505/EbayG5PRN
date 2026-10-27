@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 800"><title>Desk Lamp, folded</title>
+
+<ellipse cx="400" cy="680" rx="230" ry="24" fill="#000" opacity=".08"/>
+<rect x="250" y="630" width="300" height="46" rx="23" fill="#2f6f5e"/>
+<path d="M400 635V420l120-110" fill="none" stroke="#3b4048" stroke-width="22" stroke-linecap="round" stroke-linejoin="round"/>
+<circle cx="400" cy="420" r="20" fill="#2f6f5e"/><path d="M480 270 600 300 590 380 470 340Z" fill="#2f6f5e"/>
+<rect x="470" y="640" width="40" height="20" rx="10" fill="#e9e9e9"/></svg>

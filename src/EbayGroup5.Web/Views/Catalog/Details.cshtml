@@ -2,10 +2,31 @@
 @using System.Globalization
 @{ ViewData["Title"] = Model.Item.Title; var reviews = ViewData["Reviews"] as EbayGroup5.Application.Reviews.ProductReviewPage; var summary = reviews?.Summary ?? EbayGroup5.Application.Reviews.RatingSummary.Empty;
     var reputation = ViewData["SellerReputation"] as EbayGroup5.Application.Feedback.SellerReputation ?? EbayGroup5.Application.Feedback.SellerReputation.Empty;
-    var about = ViewData["AboutSeller"] as EbayGroup5.Web.Models.AboutSellerView; }
-<a class="back-to-catalog" asp-action="Index">← Browse all items</a>
+    var about = ViewData["AboutSeller"] as EbayGroup5.Web.Models.AboutSellerView;
+    var category = ViewData["Category"] as EbayGroup5.Application.Catalog.CatalogCategory;
+    var delivery = ViewData["EstimatedDelivery"] as DateTime?;
+    var images = Model.Item.Images;
+    // Checkout accepts 1–99 (CheckoutController); the box never offers more than is in stock.
+    var maxQuantity = (int)Math.Min(Model.Quantity, 99); }
+@* H05 (CATALOG.md, reference IT-1…4): eBay item page. Cart/Watchlist open the Help notice like the header (ADR-003 §2). *@
+<nav class="item-breadcrumb" aria-label="Breadcrumb"><a asp-action="Index">Back to search results</a>@if (category != null) { <span aria-hidden="true"> | </span><span>Listed in category: <a asp-action="Index" asp-route-categoryId="@category.Id">@category.Name</a></span> }</nav>
 <div class="product-detail">
-    <div class="detail-media product-placeholder"><svg viewBox="0 0 64 64" aria-hidden="true"><path d="M12 20 32 10 52 20 32 30Z M12 20v24l20 10 20-10V20 M32 30v24" /></svg><span>Image unavailable</span></div>
+    <div class="item-gallery" data-item-gallery>
+        <div class="item-gallery-main">
+            @if (images.Count > 0) { <img class="item-gallery-image" src="@images[0]" alt="@Model.Item.Title, picture 1 of @images.Count" data-gallery-main /> }
+            else { <div class="detail-media product-placeholder"><svg viewBox="0 0 64 64" aria-hidden="true"><path d="M12 20 32 10 52 20 32 30Z M12 20v24l20 10 20-10V20 M32 30v24" /></svg><span>Image unavailable</span></div> }
+            <a class="item-gallery-watch" asp-controller="Help" asp-action="Unavailable" asp-route-id="watchlist" aria-label="Add to Watchlist"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21 3.5 12.6A5 5 0 0 1 12 6a5 5 0 0 1 8.5 6.6Zm0-2.8 7-6.9a3 3 0 1 0-4.6-3.8L12 9.8 9.6 7.5A3 3 0 1 0 5 11.3Z" /></svg></a>
+        </div>
+        @if (images.Count > 1)
+        {
+            <ul class="item-gallery-thumbs" aria-label="Pictures">
+                @for (var i = 0; i < images.Count; i++)
+                {
+                    <li><button type="button" class="item-gallery-thumb" data-gallery-src="@images[i]" aria-label="Show picture @(i + 1) of @images.Count" aria-pressed="@(i == 0 ? "true" : "false")"><img src="@images[i]" alt="" /></button></li>
+                }
+            </ul>
+        }
+    </div>
     <section class="detail-info" aria-labelledby="product-title">
         <h1 id="product-title">@Model.Item.Title</h1>
         @if (summary.Average is decimal average) { <a class="rating-inline" href="#reviews"><partial name="_Stars" model="average" /><span>@average.ToString("0.0", CultureInfo.InvariantCulture) · @summary.Ratings product rating@(summary.Ratings == 1 ? "" : "s")</span></a> }
@@ -17,13 +38,44 @@
             else if (User.Identity?.IsAuthenticated != true) { <a class="button outline seller-message" asp-controller="Account" asp-action="Login" asp-route-returnUrl="@Url.Action("Details", "Catalog", new { id = Model.Item.Id, message = true })">Message</a> }
         </div>
         <p class="detail-price">US $@Model.Item.Price.ToString("N2", CultureInfo.InvariantCulture)</p>
-        <p class="availability">@(Model.Quantity > 0 ? $"{Model.Quantity} available" : "Out of stock")</p>
-        @if (Model.Quantity > 0) { <a class="button primary purchase-button" asp-controller="Checkout" asp-action="Index" asp-route-productId="@Model.Item.Id">Buy It Now</a> }
-        else { <button class="button primary purchase-button" disabled>Buy It Now</button> }
-        <p class="field-help">Cash on delivery demo checkout.</p>
+        <div class="item-quantity">
+            @if (maxQuantity > 0) { <label for="item-quantity">Quantity:</label><input id="item-quantity" type="number" min="1" max="@maxQuantity" value="1" inputmode="numeric" data-quantity-input /> }
+            <span class="availability">@(Model.Quantity > 0 ? $"{Model.Quantity} available" : "Out of stock")</span>
+        </div>
+        <div class="item-actions">
+            @if (Model.Quantity > 0) { <a class="button primary purchase-button" asp-controller="Checkout" asp-action="Index" asp-route-productId="@Model.Item.Id" data-quantity-link>Buy It Now</a> }
+            else { <button class="button primary purchase-button" disabled>Buy It Now</button> }
+            <a class="button outline" asp-controller="Help" asp-action="Unavailable" asp-route-id="cart">Add to cart</a>
+            <a class="button outline" asp-controller="Help" asp-action="Unavailable" asp-route-id="watchlist"><svg class="item-heart" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21 3.5 12.6A5 5 0 0 1 12 6a5 5 0 0 1 8.5 6.6Zm0-2.8 7-6.9a3 3 0 1 0-4.6-3.8L12 9.8 9.6 7.5A3 3 0 1 0 5 11.3Z" /></svg>Add to Watchlist</a>
+        </div>
+        <p class="item-returns-note"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5 4 10l5 5M4 10h10a6 6 0 0 1 0 12h-3" /></svg><span><strong>Breathe easy.</strong> Returns accepted.</span></p>
+        <section class="item-terms" aria-labelledby="terms-title">
+            <h2 id="terms-title">Shipping, returns, and payments</h2>
+            <dl>
+                <dt>Shipping:</dt><dd><strong>Free</strong> Standard Shipping</dd>
+                @if (delivery is DateTime estimated) { <dt>Delivery:</dt><dd>Estimated on <strong>@estimated.ToString("ddd, MMM d", CultureInfo.InvariantCulture)</strong> if you order today</dd> }
+                <dt>Returns:</dt><dd>30 days returns. Start a return from your purchase history.</dd>
+                <dt>Payments:</dt><dd><span class="item-payment">Cash on delivery</span></dd>
+            </dl>
+        </section>
+        <section class="item-confidence" aria-labelledby="confidence-title">
+            <h2 id="confidence-title">Shop with confidence</h2>
+            <p class="item-guarantee"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2 4 5v6c0 5 3.4 9.4 8 11 4.6-1.6 8-6 8-11V5Zm-1.2 13.6L7.4 12.2l1.4-1.4 2 2 4.4-4.4 1.4 1.4Z" /></svg><span><strong>eBay Money Back Guarantee</strong><br />Get the item you ordered or your money back.</span></p>
+        </section>
     </section>
 </div>
-<section class="item-description"><h2>About this item</h2><p class="field-help">Item number: @Model.Item.Id</p><p>@(string.IsNullOrWhiteSpace(Model.Item.Description) ? "No description provided." : Model.Item.Description)</p></section>
+<section class="item-about" aria-labelledby="about-item-tab">
+    <h2 id="about-item-tab" class="item-about-tab">About this item</h2>
+    <div class="item-about-body">
+        <p class="item-about-meta"><span>Seller assumes all responsibility for this listing.</span><span>eBay item number: <strong>@Model.Item.Id</strong></span></p>
+        <h3>Item specifics</h3>
+        <dl class="item-specifics">
+            <dt>Category</dt><dd>@if (category != null) { <a asp-action="Index" asp-route-categoryId="@category.Id">@category.Name</a> } else { <span>Uncategorized</span> }</dd>
+        </dl>
+        <h3>Item description from the seller</h3>
+        <p class="item-description-text">@(string.IsNullOrWhiteSpace(Model.Item.Description) ? "No description provided." : Model.Item.Description)</p>
+    </div>
+</section>
 <section id="reviews" class="item-reviews" aria-labelledby="reviews-title">
     <h2 id="reviews-title">Ratings and reviews</h2>
     <partial name="_RatingSummary" model="summary" />
@@ -37,4 +89,4 @@
 @if (about != null) { <partial name="_AboutSeller" model="about" /> }
 @if (User.IsInRole("Buyer")) { <partial name="_ChatPanel" /> }
 @section Styles { <link rel="stylesheet" href="~/css/chat.css" asp-append-version="true" /> }
-@section Scripts { <script src="~/js/feedback-profile.js" asp-append-version="true"></script> @if (User.IsInRole("Buyer")) { <partial name="_ChatScripts" /> } }
+@section Scripts { <script src="~/js/item.js" asp-append-version="true"></script> <script src="~/js/feedback-profile.js" asp-append-version="true"></script> @if (User.IsInRole("Buyer")) { <partial name="_ChatScripts" /> } }

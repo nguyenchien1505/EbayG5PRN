@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 800"><title>USB-C Cable, coiled</title>
+
+<ellipse cx="400" cy="660" rx="260" ry="26" fill="#000" opacity=".07"/>
+<g fill="none" stroke="#f2f2f2" stroke-width="26"><circle cx="400" cy="420" r="190"/><circle cx="400" cy="420" r="150"/><circle cx="400" cy="420" r="110"/></g>
+<g fill="none" stroke="#c9c9c9" stroke-width="2"><circle cx="400" cy="420" r="203"/><circle cx="400" cy="420" r="97"/></g>
+<path d="M590 420c60 0 90 40 90 100" fill="none" stroke="#f2f2f2" stroke-width="26" stroke-linecap="round"/>
+<rect x="650" y="510" width="60" height="110" rx="14" fill="#fafafa" stroke="#c9c9c9" stroke-width="3"/>
+<rect x="662" y="600" width="36" height="50" rx="14" fill="#9aa0a8"/><rect x="672" y="612" width="16" height="26" rx="6" fill="#5b6270"/></svg>

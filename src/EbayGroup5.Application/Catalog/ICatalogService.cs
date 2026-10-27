@@ -1,3 +1,7 @@
+using System.Text.Json;
+using System.Text.Json.Serialization;
+using System.Text.RegularExpressions;
+
 namespace EbayGroup5.Application.Catalog;
 
 public sealed record CatalogItem
@@ -9,6 +13,32 @@ public sealed record CatalogItem
     public int SellerId { get; init; }
     public int? CategoryId { get; init; }
     public string? Description { get; init; }
+    /// <summary>Raw <c>Product.images</c>; never rendered directly.</summary>
+    [JsonIgnore] public string? ImageData { get; init; }
+    /// <summary>H05: site-relative product images that pass <see cref="CatalogImages.Parse"/>.</summary>
+    public IReadOnlyList<string> Images => CatalogImages.Parse(ImageData);
+}
+
+/// <summary>H05 (CATALOG.md): Product.images is a JSON array of /img/products/ paths; anything else is ignored.</summary>
+public static partial class CatalogImages
+{
+    public const int MaxImages = 12;
+
+    public static IReadOnlyList<string> Parse(string? raw)
+    {
+        if (string.IsNullOrWhiteSpace(raw)) return [];
+        try
+        {
+            return JsonSerializer.Deserialize<JsonElement>(raw) is { ValueKind: JsonValueKind.Array } array
+                ? array.EnumerateArray().Where(x => x.ValueKind == JsonValueKind.String).Select(x => x.GetString()!)
+                    .Where(x => SafePath().IsMatch(x)).Take(MaxImages).ToList()
+                : [];
+        }
+        catch (JsonException) { return []; }
+    }
+
+    [GeneratedRegex(@"^/img/products/[a-z0-9-]+\.(svg|png|jpg|webp)$", RegexOptions.CultureInvariant)]
+    private static partial Regex SafePath();
 }
 public sealed record CatalogCategory(int Id, string Name);
 /// <summary>H04 eBay sort options: Best Match, Price lowest/highest first, Time: newly listed.</summary>

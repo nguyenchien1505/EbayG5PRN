@@ -18,13 +18,41 @@ public static class DemoSeedRunner
             EXEC @result=sys.sp_getapplock @Resource=N'EbayGroup5.DemoSeed',
                 @LockMode='Exclusive', @LockOwner='Transaction', @LockTimeout=30000;
             IF @result < 0 THROW 51000, 'Demo seed lock unavailable.', 1;
-            SELECT COUNT(*) FROM dbo.DemoSeedHistory WHERE Version=N'A06-v1';
             """;
-        if (Convert.ToInt32(command.ExecuteScalar()) != 0)
+        command.ExecuteNonQuery();
+        var applied = !Applied(command, "A06-v1");
+        if (applied) RunV1(command);
+        // H05 (CATALOG.md): images for the v1 listings, also on databases seeded before H05. Rows a user already changed are kept.
+        if (!Applied(command, "H05-v1"))
         {
-            transaction.Commit();
-            return false;
+            command.CommandText = """
+                UPDATE p SET images=v.images FROM dbo.Product p
+                JOIN dbo.[User] s ON s.id=p.sellerId AND s.email=N'seller.a06@example.invalid'
+                JOIN (VALUES (N'Wireless Headphones',N'["/img/products/headphones-1.svg","/img/products/headphones-2.svg"]'),
+                    (N'Desk Lamp',N'["/img/products/desk-lamp-1.svg","/img/products/desk-lamp-2.svg"]'),
+                    (N'USB-C Cable',N'["/img/products/usb-c-cable-1.svg","/img/products/usb-c-cable-2.svg"]')) v(title,images) ON v.title=p.title
+                WHERE p.images IS NULL;
+                INSERT dbo.DemoSeedHistory(Version,AppliedAtUtc) VALUES(N'H05-v1',SYSUTCDATETIME());
+                """;
+            command.ExecuteNonQuery();
+            applied = true;
         }
+        transaction.Commit();
+        return applied;
+    }
+
+    private static bool Applied(SqlCommand command, string version)
+    {
+        command.CommandText = "SELECT COUNT(*) FROM dbo.DemoSeedHistory WHERE Version=@version;";
+        command.Parameters.Clear();
+        command.Parameters.AddWithValue("@version", version);
+        var applied = Convert.ToInt32(command.ExecuteScalar()) != 0;
+        command.Parameters.Clear();
+        return applied;
+    }
+
+    private static void RunV1(SqlCommand command)
+    {
         using var reader = new StreamReader(typeof(DemoSeedRunner).Assembly.GetManifestResourceStream("DemoSeed.v1.sql")!);
         command.CommandText = reader.ReadToEnd();
         command.ExecuteNonQuery();
@@ -49,7 +77,5 @@ public static class DemoSeedRunner
         command.ExecuteNonQuery();
         command.CommandText = "INSERT dbo.DemoSeedHistory(Version,AppliedAtUtc) VALUES(N'A06-v1',SYSUTCDATETIME());";
         command.ExecuteNonQuery();
-        transaction.Commit();
-        return true;
     }
 }
