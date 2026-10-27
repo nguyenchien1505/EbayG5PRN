@@ -2,7 +2,7 @@
 
 27/10/2026. Branch `task/H05-item-page` từ main `f80157b` (xem `git log --oneline --grep=H05`). Handoff trước [H04](H04.md) (quyết định 08/10, H00–H04).
 
-## H05 — trang sản phẩm (InProgress, chờ GitHub CI)
+## H05 — trang sản phẩm (Done)
 
 - Contract [CATALOG §Quyết định H05](../architecture/CATALOG.md#quyết-định-h05-trang-sản-phẩm-giống-ebay); [evidence](../evidence/H05.md).
 - Cart/Watchlist: người dùng giao agent chốt → dẫn tới `/Help/Unavailable/cart|watchlist`, không có giỏ hàng/theo dõi thật.
@@ -11,7 +11,7 @@
 
 ## Test
 
-- Test-CI local trên nhánh đã gộp Q-SEC-002: audit sạch, 295/295 .NET + 20/20 Node; trình duyệt in-app desktop/mobile trên DB tạm. Chưa chạy Test-AppStack (cần build image 8.0.33), chưa push/GitHub CI.
+- Test-CI local trên nhánh đã gộp Q-SEC-002: audit sạch, 295/295 .NET + 20/20 Node; trình duyệt in-app desktop/mobile trên DB tạm. GitHub CI 40511849948 success ở attempt 2 (attempt 1 đỏ vì Q-OPS-001). Ba nhánh đã push; chưa gộp main.
 
 ## Chặn / câu hỏi
 
@@ -20,7 +20,7 @@
 
 ## Bước tiếp theo
 
-1. Push hai nhánh → GitHub CI cho H05 (đã gồm Q-SEC-002) → H05 Done, merge main.
+1. Gộp `task/H05-item-page` (đã gồm Q-SEC-002) rồi `task/Q-UI-011-references` vào main. Task sửa Q-OPS-001 nên làm sớm (lỗi rolling xuất hiện thường hơn trên 8.0.33).
 2. Gộp `task/Q-UI-011-references`; H06 chốt contract theo UI_CANDIDATES §Q-UI-011; H07 sau cùng. Cluster `ebaygroup5` vẫn chạy G02 (chưa có 0015/0016, `H05-v1`).
 
 ## Lưu ý vận hành
