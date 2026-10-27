@@ -18,7 +18,7 @@ Handoff trước [H05](H05.md) (H05, Q-SEC-002, Q-UI-011 một phần, Q-BIZ-007
   runner): 2 lần liên tiếp PASS, 0 lỗi mạng/5xx. Trước sửa local cũng pass (không tái hiện được lỗi gốc).
 - GitHub CI [40538934712](https://github.com/Twiash/EbayGroup5/actions/runs/40538934712) trên `8fdded1`: success attempt 1, rolling 0 lỗi mạng/5xx;
   p95 inbox rollback vẫn 1,8 s (margin tới 5 s chưa lớn) — một lần xanh chưa loại hẳn flake.
-- Sau khi gộp main vào nhánh: xem CI của commit merge theo `git log --grep=OPS-001`.
+- Commit merge main vào nhánh: GitHub CI [40543872587](https://github.com/Twiash/EbayGroup5/actions/runs/40543872587) success attempt 1, 0 lỗi; p95 inbox rollback 416 ms. Main fast-forward tới nhánh này.
 
 ## Chặn / câu hỏi
 
