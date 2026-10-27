@@ -22,7 +22,8 @@ Handoff trước [H05](H05.md) (H05, Q-SEC-002, Q-UI-011 một phần, Q-BIZ-007
 
 ## Chặn / câu hỏi
 
-- Q-BIZ-007 (eBay automated feedback), Q-UI-012 (ảnh kèm feedback/chat), Q-TEAM-002 (ngày nộp) Open; Q-UI-011 trả lời một phần.
+- 28/10/2026 người dùng chốt Deferred (chưa làm): Q-BIZ-007 (eBay automated feedback), Q-UI-012 (ảnh kèm feedback/chat).
+- Q-TEAM-002 (ngày nộp) Open; Q-UI-011 trả lời một phần.
 
 ## Bước tiếp theo
 

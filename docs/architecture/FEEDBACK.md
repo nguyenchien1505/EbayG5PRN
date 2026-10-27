@@ -165,7 +165,7 @@ Soạn trước khi sửa source, baseline main `5a8d3b9`. Nguồn: [ADR-003](..
 3. Tell us more about this item: **một ô comment tối đa 500 ký tự** ("Feedback length"). Comment lưu vào feedback seller khi chọn sentiment và vào review sản phẩm khi chọn sao; phần nào đã gửi trước đó thì chỉ ghi phần còn lại. Comment mà không chọn sentiment hoặc sao → 400.
 4. Did this item arrive on time? (Optional) Yes/No.
 5. Rate more details about your purchase (Optional): Item description, Shipping time, Seller communication, mỗi dòng 1–5 sao.
-6. Mục 4–5 chỉ hiện và chỉ được gửi cùng phần seller (sentiment); gửi khi không có sentiment hoặc giá trị ngoài miền → 400. "Add up to 5 photos" chờ [Q-UI-012](../questions/INDEX.md).
+6. Mục 4–5 chỉ hiện và chỉ được gửi cùng phần seller (sentiment); gửi khi không có sentiment hoặc giá trị ngoài miền → 400. "Add up to 5 photos" không làm (Q-UI-012 Deferred 28/10/2026, xem [câu hỏi](../questions/INDEX.md)).
 
 **Detailed seller ratings (DSR):**
 
@@ -187,7 +187,7 @@ Soạn trước khi sửa source, baseline main sau H01. Mẫu: F2 (classic desk
 - "Usually responds within 24 hours": các lượt buyer nhắn trong 90 ngày (tin buyer đầu tiên sau tin seller hoặc đầu hội thoại) có seller trả lời; trung vị thời gian trả lời ≤ 24 giờ thì hiện câu này, ngược lại hoặc không có dữ liệu thì bỏ.
 - Popular categories = danh mục của listing seller, nhiều nhất trước, tối đa 7; "See all" → danh sách hàng của seller.
 - Điểm buyer cạnh tên che (`b***r (0)`): điểm feedback nhận với vai trò buyer (clone chưa có feedback cho buyer → 0, không bịa).
-- Không hiện: Top-rated seller, revised feedback, eBay automated feedback, ảnh feedback (chưa có dữ liệu; Q-UI-012), quốc gia đăng ký.
+- Không hiện: Top-rated seller, revised feedback, eBay automated feedback (Q-BIZ-007 Deferred: không tạo Positive tự động, điểm chỉ từ feedback thật), ảnh feedback (Q-UI-012 Deferred), quốc gia đăng ký.
 
 **Trang hồ sơ `/Sellers/Feedback/{id}` (F2):**
 
