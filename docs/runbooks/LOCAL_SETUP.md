@@ -6,7 +6,7 @@ Infrastructure có [LOCAL_INFRA](LOCAL_INFRA.md); DbUp/runtime config theo [DATA
 
 ## SDK
 
-Pin SDK **8.0.425**, kèm .NET/ASP.NET Core runtime **8.0.31**. Phiên bản và SHA512 được đối chiếu [metadata Microsoft .NET 8](https://builds.dotnet.microsoft.com/dotnet/release-metadata/8.0/releases.json) ngày 02/10/2026 (release 08/09/2026). `global.json` cho phép latestPatch cùng feature band; không tự nhảy SDK 10. Khi nâng patch phải cập nhật installer và kiểm tra lại lock/build.
+Pin SDK **8.0.427**, kèm .NET/ASP.NET Core runtime **8.0.33** (nâng 27/10/2026 theo Q-SEC-002). Phiên bản và SHA512 được đối chiếu [metadata Microsoft .NET 8](https://builds.dotnet.microsoft.com/dotnet/release-metadata/8.0/releases.json) ngày 02/10/2026 (release 08/09/2026). `global.json` cho phép latestPatch cùng feature band; không tự nhảy SDK 10. Khi nâng patch phải cập nhật installer và kiểm tra lại lock/build.
 
 ```powershell
 pwsh -NoProfile -File scripts/Install-Dotnet8.ps1

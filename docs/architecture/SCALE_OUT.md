@@ -30,7 +30,7 @@ Ngoài phạm vi:
 **2. DataProtection key ring dùng chung.**
 
 - `SetApplicationName("EbayGroup5")` cố định, để mọi instance cùng một "purpose".
-- Khi `DataProtection:KeyStore = Redis`: key ring lưu ở Redis (`RedisXmlRepository`, package `Microsoft.AspNetCore.DataProtection.StackExchangeRedis` 8.0.31), key `{Redis:KeyPrefix}:DataProtection-Keys`.
+- Khi `DataProtection:KeyStore = Redis`: key ring lưu ở Redis (`RedisXmlRepository`, package `Microsoft.AspNetCore.DataProtection.StackExchangeRedis` 8.0.33), key `{Redis:KeyPrefix}:DataProtection-Keys`.
 - Compose bật Redis; dev (`dotnet run`) giữ file system như cũ.
 - Bỏ volume `dataprotection-keys` của F01.
 - **Giới hạn:** key lưu dạng XML **không mã hóa**. Bù lại, Redis có mật khẩu và chỉ nằm trong mạng nội bộ. Mất volume Redis đồng nghĩa mọi người phải đăng nhập lại.
