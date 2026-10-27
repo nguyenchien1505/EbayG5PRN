@@ -1,7 +1,7 @@
 # Handoff — OPS-001 (Q-OPS-001 lỗi mạng rolling)
 
-27/10/2026. Branch `task/OPS-001-rolling-drain` từ `task/H05-item-page` `49f250a` (đã gồm Q-SEC-002, chưa gộp main);
-xem `git log --oneline --grep=OPS-001`. Handoff trước [H05](H05.md) (H05, Q-SEC-002, Q-UI-011).
+27/10/2026. Main gồm H05 (+Q-SEC-002), Q-UI-011 và OPS-001; xem `git log --oneline --grep=OPS-001`.
+Handoff trước [H05](H05.md) (H05, Q-SEC-002, Q-UI-011 một phần, Q-BIZ-007 mới).
 
 ## Đã xong
 
@@ -14,18 +14,21 @@ xem `git log --oneline --grep=OPS-001`. Handoff trước [H05](H05.md) (H05, Q-S
 
 ## Test
 
-- Test-CI local: 295/295 .NET + Node + NuGet audit pass (hai lần, lần hai có assertion inbox = summary).
-- Rolling Short local, node kind giới hạn `docker update --cpus 2` (chỉ để mô phỏng runner, không commit): 2 lần liên tiếp PASS,
-  0 lỗi mạng/5xx. Trước sửa local cũng pass (không tái hiện được lỗi gốc) — bằng chứng cuối là GitHub CI attempt 1.
+- Test-CI local: 295/295 .NET + Node + NuGet audit pass. Rolling Short local (node kind giới hạn 2 CPU, chỉ để mô phỏng
+  runner): 2 lần liên tiếp PASS, 0 lỗi mạng/5xx. Trước sửa local cũng pass (không tái hiện được lỗi gốc).
 - GitHub CI [40538934712](https://github.com/Twiash/EbayGroup5/actions/runs/40538934712) trên `8fdded1`: success attempt 1, rolling 0 lỗi mạng/5xx;
   p95 inbox rollback vẫn 1,8 s (margin tới 5 s chưa lớn) — một lần xanh chưa loại hẳn flake.
+- Sau khi gộp main vào nhánh: xem CI của commit merge theo `git log --grep=OPS-001`.
+
+## Chặn / câu hỏi
+
+- Q-BIZ-007 (eBay automated feedback), Q-UI-012 (ảnh kèm feedback/chat), Q-TEAM-002 (ngày nộp) Open; Q-UI-011 trả lời một phần.
 
 ## Bước tiếp theo
 
-1. Nhánh đã push. Nếu run sau còn `status 0`, đọc `networkErrorSamples` trong artifact `rolling-report` (loại lỗi + UTC)
-   trước khi đổi gì khác.
-2. Gộp theo thứ tự: `task/H05-item-page` → `task/OPS-001-rolling-drain` (nhánh này chứa H05) → `task/Q-UI-011-references`.
-3. Còn mở: Q-UI-012, Q-TEAM-002; H06 chốt contract theo UI_CANDIDATES §Q-UI-011; H07 sau cùng. Cluster `ebaygroup5` vẫn chạy G02.
+1. Nếu run sau còn `status 0`, đọc `networkErrorSamples` trong artifact `rolling-report` (loại lỗi + UTC) trước khi đổi gì khác.
+2. H06 chốt contract theo UI_CANDIDATES §Q-UI-011 (Planned); H07 sau cùng.
+3. Cluster demo `ebaygroup5` vẫn chạy G02 (chưa có 0015/0016, `H05-v1`): deploy lại trước demo.
 
 ## Lưu ý vận hành
 

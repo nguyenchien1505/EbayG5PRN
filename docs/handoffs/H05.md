@@ -11,7 +11,7 @@
 
 ## Test
 
-- Test-CI local trên nhánh đã gộp Q-SEC-002: audit sạch, 295/295 .NET + 20/20 Node; trình duyệt in-app desktop/mobile trên DB tạm. GitHub CI 40511849948 success ở attempt 2 (attempt 1 đỏ vì Q-OPS-001). Ba nhánh đã push; chưa gộp main.
+- Test-CI local trên nhánh đã gộp Q-SEC-002: audit sạch, 295/295 .NET + 20/20 Node; trình duyệt in-app desktop/mobile trên DB tạm. GitHub CI 40511849948 success ở attempt 2 (attempt 1 đỏ vì Q-OPS-001). Đã gộp main 27/10/2026 (H05 fast-forward, Q-UI-011 merge commit).
 
 ## Chặn / câu hỏi
 
@@ -20,8 +20,8 @@
 
 ## Bước tiếp theo
 
-1. Gộp `task/H05-item-page` (đã gồm Q-SEC-002) rồi `task/Q-UI-011-references` vào main. Task sửa Q-OPS-001 nên làm sớm (lỗi rolling xuất hiện thường hơn trên 8.0.33).
-2. Gộp `task/Q-UI-011-references`; H06 chốt contract theo UI_CANDIDATES §Q-UI-011; H07 sau cùng. Cluster `ebaygroup5` vẫn chạy G02 (chưa có 0015/0016, `H05-v1`).
+1. Q-OPS-001 đang sửa ở phiên riêng (nhánh `task/OPS-001-*`); lỗi rolling xuất hiện thường hơn trên 8.0.33.
+2. H06 chốt contract theo UI_CANDIDATES §Q-UI-011; H07 sau cùng. Cluster `ebaygroup5` vẫn chạy G02 (chưa có 0015/0016, `H05-v1`).
 
 ## Lưu ý vận hành
 
