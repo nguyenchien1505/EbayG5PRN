@@ -21,7 +21,8 @@ Handoff trước: [OPS-001](OPS-001.md).
 
 ## Chặn / câu hỏi
 
-- Q-BIZ-007, Q-UI-012, Q-TEAM-002 vẫn Open (không chặn H06b).
+- 28/10/2026 người dùng chốt Deferred (chưa làm): Q-BIZ-007 (eBay automated feedback), Q-UI-012 (ảnh kèm feedback/chat) — không ảnh hưởng H06b.
+- Q-TEAM-002 (ngày nộp) Open; Q-UI-011 trả lời một phần.
 
 ## Bước tiếp theo
 
