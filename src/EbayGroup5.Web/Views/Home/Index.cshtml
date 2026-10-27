@@ -52,7 +52,7 @@
             {
                 <li>
                     <a asp-controller="Catalog" asp-action="Details" asp-route-id="@item.Id">
-                        <span class="product-placeholder home-product-art" aria-hidden="true"><svg viewBox="0 0 64 64"><path d="M12 20 32 10 52 20 32 30Z M12 20v24l20 10 20-10V20 M32 30v24" /></svg></span>
+                        @if (item.Images.Count > 0) { <img class="product-photo home-product-art" src="@item.Images[0]" alt="" loading="lazy" /> } else { <span class="product-placeholder home-product-art" aria-hidden="true"><svg viewBox="0 0 64 64"><path d="M12 20 32 10 52 20 32 30Z M12 20v24l20 10 20-10V20 M32 30v24" /></svg></span> }
                         <span class="home-product-title">@item.Title</span>
                         <strong>US $@item.Price.ToString("N2", CultureInfo.InvariantCulture)</strong>
                     </a>

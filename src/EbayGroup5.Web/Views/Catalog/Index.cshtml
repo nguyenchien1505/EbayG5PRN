@@ -117,7 +117,7 @@
                     var reputation = reputations?.GetValueOrDefault(item.SellerId) ?? SellerReputation.Empty;
                     <li class="srp-item">
                         <div class="srp-image">
-                            <a asp-action="Details" asp-route-id="@item.Id" tabindex="-1" aria-hidden="true"><span class="product-placeholder"><svg viewBox="0 0 64 64"><path d="M12 20 32 10 52 20 32 30Z M12 20v24l20 10 20-10V20 M32 30v24" /></svg></span></a>
+                            <a asp-action="Details" asp-route-id="@item.Id" tabindex="-1" aria-hidden="true">@if (item.Images.Count > 0) { <img class="product-photo" src="@item.Images[0]" alt="" loading="lazy" /> } else { <span class="product-placeholder"><svg viewBox="0 0 64 64"><path d="M12 20 32 10 52 20 32 30Z M12 20v24l20 10 20-10V20 M32 30v24" /></svg></span> }</a>
                             <a class="srp-watch" asp-controller="Help" asp-action="Unavailable" asp-route-id="watchlist" aria-label="Add to Watchlist"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21 3.5 12.6A5 5 0 0 1 12 6a5 5 0 0 1 8.5 6.6Zm0-2.8 7-6.9a3 3 0 1 0-4.6-3.8L12 9.8 9.6 7.5A3 3 0 1 0 5 11.3Z" /></svg></a>
                         </div>
                         <div class="srp-info">

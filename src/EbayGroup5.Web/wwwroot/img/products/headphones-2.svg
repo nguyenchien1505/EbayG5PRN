@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 800"><title>Wireless Headphones, side view with case</title>
+
+<ellipse cx="400" cy="680" rx="290" ry="28" fill="#000" opacity=".08"/>
+<rect x="110" y="470" width="580" height="200" rx="100" fill="#2b2f37"/><path d="M130 560h540" stroke="#454b56" stroke-width="6"/>
+<rect x="370" y="490" width="60" height="16" rx="8" fill="#8a919e"/>
+<path d="M260 360c0-110 280-110 280 0" fill="none" stroke="#22262e" stroke-width="28" stroke-linecap="round"/>
+<ellipse cx="400" cy="380" rx="120" ry="135" fill="#1c2027"/><ellipse cx="400" cy="380" rx="88" ry="100" fill="#3a3f4b"/>
+<ellipse cx="400" cy="380" rx="40" ry="46" fill="#565d6a"/><circle cx="470" cy="300" r="7" fill="#4ade80"/></svg>

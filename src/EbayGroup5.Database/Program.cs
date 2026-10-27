@@ -17,8 +17,8 @@ try
     if (args.Length == 1)
     {
         Console.WriteLine(DemoSeedRunner.Run(connection)
-            ? "Demo A06-v1 created. Demo users have no login credentials."
-            : "Demo A06-v1 already applied; existing data preserved.");
+            ? "Demo seed A06-v1/H05-v1 applied. Demo users have no login credentials."
+            : "Demo seed A06-v1/H05-v1 already applied; existing data preserved.");
         return 0;
     }
     var count = MigrationRunner.Run(connection);

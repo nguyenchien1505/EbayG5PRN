@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 800"><title>Desk Lamp, lit</title>
+<defs>
+<radialGradient id="glow" cx=".5" cy="0" r="1"><stop offset="0" stop-color="#ffe9a8" stop-opacity=".9"/><stop offset="1" stop-color="#ffe9a8" stop-opacity="0"/></radialGradient></defs>
+<path d="M455 330 330 680h420L590 330Z" fill="url(#glow)"/>
+<ellipse cx="300" cy="690" rx="200" ry="24" fill="#000" opacity=".08"/><rect x="170" y="640" width="260" height="44" rx="22" fill="#2f6f5e"/>
+<path d="M300 645 250 400 470 250" fill="none" stroke="#3b4048" stroke-width="22" stroke-linecap="round" stroke-linejoin="round"/>
+<circle cx="250" cy="400" r="20" fill="#2f6f5e"/><circle cx="470" cy="250" r="18" fill="#2f6f5e"/>
+<path d="M440 225 610 300 560 380 400 290Z" fill="#2f6f5e"/><ellipse cx="585" cy="340" rx="30" ry="56" transform="rotate(30 585 340)" fill="#fff4cc"/></svg>

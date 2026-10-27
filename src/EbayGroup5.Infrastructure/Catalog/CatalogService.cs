@@ -13,7 +13,7 @@ public sealed class CatalogService(EbayDbContext db) : ICatalogService
         where product.IsAuction == false && product.Title != null && product.Title.Trim() != "" &&
               product.Price != null && product.Price >= 0 && seller.Role == "Seller"
         select new CatalogItem { Id = product.Id, Title = product.Title!, Price = product.Price!.Value,
-            Seller = seller.Username ?? "Seller", SellerId = seller.Id, CategoryId = product.CategoryId, Description = product.Description };
+            Seller = seller.Username ?? "Seller", SellerId = seller.Id, CategoryId = product.CategoryId, Description = product.Description, ImageData = product.Images };
 
     public Task<CatalogPage> SearchAsync(string? query, int? categoryId, int page, CancellationToken cancellationToken = default) =>
         SearchAsync(new CatalogQuery(query, categoryId, Page: page), cancellationToken);
