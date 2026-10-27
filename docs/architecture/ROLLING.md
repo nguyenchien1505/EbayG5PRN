@@ -62,6 +62,8 @@ không rollback SQL, không đổi nghiệp vụ, không reset dữ liệu/clust
   quy tắc DTO; test so DTO inbox với summary. Đã thử làm ấm pool SQL trước khi listen: không cải thiện rõ, bỏ.
 - Local, node kind giới hạn 2 CPU (CFS): p95 inbox update/rollback/ổn định 495–500/691–808/203–277 ms → 95/315/37 ms
   (run A), 187/99/9 ms (run B); 0 lỗi mạng/5xx. Chưa tái hiện được lỗi gốc ở local (24 CPU), nên bằng chứng cuối là GitHub CI.
+- GitHub CI [40538934712](https://github.com/Twiash/EbayGroup5/actions/runs/40538934712) (`8fdded1`) xanh ở attempt 1: 0 lỗi; p95 inbox
+  warmup/update/rollback/sau 285/338/1.800/82 ms (trước: ~700/1.771/1.918–2.300/~750). Rollback vẫn là phase nặng nhất (Catalog 1,25 s).
 - Tần suất tăng từ 8.0.33 chưa quy được nguyên nhân (SqlClient 5.1.9 không đổi, chỉ 2 lần chạy).
 
 Nguồn: [Kubernetes Deployment/rollback](https://kubernetes.io/docs/concepts/workloads/controllers/deployment/),
