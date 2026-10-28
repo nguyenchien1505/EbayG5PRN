@@ -62,3 +62,4 @@ Mở 08/10/2026 theo yêu cầu người dùng; ngoài 40 task của PLAN. Ảnh
 | [H06b](H06b.md) | Purchases, Order details, Account (My eBay) | H06a | Done |
 | [H07](H07.md) | Nghiệm thu UI lại và cập nhật bàn giao | H01–H06 | Done |
 | [OPS-001](OPS-001.md) | Lỗi mạng chập chờn khi rolling (Q-OPS-001): inbox một câu SQL | F08, Q-SEC-002 | Done |
+| [OPS-002](OPS-002.md) | Deploy lại cluster demo; `Start-K8s` không sinh secrets mới cho cluster đã có | F06, H07 | Done |

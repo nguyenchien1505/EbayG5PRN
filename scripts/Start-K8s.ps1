@@ -33,6 +33,11 @@ if ($exists -and (docker inspect --format '{{.State.Running}}' $node) -ne 'true'
 }
 
 $secretsFile = Join-Path $repoRoot 'secrets/k8s/secrets.json'
+# OPS-002: the cluster's volumes keep the first passwords and browsers trust the first CA; never mint new ones for an existing
+# cluster (for example when run from a fresh worktree), which locks the migration Job out of SQL Server.
+if ($exists -and -not ((Test-Path -LiteralPath $secretsFile) -and (Test-Path -LiteralPath (Join-Path $repoRoot 'secrets/tls/server.crt')))) {
+    throw "Cluster '$cluster' exists but this checkout has no secrets/k8s/secrets.json or secrets/tls; copy both from the checkout that created it."
+}
 if (-not (Test-Path -LiteralPath $secretsFile)) {
     New-Item -ItemType Directory -Force -Path (Split-Path $secretsFile) | Out-Null
     $new = { 'Eg5!' + [Convert]::ToHexString([Security.Cryptography.RandomNumberGenerator]::GetBytes(24)) }

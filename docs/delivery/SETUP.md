@@ -118,6 +118,7 @@ giả lập một clone sạch. Khi kiểm nhánh task, truyền đúng `-Ref ta
 |---|---|
 | Docker/SQL chưa ready | Docker Linux, RAM/port; `get pods`/events; không reset volume |
 | Catalog trống | Đã chạy `Start-K8s -Demo` và job seed Complete? Đúng9443 hay8443? |
+| `Start-K8s` báo thiếu secrets | Chạy từ checkout đã tạo cluster, hoặc chép `secrets/k8s/secrets.json` và `secrets/tls` từ đó; không để script sinh mật khẩu/CA mới cho cluster cũ (OPS-002) |
 | Login sai | Đúng email, mật khẩu của backend kind/compose, đợi Retry-After nếu429 |
 | Admin403 | Role Admin và IP allowlist; không nới network ra wildcard |
 | Chưa mở được INR | Đơn mới, chưa Delivered, đã qua5 ngày demo (150s khi30s/day)? |
