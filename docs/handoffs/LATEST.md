@@ -1,6 +1,6 @@
 # Handoff — H06a (checkout, đăng nhập/đăng ký theo eBay)
 
-28/10/2026. Nhánh `task/H06a-checkout-signin` từ main `957deb4` (OPS-001); commit theo `git log --oneline --grep=H06a`. Đã push nhánh; **chưa merge main** — chờ người dùng.
+28/10/2026. Nhánh `task/H06a-checkout-signin` từ main `957deb4` (OPS-001); commit theo `git log --oneline --grep=H06a`. Main fast-forward tới nhánh này theo yêu cầu người dùng (28/10/2026).
 Handoff trước: [OPS-001](OPS-001.md).
 
 ## Đã xong
@@ -27,9 +27,8 @@ Handoff trước: [OPS-001](OPS-001.md).
 
 ## Bước tiếp theo
 
-1. Người dùng cho merge `task/H06a-checkout-signin` vào main (CI đã xanh).
-2. H06b theo contract ORDERS §H06b; sau đó H07.
-3. Cluster demo vẫn chạy G02: deploy lại trước demo.
+1. H06b theo contract ORDERS §H06b; sau đó H07.
+2. Cluster demo vẫn chạy G02: deploy lại trước demo.
 
 ## Lưu ý vận hành
 
