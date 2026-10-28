@@ -55,5 +55,6 @@ không đổi thành Done chỉ vì code local hoàn tất. Khi user yêu cầu 
 
 Ngày nộp/demo **chưa xác định** (Q-TEAM-002), không tự ấn định lịch.
 Q-UI-010 unread badge Deferred. SQL/Redis single-node local, refund/shipping mô phỏng,
-không outbox/E2EE; các khác biệt đầy đủ ở [UI_ACCEPTANCE](../architecture/UI_ACCEPTANCE.md).
+không outbox/E2EE; các khác biệt đầy đủ ở [UI_ACCEPTANCE](../architecture/UI_ACCEPTANCE.md) (bộ ảnh H07 28/10/2026).
+UI đợt H theo ADR-003; ảnh mẫu eBay ở [references](../references/ui/INDEX.md). Chụp lại bằng `Test-AppStack.ps1 -Screens <dir>` (tự bật demo clock 30 s/ngày, tạo đơn mới).
 Các test/CI được tổng hợp trong evidence; rehearsal live của nhóm và Jira sync là việc sau.

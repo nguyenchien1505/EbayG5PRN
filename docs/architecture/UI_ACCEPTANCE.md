@@ -1,4 +1,4 @@
-# G01 — Nghiệm thu UI (UI-01) và rà ma trận yêu cầu
+# G01/H07 — Nghiệm thu UI (UI-01) và rà ma trận yêu cầu
 
 Contract do agent soạn ngày 08/10/2026 trên main `013f7f4`, trước khi sửa source. Người dùng chốt phương án **P1** sau bản rà soát cùng ngày: nghiệm thu UI + truy vết, không đổi nghiệp vụ; lỗi hiển thị nhỏ (CSS/markup) sửa trong G01, chênh lệch lớn tách task riêng.
 
@@ -19,6 +19,7 @@ Contract do agent soạn ngày 08/10/2026 trên main `013f7f4`, trước khi s�
 
 | # | Màn (vai trò) | Requirement | Nguồn eBay đã chốt |
 |---|---|---|---|
+| S00 | Trang chủ (H03) | SUP-02 giản lược; điểm vào nhóm 5 | HM (ADR-003) |
 | S01 | Catalog: sao + số rating, seller % positive trên card (buyer) | G5-04, G5-05 (điểm vào); SUP-02 giản lược | UI_REVIEW live 06/10/2026 (A2) |
 | S02 | Trang sản phẩm: seller card + nút Message, tổng hợp review | G5-01, G5-04, G5-05 | UI_REVIEW live (A1), D02 |
 | S03 | Panel chat mở trên trang sản phẩm | G5-01 | U1 |
@@ -38,14 +39,47 @@ Contract do agent soạn ngày 08/10/2026 trên main `013f7f4`, trước khi s�
 | S17 | Hồ sơ feedback (seller xem, ô Reply) | G5-05 | F1 |
 | S18 | Admin: hàng đợi kiểm duyệt | SUP-05 (giản lược, không có mẫu eBay công khai) | — |
 | S19 | Admin: hàng đợi khiếu nại | G5-08 / SUP-05 | — |
+| S20 | Sign in (H06a) | SUP-01 giản lược | L0 |
+| S21 | Create an account (H06a) | SUP-01 giản lược | L0 |
+| S22 | Checkout (H06a) | SUP-03 giản lược | C2 |
+| S23 | Add address (H06a) | SUP-03 giản lược | C2 add address |
+| S24 | My eBay > Account (H06b) | SUP-01 giản lược | AC |
+| S25 | Sales (seller, H06b) | SUP-04 giản lược | P3 (cùng bố cục Purchases) |
 
 ## Ngoài phạm vi G01
 
 Đổi luật nghiệp vụ, migration, tính năng mới (ví dụ badge số tin chưa đọc trên header — phương án P2 không được chọn; ghi là khác biệt). Báo cáo/demo/Jira live thuộc G02.
 
-## Kết quả (08/10/2026)
+## Kết quả H07 (28/10/2026, sau đợt H theo ADR-003)
 
-Ảnh: [docs/evidence/ui/](../evidence/ui/) — `S<nn>-<màn>-desktop.jpg` / `-mobile.jpg`, 38 ảnh (19 màn × 2), tạo bằng `pwsh -NoProfile -File scripts/Test-AppStack.ps1 -Screens <thư mục>`. Lần chụp cuối: **0 màn tràn ngang, 0 vi phạm CSP**.
+Chụp lại toàn bộ trên main `c64c009` + H07: **26 màn × 2 = 52 ảnh** trong [docs/evidence/ui/](../evidence/ui/) (thay bộ G01), **0 tràn ngang, 0 vi phạm CSP** (`pwsh -NoProfile -File scripts/Test-AppStack.ps1 -Screens <dir>`). Thay đổi bộ chụp: dữ liệu đơn seed có ngày cố định 09/2026 nên cửa sổ return/INR đã đóng (Q-DEMO-001); chế độ `-Screens` nay tự bật demo clock 30 s/ngày làm việc và tạo **đơn mới qua UI** (A: ship → Confirm received → feedback + return; B: ship, đợi 5 ngày demo → I didn't receive it). Thêm S20–S25 cho màn H06. Ngày/giờ trên ảnh là thời điểm chụp với demo clock.
+
+| # | Phân loại | Ghi chú |
+|---|---|---|
+| S00 Trang chủ | Khớp HM (H03) | Hero, Shop by category, Recently listed có ảnh demo H05, Money Back Guarantee |
+| S01 Catalog | Khớp SR (H04) | Cột lọc, sort, list/gallery; card có ảnh, sao, % positive |
+| S02/S03 Sản phẩm, chat | Khớp IT/U1 (H05, H02) | Gallery, Buy It Now/Add to cart/Watchlist (Help notice), About this seller; panel chat như G01 |
+| S04/S05/S17 Review, feedback profile | Khớp R1/F2/F2m (H01, H02) | Như H01/H02 |
+| S06/S25 Purchases/Sales | Khớp P3/P1/P2 (H06b) | My eBay tab + cột trái, pill, thẻ có ảnh; More actions giữ hành vi D06/E02 |
+| S07 Order details | Khớp OD (H06b) | Thẻ trạng thái + tiến trình, Item với hành động nhóm 5, Shipping, Order/Payment |
+| S08 Leave feedback | Khớp R1 | Như H01 |
+| S09–S11, S12, S13, S16 Khiếu nại | Khớp như G01 | Xem khác biệt còn lại (ảnh item) |
+| S14/S15 Messages | Khớp M1 (M2 2026 chỉ đối chiếu) | Như G01; M2 hai cột mới hơn ghi ở UI_CANDIDATES, chưa đổi |
+| S18/S19 Admin | Khác biệt đã duyệt | Như G01 |
+| S20/S21 Sign in, Register | Khớp L0 (H06a) | Một bước email + password; không social/Stay signed in |
+| S22/S23 Checkout, Add address | Khớp C2 (H06a) | Chỉ COD, một lựa chọn giao hàng Free; Confirm and pay |
+| S24 Account | Khớp AC (H06b) | Chỉ link clone có |
+
+### Khác biệt còn lại phát hiện ở H07 (báo cáo, không làm trong H07)
+
+- **Ảnh sản phẩm trên màn nhóm 5:** form Leave feedback (S08), form return/INR (S09–S11), Returns and requests (S12) và chi tiết request (S13/S16) vẫn dùng placeholder hộp thay ảnh demo H05 đã có ở catalog/item/Purchases/Order details. Sửa cần thêm ảnh vào DTO/service Reviews + Disputes (nhóm 5) và 4 view — vượt mức "sửa nhỏ" của H07; đề xuất task riêng.
+- **Messages theo M2 (2026):** bố cục hai cột mới hơn M1 chưa áp dụng (M2 chỉ đối chiếu, UI_CANDIDATES).
+- Các khác biệt G01 bên dưới (badge chưa đọc Q-UI-010, không ảnh đính kèm Q-UI-012 Deferred, nút ↻/nhãn Read) vẫn đúng.
+
+## Kết quả G01 (08/10/2026, lịch sử)
+
+
+Ảnh G01 (38 ảnh, 19 màn × 2) đã được bộ H07 thay; tên file giữ `S<nn>-<màn>-desktop.jpg` / `-mobile.jpg`, tạo bằng `pwsh -NoProfile -File scripts/Test-AppStack.ps1 -Screens <thư mục>`. Lần chụp cuối: **0 màn tràn ngang, 0 vi phạm CSP**.
 
 | # | Phân loại | Ghi chú |
 |---|---|---|

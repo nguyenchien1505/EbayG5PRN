@@ -1,34 +1,31 @@
-# Handoff — H06b (My eBay: Purchases, Order details, Account)
+# Handoff — H07 (nghiệm thu UI lại, cập nhật bàn giao)
 
-28/10/2026. Nhánh `task/H06b-my-ebay` từ main `80ed79c` (H06a); commit theo `git log --oneline --grep=H06b`. Main fast-forward tới nhánh này theo yêu cầu người dùng (28/10/2026). H06 Done.
-Handoff trước: [H06a](H06a.md).
+28/10/2026. Nhánh `task/H07-ui-acceptance` từ main `c64c009` (H06); commit theo `git log --oneline --grep=H07`. **Chưa push/merge** — chờ người dùng.
+Handoff trước: [H06b](H06b.md).
 
 ## Đã xong
 
-- Contract [ORDERS §H06b](../architecture/ORDERS.md#quyết-định-h06b-purchases-order-details-account--chốt-28102026) chốt chi tiết (đã có từ H06a, nay bổ sung phần bỏ/giữ).
-- `_MyEbayNav` (My eBay + tab Activity/Messages/Account); Purchases/Sales theo P3/P1/P2 (cột trái, pill, "Orders", "No orders were found", thẻ có ảnh, View order details trên dải xám, Leave feedback xanh, More actions giữ nguyên).
-- Order details theo OD: thẻ trạng thái + tiến trình, Item, Shipping, cột phải Order/Payment ("What you paid"). `.order-status`, `#line-{id}`, Mark as shipped/Confirm received, "Estimated delivery" giữ cho test/journey.
-- Account theo AC: Personal Info (tên, vai trò, Sign out), Activity, Selling (Seller), Admin.
-- `OrderSummary.Image`/`OrderLine.Image` (ảnh đầu sản phẩm, quy tắc CatalogImages); `_Layout` bỏ `isAccountPage`.
-- Test: EntryPointTests chip "All Purchases"; OrderTests "Cash on delivery · Paid". Xoá CSS `account-card`/`account-submit` không còn dùng.
+- Chụp lại 26 màn × desktop/mobile = 52 ảnh trong `docs/evidence/ui` (thay bộ G01), 0 tràn ngang, 0 vi phạm CSP.
+- `Test-AppStack -Screens` tự bật demo clock 30 s/ngày; Journeys `--screens` tạo đơn mới qua UI (đơn seed 09/2026 đã hết cửa sổ return/INR); thêm S20–S25.
+- [UI_ACCEPTANCE](../architecture/UI_ACCEPTANCE.md) có bảng H07 (G01 giữ làm lịch sử); REPORT §5, DEMO, HANDOVER cập nhật.
 
 ## Test
 
-- Trình duyệt in-app trên SQL/Redis tạm (đã xoá): desktop 1050 + 375 px, 0 tràn ngang, 0 lỗi console.
-- Test-CI local pass 295/295 .NET + 20/20 Node, NuGet audit sạch, 0 warning (lần 1 fail 1 test: OrderTests còn kiểm "Payment: COD" → đổi sang "Cash on delivery · Paid"); Test-AppStack local pass J1–J7 + smoke HTTPS/WSS, CSP.
-- GitHub CI [40640649806](https://github.com/Twiash/EbayGroup5/actions/runs/40640649806) trên `845adb1`: success attempt 1 — 295/295 .NET, J1–J7 + smoke HTTPS/WSS, load Short 0 lỗi, K8s, rolling 4.632 mẫu 0 HTTP 5xx, ACK 1.145 đủ.
-- **Chưa chạy:** `-Screens` (H07).
+- `Test-AppStack -Screens` pass (52 file, 0 problem). Test-CI local pass 295/295 .NET + 20/20 Node, NuGet audit sạch, 0 warning.
+- **Chưa chạy:** GitHub CI.
 
-## Chặn / câu hỏi
+## Còn lại / đề xuất
 
-- Q-BIZ-007, Q-UI-012 Deferred (người dùng 28/10/2026); Q-TEAM-002 Open; Q-UI-011 trả lời một phần.
+- Ảnh sản phẩm trên form feedback, form return/INR, Returns and requests, chi tiết request (đang placeholder) — task riêng (DTO/service Reviews + Disputes).
+- Messages theo M2 2026 (hai cột) — chưa làm.
+- Q-TEAM-002 Open; Q-BIZ-007, Q-UI-012, Q-UI-010 Deferred; OPS-04 (Jira live) Pending.
 
 ## Bước tiếp theo
 
-1. H07 (nghiệm thu UI lại, `-Screens`) là bước riêng.
-2. Cluster demo vẫn chạy G02: deploy lại trước demo.
+1. Người dùng cho push → GitHub CI → fast-forward main; H07 Done.
+2. Người dùng deploy lại cluster demo `ebaygroup5` (đang chạy image G02) — agent không làm.
 
 ## Lưu ý vận hành
 
 - SDK 8 ở `%LOCALAPPDATA%\EbayGroup5\dotnet`: dot-source `scripts/Use-LocalDotnet.ps1`. Stage file cụ thể; `launchSettings.json` của người dùng. Không chạy Test-CI cùng Test-AppStack.
-- CSS `checkout-card`/`checkout-grid` vẫn dùng ở Disputes/Admin/Reviews — không xoá.
+- Docker Desktop disk image ở `D:\WINDOWS\PRN3\DockerImage\DockerDesktopWSL`. Chỉ dọn bằng `scripts/Clear-TestArtifacts.ps1`.
