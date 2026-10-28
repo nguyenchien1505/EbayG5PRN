@@ -4,7 +4,7 @@
 [G02 evidence](evidence/G02.md), runtime `e635866`/[CI37709417510](https://github.com/Twiash/EbayGroup5/actions/runs/37709417510) success.
 Còn **OPS-04 Pending**: user yêu cầu hoãn Jira live. Ngày nộp chưa xác định (Q-TEAM-002), badge unread Deferred (Q-UI-010).
 Q-DEMO-001 đã chốt: **đơn mới +clock demo**, `Start-K8s -Demo`30s/day. Không sửa seed/ngày lịch sử.
-**Đợt H (08/10/2026, [ADR-003](decisions/ADR-003-ui-fidelity-references.md)):** UI mọi màn giống eBay, backend nhóm khác giản lược; ảnh mẫu đã chốt ở [references/ui](references/ui/INDEX.md); task H00–H07 trong [INDEX](tasks/INDEX.md); H00–H06 Done 28/10/2026, H07 nghiệm thu lại 52 ảnh ([UI_ACCEPTANCE](architecture/UI_ACCEPTANCE.md)).
+**Đợt H (08/10/2026, [ADR-003](decisions/ADR-003-ui-fidelity-references.md)):** UI mọi màn giống eBay, backend nhóm khác giản lược; ảnh mẫu đã chốt ở [references/ui](references/ui/INDEX.md); task H00–H07 trong [INDEX](tasks/INDEX.md); H00–H07 Done 28/10/2026 (H07 nghiệm thu lại 52 ảnh, [UI_ACCEPTANCE](architecture/UI_ACCEPTANCE.md)).
 Bàn giao: [REPORT](delivery/REPORT.md), [SETUP](delivery/SETUP.md), [DEMO](delivery/DEMO.md),
 [HANDOVER/checklist](delivery/HANDOVER.md). Task/status: [INDEX](tasks/INDEX.md); requirement: [MATRIX](requirements/MATRIX.md).
 

@@ -1,6 +1,6 @@
 # Handoff — H07 (nghiệm thu UI lại, cập nhật bàn giao)
 
-28/10/2026. Nhánh `task/H07-ui-acceptance` từ main `c64c009` (H06); commit theo `git log --oneline --grep=H07`. **Chưa push/merge** — chờ người dùng.
+28/10/2026. Nhánh `task/H07-ui-acceptance` từ main `c64c009` (H06); commit theo `git log --oneline --grep=H07`. Main fast-forward tới nhánh này theo yêu cầu người dùng (28/10/2026). Đợt H (H00–H07) Done.
 Handoff trước: [H06b](H06b.md).
 
 ## Đã xong
@@ -12,7 +12,7 @@ Handoff trước: [H06b](H06b.md).
 ## Test
 
 - `Test-AppStack -Screens` pass (52 file, 0 problem). Test-CI local pass 295/295 .NET + 20/20 Node, NuGet audit sạch, 0 warning.
-- **Chưa chạy:** GitHub CI.
+- GitHub CI [40652576351](https://github.com/Twiash/EbayGroup5/actions/runs/40652576351) trên `21f05e6`: success attempt 1 — 295/295 .NET, J1–J7 + smoke HTTPS/WSS, load Short 0 lỗi, K8s, rolling 5.745 mẫu 0 HTTP 5xx, ACK 1.234 đủ.
 
 ## Còn lại / đề xuất
 
@@ -22,8 +22,7 @@ Handoff trước: [H06b](H06b.md).
 
 ## Bước tiếp theo
 
-1. Người dùng cho push → GitHub CI → fast-forward main; H07 Done.
-2. Người dùng deploy lại cluster demo `ebaygroup5` (đang chạy image G02) — agent không làm.
+1. Người dùng deploy lại cluster demo `ebaygroup5` (đang chạy image G02) — agent không làm.
 
 ## Lưu ý vận hành
 
