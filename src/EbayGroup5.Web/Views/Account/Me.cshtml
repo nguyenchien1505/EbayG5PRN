@@ -1,9 +1,34 @@
 @using System.Security.Claims
-@{ ViewData["Title"] = "Your account"; }
-<section class="account-card" aria-labelledby="account-title">
-    <h1 id="account-title">Welcome, @User.Identity?.Name</h1>
-    <p>You are signed in as @User.FindFirstValue(ClaimTypes.Role).</p>
-    <form asp-action="Logout" method="post">
-        <button type="submit" class="account-submit">Sign out</button>
-    </form>
-</section>
+@{ ViewData["Title"] = "My eBay: Account"; var me = User.FindFirstValue(ClaimTypes.NameIdentifier);
+    var buyer = User.IsInRole("Buyer"); var seller = User.IsInRole("Seller"); }
+@* H06b (ORDERS.md, reference AC): My eBay > Account with only the links the clone has. *@
+<partial name="_MyEbayNav" model="@("account")" />
+<div class="myebay-account">
+    <section aria-labelledby="account-personal"><h2 id="account-personal">Personal Info</h2>
+        <p>@User.Identity?.Name<br /><span class="field-help">You are signed in as @User.FindFirstValue(ClaimTypes.Role).</span></p>
+        <form asp-action="Logout" method="post"><button type="submit" class="link-button">Sign out</button></form>
+    </section>
+    @if (buyer || seller)
+    {
+        <section aria-labelledby="account-activity"><h2 id="account-activity">Activity</h2>
+            @if (buyer) { <a asp-controller="Orders" asp-action="Purchases">Purchases</a> }
+            @if (seller) { <a asp-controller="Orders" asp-action="Sales">Sales</a> }
+            <a asp-controller="Disputes" asp-action="Index">Returns and requests</a>
+            <a asp-controller="Messages" asp-action="Index">Messages</a>
+        </section>
+    }
+    @if (seller)
+    {
+        <section aria-labelledby="account-selling"><h2 id="account-selling">Selling</h2>
+            <a asp-controller="Catalog" asp-action="Index" asp-route-seller="@me">Your listings</a>
+            <a asp-controller="Sellers" asp-action="Feedback" asp-route-id="@me">Feedback profile</a>
+        </section>
+    }
+    @if (User.IsInRole("Admin"))
+    {
+        <section aria-labelledby="account-admin"><h2 id="account-admin">Admin</h2>
+            <a asp-controller="Admin" asp-action="Moderation">Moderation</a>
+            <a asp-controller="Admin" asp-action="Disputes">Request reviews</a>
+        </section>
+    }
+</div>

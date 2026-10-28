@@ -1,0 +1,12 @@
+@model string
+@* H06b (ORDERS.md, references P3/AC): My eBay title and tabs; only tabs with a clone page are shown. *@
+@{ var buyer = User.IsInRole("Buyer"); var seller = User.IsInRole("Seller"); }
+<div class="myebay-head">
+    <h1>My eBay</h1>
+    <nav class="myebay-tabs" aria-label="My eBay">
+        @if (buyer) { <a asp-controller="Orders" asp-action="Purchases" aria-current="@(Model == "activity" ? "page" : null)">Activity</a> }
+        @if (seller) { <a asp-controller="Orders" asp-action="Sales" aria-current="@(Model == "activity" ? "page" : null)">Activity</a> }
+        @if (buyer || seller) { <a asp-controller="Messages" asp-action="Index">Messages</a> }
+        <a asp-controller="Account" asp-action="Me" aria-current="@(Model == "account" ? "page" : null)">Account</a>
+    </nav>
+</div>

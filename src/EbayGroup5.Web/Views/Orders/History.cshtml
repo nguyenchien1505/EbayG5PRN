@@ -2,56 +2,68 @@
 @using EbayGroup5.Application.Orders
 @using System.Globalization
 @{ var disputeLines = ViewData["DisputeLines"] as IReadOnlyDictionary<int, EbayGroup5.Application.Disputes.DisputeEligibility>;
-    var buyer = Model.Audience == OrderAudience.Buyer; var action = buyer ? "Purchases" : "Sales"; ViewData["Title"] = buyer ? "Purchase history" : "Sales history";
+    var buyer = Model.Audience == OrderAudience.Buyer; var action = buyer ? "Purchases" : "Sales"; ViewData["Title"] = action;
     // D06 (A3): eBay-style filter chips; "Ready for feedback" is buyer-only.
-    var chips = new List<(string? Value, string Label)> { (null, buyer ? "All purchases" : "All sales") };
+    var chips = new List<(string? Value, string Label)> { (null, buyer ? "All Purchases" : "All sales") };
     if (buyer) chips.Add((OrderHistory.ReadyForFeedback, "Ready for feedback"));
     chips.AddRange(OrderHistory.Statuses.Select(x => ((string?)x, x))); }
-<h1>@ViewData["Title"]</h1>
-<p class="field-help">Your orders · @Model.Total results. Shipping and COD payments are simulated.</p>
-<nav class="order-chips" aria-label="Filter orders">
-    @foreach (var chip in chips)
-    {
-        var active = Model.Status == chip.Value;
-        <a class="order-chip@(active ? " active" : "")" asp-action="@action" asp-route-status="@chip.Value" aria-current="@(active ? "page" : null)">@chip.Label</a>
-    }
-</nav>
-@if (Model.Orders.Count == 0) { <section class="checkout-card"><h2>No orders here</h2><p>@(Model.Status == OrderHistory.ReadyForFeedback ? "You have no orders ready for feedback." : "No orders match this page or filter.")</p><a asp-controller="Catalog" asp-action="Index">Browse items</a></section> }
-@foreach (var order in Model.Orders)
-{
-    <article class="order-card"><div class="order-card-heading"><strong>@order.Status</strong><span>Order #@order.Id · @(order.Date?.ToString("MMM dd, yyyy", CultureInfo.InvariantCulture) ?? "Date unavailable")</span></div>
-        <div class="order-card-content"><div class="order-item-icon product-placeholder" aria-hidden="true"><svg viewBox="0 0 64 64"><path d="M12 20 32 10 52 20 32 30Z M12 20v24l20 10 20-10V20 M32 30v24" /></svg></div>
-            <div class="order-item-text"><h2><a asp-action="Details" asp-route-id="@order.Id">@order.Title</a></h2><p>@order.ItemCount order line(s)</p><strong>Total: @(order.Total is decimal total ? "US $" + total.ToString("N2", CultureInfo.InvariantCulture) : "Unavailable")</strong></div>
-            <div class="order-card-actions">
-                <a class="button outline" asp-action="Details" asp-route-id="@order.Id">View order details</a>
-                @if (buyer && order.FeedbackItemId is int feedbackItem)
-                {
-                    if (order.FeedbackLines == 1) { <a class="button outline" asp-controller="Reviews" asp-action="Create" asp-route-orderItemId="@feedbackItem">Leave feedback</a> }
-                    else { <a class="button outline" asp-action="Details" asp-route-id="@order.Id" title="@order.FeedbackLines items are ready for feedback">Leave feedback</a> }
-                }
-                @if (buyer && order.ContactItemId is int contactItem)
-                {
-                    var dispute = disputeLines?.GetValueOrDefault(contactItem);
-                    <details class="more-actions">
-                        <summary class="button outline">More actions</summary>
-                        <div class="more-actions-menu">
-                            <button type="button" data-chat-order-item-id="@contactItem">Contact seller</button>
-                            @* E02 (DISPUTE_FORMS.md): request entries for the same line; "See request details" opens the newest request (E03). *@
-                            @if (dispute?.ItemNotReceived.CanOpen == true) { <a asp-controller="Disputes" asp-action="NotReceived" asp-route-orderItemId="@contactItem">I didn't receive it</a> }
-                            @if (dispute?.Return.CanOpen == true) { <a asp-controller="Disputes" asp-action="Return" asp-route-orderItemId="@contactItem">Return this item</a> }
-                            @if (dispute?.Requests.FirstOrDefault() is { } latest) { <a asp-controller="Disputes" asp-action="Details" asp-route-id="@latest.Id">See request details</a> }
-                        </div>
-                    </details>
-                }
-            </div>
-        </div>
-    </article>
-}
-<nav class="pagination" aria-label="Order history pages">
-    @if(Model.Page > 1) { <a asp-action="@action" asp-route-page="@(Model.Page-1)" asp-route-status="@Model.Status">← Previous</a> }
-    <span>Page @Model.Page of @Math.Max(1, Model.TotalPages)</span>
-    @if(Model.Page < Model.TotalPages) { <a asp-action="@action" asp-route-page="@(Model.Page+1)" asp-route-status="@Model.Status">Next →</a> }
-</nav>
+@* H06b (ORDERS.md, references P3, P1, P2): My eBay > Activity > Purchases/Sales. Group 5 actions keep their D06/E02 markup. *@
+<partial name="_MyEbayNav" model="@("activity")" />
+<div class="myebay-activity">
+    <nav class="myebay-side" aria-label="Activity">
+        <a asp-action="@action" aria-current="page">@action</a>
+        <a asp-controller="Disputes" asp-action="Index">Returns and requests</a>
+    </nav>
+    <div class="myebay-content">
+        <h2 class="myebay-title">@action</h2>
+        <nav class="order-chips" aria-label="Filter orders">
+            @foreach (var chip in chips)
+            {
+                var active = Model.Status == chip.Value;
+                <a class="order-chip@(active ? " active" : "")" asp-action="@action" asp-route-status="@chip.Value" aria-current="@(active ? "page" : null)">@chip.Label</a>
+            }
+        </nav>
+        <h3 class="myebay-subtitle">Orders <span class="field-help">@Model.Total results · shipping and COD payments are simulated</span></h3>
+        @if (Model.Orders.Count == 0) { <div class="myebay-empty"><p><strong>No orders were found</strong></p><p class="field-help">@(Model.Status == OrderHistory.ReadyForFeedback ? "You have no orders ready for feedback." : "No orders match this page or filter.")</p><a asp-controller="Catalog" asp-action="Index">Browse items</a></div> }
+        @foreach (var order in Model.Orders)
+        {
+            <article class="order-card"><div class="order-card-heading"><div><strong>@order.Status</strong><span>Order date: @(order.Date?.ToString("MMM dd, yyyy", CultureInfo.InvariantCulture) ?? "unavailable") · Order #@order.Id</span></div>
+                    <a class="button outline order-view" asp-action="Details" asp-route-id="@order.Id">View order details</a></div>
+                <div class="order-card-content">
+                    @if (order.Image != null) { <img class="order-item-icon order-item-photo" src="@order.Image" alt="" /> }
+                    else { <div class="order-item-icon product-placeholder" aria-hidden="true"><svg viewBox="0 0 64 64"><path d="M12 20 32 10 52 20 32 30Z M12 20v24l20 10 20-10V20 M32 30v24" /></svg></div> }
+                    <div class="order-item-text"><h4><a asp-action="Details" asp-route-id="@order.Id">@order.Title</a></h4><p>@order.ItemCount order line(s)</p><strong>@(order.Total is decimal total ? "US $" + total.ToString("N2", CultureInfo.InvariantCulture) : "Total unavailable")</strong></div>
+                    <div class="order-card-actions">
+                        @if (buyer && order.FeedbackItemId is int feedbackItem)
+                        {
+                            if (order.FeedbackLines == 1) { <a class="button primary" asp-controller="Reviews" asp-action="Create" asp-route-orderItemId="@feedbackItem">Leave feedback</a> }
+                            else { <a class="button primary" asp-action="Details" asp-route-id="@order.Id" title="@order.FeedbackLines items are ready for feedback">Leave feedback</a> }
+                        }
+                        @if (buyer && order.ContactItemId is int contactItem)
+                        {
+                            var dispute = disputeLines?.GetValueOrDefault(contactItem);
+                            <details class="more-actions">
+                                <summary class="button outline">More actions</summary>
+                                <div class="more-actions-menu">
+                                    <button type="button" data-chat-order-item-id="@contactItem">Contact seller</button>
+                                    @* E02 (DISPUTE_FORMS.md): request entries for the same line; "See request details" opens the newest request (E03). *@
+                                    @if (dispute?.ItemNotReceived.CanOpen == true) { <a asp-controller="Disputes" asp-action="NotReceived" asp-route-orderItemId="@contactItem">I didn't receive it</a> }
+                                    @if (dispute?.Return.CanOpen == true) { <a asp-controller="Disputes" asp-action="Return" asp-route-orderItemId="@contactItem">Return this item</a> }
+                                    @if (dispute?.Requests.FirstOrDefault() is { } latest) { <a asp-controller="Disputes" asp-action="Details" asp-route-id="@latest.Id">See request details</a> }
+                                </div>
+                            </details>
+                        }
+                    </div>
+                </div>
+            </article>
+        }
+        <nav class="pagination" aria-label="Order history pages">
+            @if(Model.Page > 1) { <a asp-action="@action" asp-route-page="@(Model.Page-1)" asp-route-status="@Model.Status">← Previous</a> }
+            <span>Page @Model.Page of @Math.Max(1, Model.TotalPages)</span>
+            @if(Model.Page < Model.TotalPages) { <a asp-action="@action" asp-route-page="@(Model.Page+1)" asp-route-status="@Model.Status">Next →</a> }
+        </nav>
+    </div>
+</div>
 @if (buyer) { <partial name="_ChatPanel" /> }
 @section Styles { @if (buyer) { <link rel="stylesheet" href="~/css/chat.css" asp-append-version="true" /> } }
 @section Scripts { @if (buyer) { <partial name="_ChatScripts" /> } }
