@@ -1,6 +1,6 @@
 # Handoff — H06b (My eBay: Purchases, Order details, Account)
 
-28/10/2026. Nhánh `task/H06b-my-ebay` từ main `80ed79c` (H06a); commit theo `git log --oneline --grep=H06b`. **Chưa push/merge** — chờ người dùng.
+28/10/2026. Nhánh `task/H06b-my-ebay` từ main `80ed79c` (H06a); commit theo `git log --oneline --grep=H06b`. Main fast-forward tới nhánh này theo yêu cầu người dùng (28/10/2026). H06 Done.
 Handoff trước: [H06a](H06a.md).
 
 ## Đã xong
@@ -16,7 +16,8 @@ Handoff trước: [H06a](H06a.md).
 
 - Trình duyệt in-app trên SQL/Redis tạm (đã xoá): desktop 1050 + 375 px, 0 tràn ngang, 0 lỗi console.
 - Test-CI local pass 295/295 .NET + 20/20 Node, NuGet audit sạch, 0 warning (lần 1 fail 1 test: OrderTests còn kiểm "Payment: COD" → đổi sang "Cash on delivery · Paid"); Test-AppStack local pass J1–J7 + smoke HTTPS/WSS, CSP.
-- **Chưa chạy:** GitHub CI, `-Screens` (H07).
+- GitHub CI [40640649806](https://github.com/Twiash/EbayGroup5/actions/runs/40640649806) trên `845adb1`: success attempt 1 — 295/295 .NET, J1–J7 + smoke HTTPS/WSS, load Short 0 lỗi, K8s, rolling 4.632 mẫu 0 HTTP 5xx, ACK 1.145 đủ.
+- **Chưa chạy:** `-Screens` (H07).
 
 ## Chặn / câu hỏi
 
@@ -24,9 +25,8 @@ Handoff trước: [H06a](H06a.md).
 
 ## Bước tiếp theo
 
-1. Người dùng cho push → GitHub CI → fast-forward main; H06b Done, H06 Done.
-2. H07 (nghiệm thu UI lại, `-Screens`) là bước riêng.
-3. Cluster demo vẫn chạy G02: deploy lại trước demo.
+1. H07 (nghiệm thu UI lại, `-Screens`) là bước riêng.
+2. Cluster demo vẫn chạy G02: deploy lại trước demo.
 
 ## Lưu ý vận hành
 
