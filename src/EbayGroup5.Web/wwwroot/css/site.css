@@ -77,20 +77,12 @@ main.shell-width { flex: 1; padding-block: 32px 64px; }
 .site-footer .shell-width { display: flex; gap: 16px; justify-content: space-between; flex-wrap: wrap; }
 .sr-only, .skip-link:not(:focus) { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 .skip-link:focus { position: absolute; z-index: 5; background: white; padding: 16px; }
-.account-card { max-width: 26rem; margin: 4rem auto; }
-.account-card h1 { font-size: 2rem; margin-bottom: .75rem; }
-.account-card label { display: block; font-weight: 600; margin: 1.25rem 0 .5rem; }
-.account-card input { box-sizing: border-box; width: 100%; border: 1px solid #767676; border-radius: .5rem; background: #f7f7f7; padding: .9rem; font: inherit; }
-.account-card input:focus { outline: 3px solid #3665f3; outline-offset: 2px; }
 .field-help { color: #555; font-size: .875rem; }
-.account-submit { width: 100%; border: 0; border-radius: 1.75rem; padding: 1rem; margin-top: 1rem; background: #3665f3; color: white; font: inherit; font-weight: 600; cursor: pointer; }
-.account-submit:hover { background: #2448bf; }
 .validation-summary { color: #a11b0a; }
 .validation-summary-valid { display: none; }
 .validation-errors { color:#a11b0a; background:#fff1f0; border-left:4px solid #e0103a; padding:12px 20px; margin:16px 0; }
-.account-card a { color: #2448bf; }
 .account-notice { padding: .75rem; background: #edf6ed; border-radius: .5rem; }
-@media (max-width: 480px) { main { margin-top: 1.5rem; padding: 0 1rem; } .account-card { margin: 2rem auto; } }
+@media (max-width: 480px) { main { margin-top: 1.5rem; padding: 0 1rem; } }
 @media (max-width: 700px) {
     .shell-width { width: calc(100% - 32px); }
     .brand-row { gap: 18px; flex-wrap: wrap; padding-block: 16px 20px; }
@@ -696,3 +688,68 @@ main.shell-width { flex: 1; padding-block: 32px 64px; }
     .minimal-aside { flex-basis: 100%; margin: 0; }
 }
 @media (max-width: 480px) { .co-fields { grid-template-columns: minmax(0, 1fr); } .co-form-actions .button { flex: 1; } }
+
+/* H06b (ORDERS.md; references P3, P1, P2, OD, AC): My eBay shell, Purchases/Sales, Order details, Account. */
+.myebay-head h1 { font-size: 28px; margin: 0 0 16px; }
+.myebay-tabs { display: flex; gap: 28px; border-bottom: 1px solid #e5e5e5; margin-bottom: 28px; }
+.myebay-tabs a { padding: 0 0 10px; color: #555; text-decoration: none; border-bottom: 2px solid transparent; }
+.myebay-tabs a[aria-current] { color: #191919; border-bottom-color: #191919; }
+.myebay-activity { display: grid; grid-template-columns: 170px minmax(0, 1fr); gap: 28px; align-items: start; }
+.myebay-side { display: grid; gap: 4px; }
+.myebay-side a { padding: 8px 12px; color: #191919; font-weight: 700; font-size: 15px; text-decoration: none; border-radius: 4px; }
+.myebay-side a[aria-current] { background: #e5e5e5; text-decoration: underline; }
+.myebay-content { min-width: 0; }
+.myebay-title { font-size: 24px; margin: 4px 0 0; }
+.myebay-subtitle { font-size: 18px; margin: 8px 0 16px; }
+.myebay-subtitle .field-help { font-weight: 400; margin-left: 8px; }
+.myebay-empty { text-align: center; padding: 32px 0; }
+.myebay-empty p { margin: 4px 0; }
+.myebay-content .order-chip { border-color: #f2f2f2; background: #f2f2f2; }
+.myebay-content .order-chip.active { background: #fff; border-color: #191919; color: #191919; }
+.order-card-heading > div { display: grid; gap: 2px; font-size: 14px; }
+.order-card-heading { align-items: center; }
+.order-view { min-height: 36px; padding: 6px 24px; border-color: #3665f3; color: #3665f3; background: #fff; }
+.order-item-text h4 { font-size: 16px; margin: 0; font-weight: 400; }
+.order-item-text h4 a { color: #191919; }
+.order-item-photo { object-fit: contain; background: #f3f3f3; border-radius: 12px; }
+.order-card-actions .outline { border-color: #3665f3; color: #3665f3; }
+.od-title { font-size: 28px; margin: 0 0 20px; }
+.od-grid { display: grid; grid-template-columns: minmax(0, 1.6fr) minmax(260px, 1fr); gap: 20px; align-items: start; margin-bottom: 48px; }
+.od-main, .od-side { display: grid; gap: 20px; min-width: 0; }
+.od-card { border: 1px solid #ddd; border-radius: 16px; padding: 20px 24px; overflow-wrap: anywhere; background: #fff; }
+.od-card h2 { font-size: 22px; margin: 0 0 12px; }
+.od-card h3 { font-size: 15px; margin: 0 0 8px; }
+.od-card .order-status { font-size: inherit; }
+.od-progress { list-style: none; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); padding: 0; margin: 20px 0; font-size: 14px; }
+.od-progress li { display: grid; gap: 2px; justify-items: start; position: relative; }
+.od-progress li:last-child { justify-items: end; text-align: right; }
+.od-progress li:nth-child(2) { justify-items: center; text-align: center; }
+.od-dot { width: 22px; height: 22px; border-radius: 50%; border: 2px solid #c7c7c7; background: #fff; margin-bottom: 6px; }
+.od-progress li.done .od-dot { border-color: #3665f3; background: #3665f3; display: grid; place-items: center; }
+.od-progress li.done .od-dot::after { content: ""; width: 5px; height: 10px; border: solid #fff; border-width: 0 2px 2px 0; transform: translateY(-1px) rotate(45deg); }
+.od-action { min-width: 240px; min-height: 40px; padding: 8px 24px; }
+.od-item { display: flex; gap: 16px; align-items: flex-start; margin-bottom: 12px; }
+.od-item .order-item-icon { width: 96px; }
+.od-item a { color: #191919; }
+.od-columns { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+.od-facts { display: grid; gap: 10px; margin: 0; font-size: 14px; }
+.od-facts div { display: flex; justify-content: space-between; gap: 16px; }
+.od-facts dt { color: #555; }
+.od-facts dd { margin: 0; text-align: right; }
+.od-total { border-top: 1px solid #ddd; padding-top: 10px; font-weight: 700; font-size: 16px; }
+.od-total dt { color: #191919; }
+.myebay-account { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 32px; margin-bottom: 48px; }
+.myebay-account h2 { font-size: 16px; margin: 0 0 14px; }
+.myebay-account section { display: grid; align-content: start; gap: 12px; font-size: 14px; }
+.myebay-account section > a, .myebay-account .link-button { color: #191919; text-decoration: none; font-size: 14px; }
+.myebay-account section > a:hover, .myebay-account .link-button:hover { text-decoration: underline; }
+.myebay-account p { margin: 0; line-height: 1.5; }
+@media (max-width: 760px) {
+    .myebay-activity, .od-grid, .od-columns { grid-template-columns: minmax(0, 1fr); }
+    .myebay-side { display: flex; overflow-x: auto; gap: 8px; }
+    .myebay-side a { white-space: nowrap; }
+    .myebay-account { grid-template-columns: minmax(0, 1fr); gap: 24px; }
+    .od-card { padding: 18px; }
+    .od-action { width: 100%; min-width: 0; }
+    .order-view { width: 100%; }
+}

@@ -254,7 +254,7 @@ public sealed class OrderTests
         Assert.Contains("Confirm received",buyerPage);
         var receiveForm = new Dictionary<string,string> { ["id"] = s.Order.ToString(), ["__RequestVerificationToken"] = Field(buyerPage), ["amount"]="0.01" };
         Assert.Equal(HttpStatusCode.Redirect,(await buyer.PostAsync("/Orders/Receive",new FormUrlEncodedContent(receiveForm))).StatusCode);
-        Assert.Contains("Payment: COD",await buyer.GetStringAsync($"/Orders/Details/{s.Order}"));
+        Assert.Contains("Cash on delivery · Paid",await buyer.GetStringAsync($"/Orders/Details/{s.Order}"));
         Assert.Equal("Delivered",SqlFixture.Scalar(s.Target,$"SELECT status FROM dbo.OrderTable WHERE id={s.Order}"));
         Assert.Equal("99.80",SqlFixture.Scalar(s.Target,$"SELECT amount FROM dbo.Payment WHERE orderId={s.Order}"));
     }

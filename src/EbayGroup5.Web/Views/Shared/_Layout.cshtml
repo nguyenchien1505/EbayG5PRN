@@ -4,7 +4,6 @@
     // H03 (references HD, HM, IT-1): eBay header — utility row, logo + Shop by category + scoped search, category bar — and footer.
     // Controls without a clone feature open /Help/Unavailable/{key} (ADR-003 §2).
     var signedIn = User.Identity?.IsAuthenticated == true;
-    var isAccountPage = string.Equals(ViewContext.RouteData.Values["controller"]?.ToString(), "Account", StringComparison.OrdinalIgnoreCase);
     var categories = await Shell.CategoriesAsync(Context.RequestAborted);
     var shipTo = signedIn ? await Shell.ShipToAsync(User, Context.RequestAborted) : null;
     var me = User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -96,9 +95,7 @@
         </div>
         <div class="brand-row shell-width">
             <a class="wordmark" asp-controller="Home" asp-action="Index" aria-label="eBay Clone home"><span>e</span><span>b</span><span>a</span><span>y</span></a>
-            @if (!isAccountPage)
-            {
-                <details class="header-menu shop-category" data-menu>
+            <details class="header-menu shop-category" data-menu>
                     <summary><span>Shop by<br />category</span><svg class="caret" viewBox="0 0 12 12" aria-hidden="true"><path d="M2 4l4 4 4-4" /></svg></summary>
                     <div class="menu-panel menu-panel-left category-panel">
                         <p class="menu-title">Shop by category</p>
@@ -121,10 +118,7 @@
                     <button class="button primary" type="submit">Search</button>
                 </form>
                 <a class="advanced-link" asp-controller="Help" asp-action="Unavailable" asp-route-id="advanced-search">Advanced</a>
-            }
         </div>
-        @if (!isAccountPage)
-        {
             <nav class="category-bar" aria-label="Categories">
                 <div class="shell-width">
                     <a asp-controller="Help" asp-action="Unavailable" asp-route-id="saved">Saved</a>
@@ -133,7 +127,6 @@
                     <a asp-controller="Help" asp-action="Unavailable" asp-route-id="sell">Sell</a>
                 </div>
             </nav>
-        }
     </header>
     }
     <main id="main-content" class="shell-width" tabindex="-1">@if (TempData["SiteNotice"] is string siteNotice) { <p class="account-notice" role="status">@siteNotice</p> }@RenderBody()</main>

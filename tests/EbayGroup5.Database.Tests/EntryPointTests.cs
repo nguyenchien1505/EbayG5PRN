@@ -157,7 +157,7 @@ public sealed class EntryPointTests
 
         // A3/A4: chips, Leave feedback straight to the R1 form for a single open line, More actions → Contact seller.
         var purchases = await buyer.GetStringAsync("/Orders/Purchases");
-        Current(purchases, "All purchases");
+        Current(purchases, "All Purchases");
         Assert.Contains("href=\"/Orders/Purchases?status=ReadyForFeedback\"", purchases);
         Assert.Contains($"href=\"/Reviews/Create?orderItemId={s.Item}\">Leave feedback</a>", purchases);
         Assert.Single(Regex.Matches(purchases, ">Leave feedback</a>"));

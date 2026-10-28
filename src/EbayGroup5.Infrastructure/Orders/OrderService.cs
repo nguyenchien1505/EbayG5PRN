@@ -1,4 +1,5 @@
 using System.Data;
+using EbayGroup5.Application.Catalog;
 using EbayGroup5.Application.Disputes;
 using EbayGroup5.Application.Orders;
 using EbayGroup5.Core.Entities;
@@ -36,6 +37,8 @@ public sealed class OrderService(EbayDbContext db, TimeProvider? clock = null, D
                 x.Id, x.OrderDate, x.Status, x.TotalPrice,
                 Title = (from item in db.Set<OrderItem>() join product in db.Set<Product>() on item.ProductId equals product.Id
                     where item.OrderId == x.Id orderby item.Id select product.Title).FirstOrDefault(),
+                ImageData = (from item in db.Set<OrderItem>() join product in db.Set<Product>() on item.ProductId equals product.Id
+                    where item.OrderId == x.Id orderby item.Id select product.Images).FirstOrDefault(),
                 Count = db.Set<OrderItem>().Count(item => item.OrderId == x.Id),
                 FeedbackItemId = due.Where(item => item.OrderId == x.Id).OrderBy(item => item.Id).Select(item => (int?)item.Id).FirstOrDefault(),
                 FeedbackLines = due.Count(item => item.OrderId == x.Id),
@@ -43,7 +46,7 @@ public sealed class OrderService(EbayDbContext db, TimeProvider? clock = null, D
                     .OrderBy(item => item.Id).Select(item => (int?)item.Id).FirstOrDefault() : null
             }).ToListAsync(cancellationToken);
         var summaries = rows.Select(x => new OrderSummary(x.Id, x.OrderDate, x.Status ?? "Unknown", x.TotalPrice, x.Title ?? "Item unavailable", x.Count)
-            { FeedbackItemId = x.FeedbackItemId, FeedbackLines = x.FeedbackLines, ContactItemId = x.ContactItemId }).ToList();
+            { FeedbackItemId = x.FeedbackItemId, FeedbackLines = x.FeedbackLines, ContactItemId = x.ContactItemId, Image = CatalogImages.Parse(x.ImageData).FirstOrDefault() }).ToList();
         return new(summaries, total, page, status, audience);
     }
 
@@ -88,9 +91,13 @@ public sealed class OrderService(EbayDbContext db, TimeProvider? clock = null, D
         if (order == null) return null;
         var state = await Load(order, cancellationToken);
         var productIds = state.Items.Take(50).Where(x => x.ProductId != null).Select(x => x.ProductId!.Value).Distinct().ToArray();
-        var titles = await db.Set<Product>().AsNoTracking().Where(x => productIds.Contains(x.Id)).ToDictionaryAsync(x => x.Id, x => x.Title, cancellationToken);
-        var lines = state.Items.Take(50).Select(x => new OrderLine(x.Id, x.ProductId,
-            x.ProductId is int id && titles.TryGetValue(id, out var title) ? title ?? "Item unavailable" : "Item unavailable", x.Quantity, x.UnitPrice)).ToList();
+        var products = await db.Set<Product>().AsNoTracking().Where(x => productIds.Contains(x.Id)).ToDictionaryAsync(x => x.Id, cancellationToken);
+        var lines = state.Items.Take(50).Select(x =>
+        {
+            var product = x.ProductId is int id ? products.GetValueOrDefault(id) : null;
+            return new OrderLine(x.Id, x.ProductId, product?.Title ?? "Item unavailable", x.Quantity, x.UnitPrice)
+                { Image = CatalogImages.Parse(product?.Images).FirstOrDefault() };
+        }).ToList();
         var address = state.Address == null ? null : new DeliveryAddress(state.Address.FullName ?? "", state.Address.Phone,
             state.Address.Street ?? "", state.Address.City ?? "", state.Address.State, state.Address.Country ?? "");
         var payment = state.Payments.Count == 1 ? state.Payments[0] : null;
