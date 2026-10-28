@@ -1,30 +1,27 @@
-# Handoff — H07 (nghiệm thu UI lại, cập nhật bàn giao)
+# Handoff — OPS-002 (deploy lại cluster demo)
 
-28/10/2026. Nhánh `task/H07-ui-acceptance` từ main `c64c009` (H06); commit theo `git log --oneline --grep=H07`. Main fast-forward tới nhánh này theo yêu cầu người dùng (28/10/2026). Đợt H (H00–H07) Done.
-Handoff trước: [H06b](H06b.md).
+28/10/2026. Nhánh `task/OPS-002-k8s-secrets-guard` từ main `72631b2` (H07); xem `git log --oneline --grep=OPS-002`.
+Handoff trước: [H07](H07.md) (đợt H00–H07 Done, phần còn lại/đề xuất).
 
 ## Đã xong
 
-- Chụp lại 26 màn × desktop/mobile = 52 ảnh trong `docs/evidence/ui` (thay bộ G01), 0 tràn ngang, 0 vi phạm CSP.
-- `Test-AppStack -Screens` tự bật demo clock 30 s/ngày; Journeys `--screens` tạo đơn mới qua UI (đơn seed 09/2026 đã hết cửa sổ return/INR); thêm S20–S25.
-- [UI_ACCEPTANCE](../architecture/UI_ACCEPTANCE.md) có bảng H07 (G01 giữ làm lịch sử); REPORT §5, DEMO, HANDOVER cập nhật.
+- Cluster demo `ebaygroup5` chạy `ebaygroup5-web:72631b2` (main sau H07): 2 pod web Ready, journal 16 migration,
+  seed `A06-v1/H05-v1`, HTTPS https://localhost:9443 trả 200, ảnh sản phẩm H05 hiển thị. Dữ liệu/volume giữ nguyên.
+- Sự cố khi deploy: chạy từ worktree không có `secrets/` làm script sinh mật khẩu/CA mới và Job migrate thất bại; đã khôi phục
+  bằng `secrets/` gốc của checkout chính. `Start-K8s.ps1` nay dừng nếu cluster đã có mà thiếu secrets — [OPS-002](../tasks/OPS-002.md).
 
 ## Test
 
-- `Test-AppStack -Screens` pass (52 file, 0 problem). Test-CI local pass 295/295 .NET + 20/20 Node, NuGet audit sạch, 0 warning.
-- GitHub CI [40652576351](https://github.com/Twiash/EbayGroup5/actions/runs/40652576351) trên `21f05e6`: success attempt 1 — 295/295 .NET, J1–J7 + smoke HTTPS/WSS, load Short 0 lỗi, K8s, rolling 5.745 mẫu 0 HTTP 5xx, ACK 1.234 đủ.
+- Deploy lại pass (log `Start-K8s -Demo`), kiểm HTTPS/WSS/pod/journal như task card. Guard: thử thiếu `secrets/` → dừng đúng.
+- GitHub CI cho thay đổi script: xem task card (CI không chạy `Start-K8s`; Test-K8s dùng Deploy-K8s).
 
 ## Còn lại / đề xuất
 
-- Ảnh sản phẩm trên form feedback, form return/INR, Returns and requests, chi tiết request (đang placeholder) — task riêng (DTO/service Reviews + Disputes).
-- Messages theo M2 2026 (hai cột) — chưa làm.
+- Từ H07: ảnh sản phẩm trên form feedback, return/INR, Returns and requests, chi tiết request (placeholder); Messages theo M2 2026.
 - Q-TEAM-002 Open; Q-BIZ-007, Q-UI-012, Q-UI-010 Deferred; OPS-04 (Jira live) Pending.
-
-## Bước tiếp theo
-
-1. Người dùng deploy lại cluster demo `ebaygroup5` (đang chạy image G02) — agent không làm.
 
 ## Lưu ý vận hành
 
+- Chạy `Start-K8s` từ checkout chính `D:\WINDOWS\PRN3\EbayGroup5` (có `secrets/`); worktree phải chép `secrets/` từ đó.
 - SDK 8 ở `%LOCALAPPDATA%\EbayGroup5\dotnet`: dot-source `scripts/Use-LocalDotnet.ps1`. Stage file cụ thể; `launchSettings.json` của người dùng. Không chạy Test-CI cùng Test-AppStack.
 - Docker Desktop disk image ở `D:\WINDOWS\PRN3\DockerImage\DockerDesktopWSL`. Chỉ dọn bằng `scripts/Clear-TestArtifacts.ps1`.
