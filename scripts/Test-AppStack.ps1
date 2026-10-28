@@ -72,8 +72,10 @@ try {
         "APP_SUBNET=172.30.$octet.0/24", "APP_GATEWAY=172.30.$octet.1", "APP_PROXY_ADDRESS=172.30.$octet.10",
         "TLS_DIR=$((Join-Path $work 'tls').Replace('\', '/'))"))
     $compose = @('compose', '-p', $project, '-f', 'compose.yaml', '-f', 'compose.app.yaml') + $(if ($Load) { @('-f', 'compose.load.yaml') } else { @() }) + @('--env-file', $envFile)
+    # H07: screens capture fresh orders, so they need the demo clock for the item-not-received window (Q-DEMO-001).
+    if ($Screens -and -not $DemoClockSeconds) { $DemoClockSeconds = 30 }
     if ($DemoClockSeconds) {
-        if ($Load -or $Screens) { throw 'Demo rehearsal is separate from load/screens.' }
+        if ($Load) { throw 'Demo rehearsal is separate from load.' }
         $demoOverride = Join-Path $work 'compose.demo.yaml'
         "services:`n  web:`n    environment:`n      Disputes__DemoBusinessDaySeconds: '$DemoClockSeconds'`n      Disputes__Automation__IntervalSeconds: '2'" | Set-Content -LiteralPath $demoOverride
         $compose = @('compose', '-p', $project, '-f', 'compose.yaml', '-f', 'compose.app.yaml', '-f', $demoOverride, '--env-file', $envFile)
@@ -111,7 +113,7 @@ try {
     if ($Screens) {
         $target = if ([IO.Path]::IsPathRooted($Screens)) { $Screens } else { Join-Path $repoRoot $Screens }
         dotnet run --project tests/EbayGroup5.Journeys -c Release --no-launch-profile -- `
-            --base "https://localhost:$httpsPort" --spki $spki --out (Join-Path $work 'journeys') --screens $target
+            --base "https://localhost:$httpsPort" --spki $spki --out (Join-Path $work 'journeys') --screens $target --demo-clock $DemoClockSeconds
         if ($LASTEXITCODE -ne 0) { throw 'Screen capture failed; screenshots in artifacts/stack/<hex>/journeys, stack retained.' }
         $succeeded = $true
         return

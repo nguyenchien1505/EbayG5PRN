@@ -93,21 +93,24 @@ async Task<int> CaptureScreens(string dir)
         }
         await page.SetViewportSizeAsync(1280, 900);
     }
-    async Task<(string Delivered, string Shipped)> SeedOrders(IPage page)
+    // H07: seeded orders have fixed 09/2026 dates whose return/INR windows have closed (Q-DEMO-001), so capture on fresh orders.
+    async Task<string> PlaceOrder(IPage page, string product)
     {
-        await page.GotoAsync("/Orders/Purchases");
-        var links = await page.Locator("a[href*='/Orders/Details/']").EvaluateAllAsync<string[]>("els => [...new Set(els.map(e => e.getAttribute('href')))]");
-        string delivered = "", shipped = "";
-        foreach (var link in links)
-        {
-            await page.GotoAsync(link);
-            var status = (await page.Locator(".order-status").InnerTextAsync()).Trim();
-            if (status == "Delivered" && delivered == "") delivered = link;
-            if (status == "Shipped" && shipped == "") shipped = link;
-        }
-        if (delivered == "" || shipped == "") throw new InvalidOperationException("Seeded delivered/shipped orders not found.");
-        return (delivered, shipped);
+        await page.GotoAsync(product);
+        await page.GetByRole(AriaRole.Link, new() { Name = "Buy It Now" }).ClickAsync();
+        await page.Locator("input[name=AddressId]").First.CheckAsync();
+        await page.GetByRole(AriaRole.Button, new() { Name = "Confirm and pay" }).ClickAsync();
+        await Expect(page.GetByRole(AriaRole.Heading, new() { Name = "Your order is placed" })).ToBeVisibleAsync();
+        return "/Orders/Details/" + Regex.Match(await page.Locator(".confirmation-card").InnerTextAsync(), @"Order #(\d+)").Groups[1].Value;
     }
+    async Task Ship(IPage seller, string order)
+    {
+        await seller.GotoAsync(order);
+        await seller.GetByRole(AriaRole.Button, new() { Name = "Mark as shipped" }).ClickAsync();
+        await Expect(seller.Locator(".order-status")).ToHaveTextAsync("Shipped");
+    }
+    var screenClock = options.TryGetValue("--demo-clock", out var screenClockValue) && int.TryParse(screenClockValue, out var screenClockParsed) && screenClockParsed > 0 ? screenClockParsed
+        : throw new InvalidOperationException("--screens needs --demo-clock for the item-not-received window.");
 
     try
     {
@@ -133,14 +136,21 @@ async Task<int> CaptureScreens(string dir)
         await s.Locator("#chat-app button.chat-send").ClickAsync();
         await Expect(s.Locator("[data-message-list]").GetByText("Yes, one spare pair comes in the box.")).ToBeVisibleAsync();
 
-        // Seeded orders: one delivered (two lines), one shipped. Feedback on line 1, return on line 2, item not received on the shipped one.
-        var (delivered, shipped) = await SeedOrders(b);
+        // Order B (shipped, not received) becomes eligible for "I didn't receive it" five demo business days after it is placed.
+        var shipped = await PlaceOrder(b, product);
+        var shippedAt = DateTime.UtcNow;
+        await Ship(s, shipped);
+        var delivered = await PlaceOrder(b, product);
+        await Ship(s, delivered);
+        await b.GotoAsync(delivered);
+        await b.GetByRole(AriaRole.Button, new() { Name = "Confirm received" }).ClickAsync();
+        await Expect(b.Locator(".order-status")).ToHaveTextAsync("Delivered");
         await b.GotoAsync("/Orders/Purchases");
         await Shot(b, "S06", "purchases");
         await b.GotoAsync(delivered);
         await Shot(b, "S07", "order-details");
-        var lines = await b.Locator("[id^=line-]").EvaluateAllAsync<string[]>("els => els.map(e => e.id)");
-        await b.Locator("#" + lines[0]).GetByRole(AriaRole.Link, new() { Name = "Leave feedback" }).ClickAsync();
+        var line = await b.Locator("[id^=line-]").First.GetAttributeAsync("id");
+        await b.Locator("#" + line).GetByRole(AriaRole.Link, new() { Name = "Leave feedback" }).ClickAsync();
         await b.Locator("label[for=sentiment-Positive]").ClickAsync();
         await b.Locator("label[for=rating-5]").ClickAsync();
         await b.Locator("#feedback-comment").FillAsync("Great sound and comfortable for long calls. Fast shipping too.");
@@ -151,7 +161,7 @@ async Task<int> CaptureScreens(string dir)
         await Expect(b.GetByText("You rated this item 5 out of 5.")).ToBeVisibleAsync();
 
         await b.GotoAsync(delivered);
-        await b.Locator("#" + lines[1]).GetByRole(AriaRole.Link, new() { Name = "Return this item" }).ClickAsync();
+        await b.Locator("#" + line).GetByRole(AriaRole.Link, new() { Name = "Return this item" }).ClickAsync();
         await Shot(b, "S09", "return-reason");
         await b.GetByText("Item damaged", new() { Exact = true }).ClickAsync();
         await b.GetByRole(AriaRole.Button, new() { Name = "Next" }).ClickAsync();
@@ -159,7 +169,13 @@ async Task<int> CaptureScreens(string dir)
         await Shot(b, "S10", "return-details");
         await b.GetByRole(AriaRole.Button, new() { Name = "Confirm return" }).ClickAsync();
         await Expect(b.Locator(".account-notice")).ToContainTextAsync("Your request was sent.");
+        // The seller's reply window is three demo business days; capture the seller view before it can escalate.
+        await s.GotoAsync("/Disputes?kind=Return");
+        await s.GetByRole(AriaRole.Link, new() { NameRegex = new Regex("^See (request )?details$") }).First.ClickAsync();
+        await Shot(s, "S16", "request-seller");
 
+        var wait = shippedAt.AddSeconds(5 * screenClock + 3) - DateTime.UtcNow;
+        if (wait > TimeSpan.Zero) await Task.Delay(wait);
         await b.GotoAsync(shipped);
         await b.Locator("[id^=line-]").First.GetByRole(AriaRole.Link, new() { Name = "I didn't receive it" }).ClickAsync();
         await b.GetByText("I'd like a refund", new() { Exact = true }).ClickAsync();
@@ -197,9 +213,6 @@ async Task<int> CaptureScreens(string dir)
         await s.GotoAsync("/Messages");
         await s.Locator("[data-conversations]").GetByText("Wireless Headphones").First.ClickAsync();
         await Shot(s, "S15", "messages-seller");
-        await s.GotoAsync("/Disputes?kind=Return");
-        await s.GetByRole(AriaRole.Link, new() { NameRegex = new Regex("^See (request )?details$") }).First.ClickAsync();
-        await Shot(s, "S16", "request-seller");
         await s.GotoAsync(profile!);
         await Shot(s, "S17", "seller-feedback-owner");
 
@@ -207,6 +220,22 @@ async Task<int> CaptureScreens(string dir)
         await Shot(a, "S18", "admin-moderation");
         await a.GotoAsync("/Admin/Disputes");
         await Shot(a, "S19", "admin-disputes");
+
+        // H07: screens rebuilt in H03–H06 (references L0, C2, AC, P3). Checkout is only viewed; no order is placed here.
+        var guest = await NewPage("guest");
+        await guest.GotoAsync("/Account/Login");
+        await Shot(guest, "S20", "sign-in");
+        await guest.GotoAsync("/Account/Register");
+        await Shot(guest, "S21", "register");
+        var productId = Regex.Match(product, @"/Catalog/Details/(\d+)").Groups[1].Value;
+        await b.GotoAsync($"/Checkout?productId={productId}");
+        await Shot(b, "S22", "checkout");
+        await b.GotoAsync($"/Checkout/AddAddress?productId={productId}");
+        await Shot(b, "S23", "add-address");
+        await b.GotoAsync("/Account/Me");
+        await Shot(b, "S24", "account");
+        await s.GotoAsync("/Orders/Sales");
+        await Shot(s, "S25", "sales");
     }
     catch (Exception ex)
     {

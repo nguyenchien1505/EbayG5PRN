@@ -1,6 +1,6 @@
 # Báo cáo dự án eBay Clone — Nhóm 5
 
-Ngày tổng hợp: **08/10/2026** (Asia/Saigon). Ngày nộp: **chưa xác định**.
+Ngày tổng hợp: **08/10/2026** (Asia/Saigon), cập nhật UI đợt H **28/10/2026** ([H07](../tasks/H07.md)). Ngày nộp: **chưa xác định**.
 Repository private: [Twiash/EbayGroup5](https://github.com/Twiash/EbayGroup5).
 Đề bài lưu tại [requirements-extracted](../requirements/sources/requirements-extracted.md).
 
@@ -73,7 +73,10 @@ Mốc hạn và quy tắc đã chốt theo contract, không coi toàn bộ giả
 
 ## 5. UI và đối chiếu eBay
 
-G01 chụp **19 màn × desktop 1280 / mobile 390 = 38 ảnh**, 0 tràn ngang và 0 vi phạm CSP.
+Đợt H ([ADR-003](../decisions/ADR-003-ui-fidelity-references.md), H00–H06) làm lại mọi màn theo ảnh eBay
+đã chốt trong [references](../references/ui/INDEX.md): header/trang chủ, tìm kiếm, trang sản phẩm có ảnh demo,
+feedback profile, checkout, đăng nhập/đăng ký, My eBay (Purchases, Order details, Account).
+H07 chụp lại **26 màn × desktop 1280 / mobile 390 = 52 ảnh**, 0 tràn ngang và 0 vi phạm CSP.
 Ảnh, nguồn và phân loại: [UI_ACCEPTANCE](../architecture/UI_ACCEPTANCE.md),
 [gallery](../evidence/ui/), [UI_CANDIDATES](../architecture/UI_CANDIDATES.md).
 
@@ -81,10 +84,13 @@ G01 chụp **19 màn × desktop 1280 / mobile 390 = 38 ảnh**, 0 tràn ngang v�
 
 ![Return form desktop](../evidence/ui/S10-return-details-desktop.jpg)
 
-Các khác biệt đã duyệt: catalog giản lược, ảnh placeholder, COD/ship/receive mô phỏng,
+![Order details desktop](../evidence/ui/S07-order-details-desktop.jpg)
+
+Các khác biệt đã duyệt: chỉ COD và một lựa chọn giao hàng, không giỏ hàng/watchlist (mở trang thông báo), COD/ship/receive mô phỏng,
 request details/admin tự thiết kế theo contract vì không có mẫu eBay công khai,
 không đính kèm ảnh khiếu nại, nút refresh/nhãn Read của chat; badge tin chưa đọc
-trên menu được hoãn (Q-UI-010). Các màn/điểm vào của nhóm 5 đã được review;
+trên menu được hoãn (Q-UI-010). Còn lại sau H07: form/màn khiếu nại và form feedback chưa hiện ảnh sản phẩm
+(placeholder), Messages chưa theo bố cục M2 2026 — ghi ở UI_ACCEPTANCE. Các màn/điểm vào của nhóm 5 đã được review;
 không tuyên bố mọi màn của clone trùng eBay.
 
 ## 6. Kiểm thử và bảo mật

@@ -13,7 +13,7 @@ Refund/COD/ship/receive là mô phỏng, không chuyển tiền hoặc giao hàn
 - Đơn A để ship/receive/review/return. Đơn B **không Confirm received** để demo INR.
 - Đơn B sau150s đủ ngày giao dự kiến (5×30s); tạo đầu buổi để không phải đợi khi tới phần TV4.
 - Chuẩn bị3 URL: /Orders/Purchases, /Messages, /Disputes; admin /Admin/Disputes.
-- Mở [ảnh nghiệm thu](../evidence/ui/) và report/CI làm dự phòng khi mạng tới GitHub có vấn đề;
+- Mở [ảnh nghiệm thu](../evidence/ui/) (bộ H07, 28/10/2026) và report/CI làm dự phòng khi mạng tới GitHub có vấn đề;
   luôn nói rõ ảnh/run cũ là minh chứng, không giả kết quả live.
 
 ## Trình tự và người phụ trách
