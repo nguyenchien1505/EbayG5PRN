@@ -13,7 +13,8 @@ Handoff trước: [H07](H07.md) (đợt H00–H07 Done, phần còn lại/đề 
 ## Test
 
 - Deploy lại pass (log `Start-K8s -Demo`), kiểm HTTPS/WSS/pod/journal như task card. Guard: thử thiếu `secrets/` → dừng đúng.
-- GitHub CI cho thay đổi script: xem task card (CI không chạy `Start-K8s`; Test-K8s dùng Deploy-K8s).
+- CI 40695913974 đỏ J4 (form Return: `.button` ghi đè `[hidden]`, race với JS) → sửa `site.css`; Test-AppStack local pass;
+  GitHub CI [40699588765](https://github.com/Twiash/EbayGroup5/actions/runs/40699588765) trên `ed3dbe7` success attempt 1. Cluster demo deploy lại từ main sau sửa.
 
 ## Còn lại / đề xuất
 
