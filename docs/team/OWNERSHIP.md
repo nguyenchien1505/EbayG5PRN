@@ -21,6 +21,7 @@ Cập nhật 06/10/2026: user chốt tài khoản thật TV1 Tran Van Dat, TV2 �
 Quy ước user 06/10/2026 sau B05: gom công việc và evidence theo một đợt task để phân chia cho thành viên rồi mới đồng bộ Jira; không tự cập nhật sau mỗi task nhỏ. Số task/mốc mỗi đợt chưa ấn định, lưu các task hoàn tất chưa sync trong handoff/mapping. B06 chỉ triển khai và ghi evidence local; chưa ghi Jira hay worklog. Giữ account/issue mapping đã duyệt, không tạo ticket trùng.
 
 Cập nhật 02/11/2026 ([TEAM-001](../tasks/TEAM-001.md)): user yêu cầu chia lại để Cương ít việc nhất (vẫn có code), phần còn lại chia đều.
-Phân công trách nhiệm hiện hành nằm trong [TEAM_TASKS.xlsx](TEAM_TASKS.xlsx): Hải A00 A03 A04 A07 F01–F08 OPS-001/002;
-Đạt A01 A05 A06 B01–B06 H06/H06a/H06b G02; Huy C01–C05 D03 D04 H01–H03; Nguyên E01–E05 D05 D06 H04 H05 G01;
-Cương A02 H00 D01 D02 H07. Jira KAN vẫn theo bảng 06/10 cho tới khi làm OPS-04 (việc R01 trong file).
+Phân công trách nhiệm hiện hành nằm trong [TEAM_TASKS.xlsx](TEAM_TASKS.xlsx). Chia lại cùng ngày theo mức đóng góp
+(số task + độ khó 1–3): Hải A00 A03 A04 A07 F01 F02 F04–F07 OPS-002; Đạt A01 A05 A06 B01–B06 F03 F08;
+Huy C01–C05 D03 D04 H01 H02 OPS-001; Nguyên A02 D05 E01–E05 G01 G02 H05 H07; Cương D01 D02 D06 H00 H03 H04 H06/H06a/H06b.
+Bốn người ~21% mỗi người, Cương ~15% (khoảng 70% mức trung bình). Jira KAN vẫn theo bảng 06/10 cho tới khi làm OPS-04 (việc R01 trong file).

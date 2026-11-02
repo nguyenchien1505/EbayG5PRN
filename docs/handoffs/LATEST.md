@@ -7,7 +7,7 @@ Handoff trước: [OPS-002](OPS-002.md) (deploy lại cluster demo, lưu ý vậ
 
 - [TEAM_TASKS.xlsx](../team/TEAM_TASKS.xlsx): Tổng quan (công thức theo người), Task đã làm (52 task), Việc còn lại (R01–R13,
   X01–X03 Deferred); Tổng quan có Điểm năng suất (/10) và bảng trọng số sửa được. Task card [TEAM-001](../tasks/TEAM-001.md).
-- Phân công mới ghi ở [OWNERSHIP](../team/OWNERSHIP.md): Cương ít nhất (A02 H00 D01 D02 H07), bốn người còn lại ~23–25% mỗi người.
+- Phân công (chia lại theo mức đóng góp) ở [OWNERSHIP](../team/OWNERSHIP.md): bốn người ~21% mỗi người, Cương ~15%.
 - Không đổi code, Jira, ngày lịch sử.
 
 ## Test

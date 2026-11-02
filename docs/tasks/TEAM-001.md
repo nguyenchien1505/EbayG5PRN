@@ -43,3 +43,12 @@ Xem `git log --oneline --grep=TEAM-001`. Jira chưa đồng bộ theo phân côn
   Không xếp hạng/xếp loại (người dùng chọn chỉ điểm).
 - [x] Excel tính lại: Hải 7,0; Đạt 5,5; Huy 5,6; Nguyên 5,8; Cương 2,1 (chưa việc còn lại nào Done).
   Thử trên bản sao: R13 của Cương → Done cho 75% và 4,4 điểm, đúng công thức.
+
+## Cập nhật 02/11/2026 — chia lại theo mức đóng góp
+
+- Yêu cầu: đóng góp (số task + độ khó) đồng đều, Cương thấp nhất nhưng không quá thấp. Tổng quan thêm **Mức đóng góp**
+  = (TS khối lượng × độ khó/tổng + TS số task × số task/tổng) / (tổng hai trọng số), dùng chung trọng số với điểm năng suất.
+- Giả định "không quá thấp": Cương ≈ 70% mức trung bình của bốn người còn lại (sửa tay nếu nhóm muốn khác).
+- Kết quả (task/độ khó/đóng góp): Hải 11/20/21,4%; Đạt 11/19/20,6%; Huy 10/20/20,9%; Nguyên 11/21/22,2%; Cương 9/13/14,9%.
+  Danh sách task theo người ở [OWNERSHIP](../team/OWNERSHIP.md). Ghi chú lệch Jira và mô tả R09–R13 cập nhật theo phân công mới.
+- [x] Excel tính lại: 52 task đủ, mỗi task đúng một người; tổng đóng góp 100%; điểm năng suất Hải 6,8, Đạt 6,5, Huy 6,6, Nguyên 7,0, Cương 4,7.
