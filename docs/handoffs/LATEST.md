@@ -17,8 +17,8 @@ Handoff trước: [OPS-002](OPS-002.md) (deploy lại cluster demo, lưu ý vậ
 
 ## Còn lại / đề xuất
 
-- R01 (OPS-04): đồng bộ Jira KAN theo phân công mới — chỉ khi người dùng yêu cầu.
-- R02 / Q-TEAM-002: ngày nộp; khi có ngày thì điền cột Hạn chót trong file.
+- OPS-04: đồng bộ Jira KAN theo phân công mới — chỉ khi người dùng yêu cầu (người dùng đã bỏ R01, R02, R07 khỏi file).
+- Q-TEAM-002: ngày nộp chưa có; cột ngày sheet Việc còn lại để trống. Task đã làm có ngày kế hoạch dựng lại + ngày xong từ git.
 - R03–R05 là việc code tồn đọng H07: mỗi việc cần task card riêng trước khi sửa.
 - File Excel giờ do nhóm sửa trực tiếp (người dùng đã bỏ cột Jira/Dòng/Bằng chứng và sheet Ghi chú); agent sau sửa bằng Excel, không sinh lại.
 

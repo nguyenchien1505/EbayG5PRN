@@ -69,3 +69,14 @@ Xem `git log --oneline --grep=TEAM-001`. Jira chưa đồng bộ theo phân côn
   (chênh 0,24 trước làm tròn); Cương 9/13/14,9%/4,6 (~70% mức bốn người). Đổi so với lần trước: G01, G02 Nguyên→Hải;
   F04 Hải→Nguyên; B03, H00 Huy→Cương; H04 Cương→Huy.
 - [x] Excel tính lại: 52 task, mỗi task một người; đóng góp tổng 100%.
+
+## Cập nhật 02/11/2026 — dữ liệu thời gian
+
+- Người dùng yêu cầu ngày Bắt đầu/Hạn chót/Ngày xong, dự án từ 08/09/2026. Git chỉ có commit từ 02/10/2026, nên người dùng chọn:
+  Bắt đầu/Hạn chót = **kế hoạch dựng lại**; Ngày xong = commit cuối có `[ID]` (thực tế). Việc còn lại để trống (Q-TEAM-002).
+- Bắt đầu: forward pass theo dependency trong INDEX, độ khó = số ngày dẫn trước, co giãn vào 08/09–01/10 (A–G) và 08/10–24/10 (H);
+  task phải bắt đầu sau dependency, mỗi người nhận tối đa 1 task mới/ngày, không muộn hơn commit thật đầu tiên. OPS: bắt đầu = commit đầu.
+- Hạn chót theo mốc đợt: A 03/10, B 06/10, C–E 08/10, F–G 10/10, H00–H04 16/10, H05–H07 30/10, OPS = bắt đầu + 2 ngày.
+- Kết quả: 51/52 đúng hạn, A07 trễ 3 ngày (sửa CI tới 06/10); Ngày xong trễ tô đỏ bằng conditional formatting.
+- Người dùng tự sửa trước đó: xóa phần lớn Ghi chú ở Task đã làm và R01, R02, R07 ở Việc còn lại — giữ nguyên.
+- [x] So sánh trước/sau: chỉ cột I–K và dòng giải thích Tổng quan A25 thay đổi; không có task bắt đầu sau ngày xong.

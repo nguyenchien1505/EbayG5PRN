@@ -24,4 +24,8 @@ Cập nhật 02/11/2026 ([TEAM-001](../tasks/TEAM-001.md)): user yêu cầu chia
 Phân công trách nhiệm hiện hành nằm trong [TEAM_TASKS.xlsx](TEAM_TASKS.xlsx). Chia lại cùng ngày theo mức đóng góp
 (số task + độ khó 1–3), không cào bằng, điểm bốn người chênh ≤ 0,3: Hải A00 A03 A04 A07 F01 F02 F05–F07 G01 G02 OPS-002;
 Đạt A01 A05 A06 B01 B02 B04–B06 D04 F03 F08; Huy C01–C05 D03 H01 H02 H04 OPS-001;
-Nguyên A02 D06 E01–E05 F04 H05 H07. Cương thấp nhất 9 task/độ khó 13: B03 D01 D02 D05 H00 H03 H06/H06a/H06b. Jira KAN vẫn theo bảng 06/10 cho tới khi làm OPS-04 (việc R01 trong file).
+Nguyên A02 D06 E01–E05 F04 H05 H07. Cương thấp nhất 9 task/độ khó 13: B03 D01 D02 D05 H00 H03 H06/H06a/H06b. Jira KAN vẫn theo bảng 06/10 cho tới khi làm OPS-04.
+
+Quyết định 02/11/2026 về ngày trong file Excel (theo yêu cầu người dùng, thay cho quy tắc "để trống ngày" ở trên với sheet Task đã làm):
+Bắt đầu/Hạn chót là **kế hoạch dựng lại** từ 08/09/2026, ghi rõ trên tiêu đề cột; Ngày xong lấy từ commit cuối cùng có `[ID]` trong git.
+Không điền ngày xong giả; không tạo worklog. Cách tính ở [TEAM-001](../tasks/TEAM-001.md).
