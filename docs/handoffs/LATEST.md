@@ -6,7 +6,7 @@ Handoff trước: [OPS-002](OPS-002.md) (deploy lại cluster demo, lưu ý vậ
 ## Đã xong
 
 - [TEAM_TASKS.xlsx](../team/TEAM_TASKS.xlsx): Tổng quan (công thức theo người), Task đã làm (52 task), Việc còn lại (R01–R13,
-  X01–X03 Deferred), Ghi chú (nguồn, cách tính khối lượng, quy tắc không bịa ngày). Task card [TEAM-001](../tasks/TEAM-001.md).
+  X01–X03 Deferred); Tổng quan có Điểm năng suất (/10) và bảng trọng số sửa được. Task card [TEAM-001](../tasks/TEAM-001.md).
 - Phân công mới ghi ở [OWNERSHIP](../team/OWNERSHIP.md): Cương ít nhất (A02 H00 D01 D02 H07), bốn người còn lại ~23–25% mỗi người.
 - Không đổi code, Jira, ngày lịch sử.
 
@@ -20,7 +20,7 @@ Handoff trước: [OPS-002](OPS-002.md) (deploy lại cluster demo, lưu ý vậ
 - R01 (OPS-04): đồng bộ Jira KAN theo phân công mới — chỉ khi người dùng yêu cầu.
 - R02 / Q-TEAM-002: ngày nộp; khi có ngày thì điền cột Hạn chót trong file.
 - R03–R05 là việc code tồn đọng H07: mỗi việc cần task card riêng trước khi sửa.
-- File Excel giờ do nhóm sửa trực tiếp; agent sau đọc file thay vì sinh lại.
+- File Excel giờ do nhóm sửa trực tiếp (người dùng đã bỏ cột Jira/Dòng/Bằng chứng và sheet Ghi chú); agent sau sửa bằng Excel, không sinh lại.
 
 ## Lưu ý vận hành
 
