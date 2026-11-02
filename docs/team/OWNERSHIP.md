@@ -19,3 +19,8 @@ Done cần bằng chứng; không bịa giờ làm, ngày, review hay tên tác 
 Cập nhật 06/10/2026: user chốt tài khoản thật TV1 Tran Van Dat, TV2 Đoàn Công Huy, TV3 Pham Van Cuong, TV4 Nguyên Nguyễn, TV5 Hải Lê. Đã tạo/gán 5 Epic +20 ticket KAN-4–28 và26 Blocks links; [mapping](JIRA_MAPPING.md), [phạm vi](JIRA_BACKLOG_PLAN.md). Các đoạn Unassigned/chưa tạo ở trên là ghi nhận checkpoint trước.
 
 Quy ước user 06/10/2026 sau B05: gom công việc và evidence theo một đợt task để phân chia cho thành viên rồi mới đồng bộ Jira; không tự cập nhật sau mỗi task nhỏ. Số task/mốc mỗi đợt chưa ấn định, lưu các task hoàn tất chưa sync trong handoff/mapping. B06 chỉ triển khai và ghi evidence local; chưa ghi Jira hay worklog. Giữ account/issue mapping đã duyệt, không tạo ticket trùng.
+
+Cập nhật 02/11/2026 ([TEAM-001](../tasks/TEAM-001.md)): user yêu cầu chia lại để Cương ít việc nhất (vẫn có code), phần còn lại chia đều.
+Phân công trách nhiệm hiện hành nằm trong [TEAM_TASKS.xlsx](TEAM_TASKS.xlsx): Hải A00 A03 A04 A07 F01–F08 OPS-001/002;
+Đạt A01 A05 A06 B01–B06 H06/H06a/H06b G02; Huy C01–C05 D03 D04 H01–H03; Nguyên E01–E05 D05 D06 H04 H05 G01;
+Cương A02 H00 D01 D02 H07. Jira KAN vẫn theo bảng 06/10 cho tới khi làm OPS-04 (việc R01 trong file).
