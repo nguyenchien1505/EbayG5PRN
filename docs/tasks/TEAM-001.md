@@ -61,3 +61,11 @@ Xem `git log --oneline --grep=TEAM-001`. Jira chưa đồng bộ theo phân côn
   H00 Cương→Huy, D05 Nguyên→Cương, D06 Cương→Nguyên.
 - Điểm năng suất còn 30% theo việc còn lại hoàn thành, nên sẽ lệch khi nhóm cập nhật trạng thái — đó là phần phản ánh tiến độ thật.
 - [x] Excel tính lại: 52 task, mỗi task một người; đóng góp tổng 100%.
+
+## Cập nhật 02/11/2026 — không cào bằng, bốn người lệch ≤ 0,3
+
+- Người dùng không muốn chia bằng nhau; yêu cầu điểm bốn người lệch khoảng 0,3 trở xuống, Cương vẫn thấp nhất nhưng không quá thấp.
+- Task/độ khó/đóng góp/điểm: Nguyên 10/21/21,6%/6,7; Đạt 11/20/21,4%/6,6; Hải 12/19/21,2%/6,5; Huy 10/20/20,9%/6,4
+  (chênh 0,24 trước làm tròn); Cương 9/13/14,9%/4,6 (~70% mức bốn người). Đổi so với lần trước: G01, G02 Nguyên→Hải;
+  F04 Hải→Nguyên; B03, H00 Huy→Cương; H04 Cương→Huy.
+- [x] Excel tính lại: 52 task, mỗi task một người; đóng góp tổng 100%.
