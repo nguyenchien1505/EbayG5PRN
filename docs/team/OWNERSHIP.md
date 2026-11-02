@@ -22,6 +22,6 @@ Quy ước user 06/10/2026 sau B05: gom công việc và evidence theo một đ�
 
 Cập nhật 02/11/2026 ([TEAM-001](../tasks/TEAM-001.md)): user yêu cầu chia lại để Cương ít việc nhất (vẫn có code), phần còn lại chia đều.
 Phân công trách nhiệm hiện hành nằm trong [TEAM_TASKS.xlsx](TEAM_TASKS.xlsx). Chia lại cùng ngày theo mức đóng góp
-(số task + độ khó 1–3): Hải A00 A03 A04 A07 F01 F02 F04–F07 OPS-002; Đạt A01 A05 A06 B01–B06 F03 F08;
-Huy C01–C05 D03 D04 H01 H02 OPS-001; Nguyên A02 D05 E01–E05 G01 G02 H05 H07; Cương D01 D02 D06 H00 H03 H04 H06/H06a/H06b.
-Bốn người ~21% mỗi người, Cương ~15% (khoảng 70% mức trung bình). Jira KAN vẫn theo bảng 06/10 cho tới khi làm OPS-04 (việc R01 trong file).
+(số task + độ khó 1–3), bốn người bằng nhau 11 task/độ khó 20: Hải A00 A03 A04 A07 F01 F02 F04–F07 OPS-002;
+Đạt A01 A05 A06 B01 B02 B04–B06 D04 F03 F08; Huy B03 C01–C05 D03 H00 H01 H02 OPS-001;
+Nguyên A02 D06 E01–E05 G01 G02 H05 H07. Cương thấp nhất 8 task/độ khó 13: D01 D02 D05 H03 H04 H06/H06a/H06b. Jira KAN vẫn theo bảng 06/10 cho tới khi làm OPS-04 (việc R01 trong file).
