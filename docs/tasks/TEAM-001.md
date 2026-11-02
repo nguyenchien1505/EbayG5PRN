@@ -32,3 +32,14 @@ khối lượng còn lại chia gần đều cho bốn người. Không sửa co
 ## Kết quả
 
 Xem `git log --oneline --grep=TEAM-001`. Jira chưa đồng bộ theo phân công mới (R01 / OPS-04 Pending).
+
+## Cập nhật 02/11/2026 — chỉnh sửa của người dùng và điểm năng suất
+
+- Người dùng tự sửa trong Excel: bỏ cột Jira cũ, ~Dòng code, Bằng chứng (Task đã làm), bỏ ~Dòng/% (Tổng quan) và sheet Ghi chú.
+  Giữ nguyên các chỉnh sửa này; bổ sung sửa bằng Excel (COM) để không mất định dạng.
+- Task đã làm thêm cột **Độ khó (1–3)** (dropdown), điền sẵn theo số dòng đã đo: <400 → 1, 400–900 → 2, >900 → 3; H06 để trống (task gộp).
+- Tổng quan thêm Độ khó (tổng), Hoàn thành việc còn lại (theo ưu tiên Cao 3/TB 2/Thấp 1, không tính Deferred) và
+  **Điểm năng suất (/10)** = 10 × (50% độ khó/max + 20% số task/max + 30% hoàn thành). Trọng số ở ô D15:D20, có ô kiểm tra tổng = 100%.
+  Không xếp hạng/xếp loại (người dùng chọn chỉ điểm).
+- [x] Excel tính lại: Hải 7,0; Đạt 5,5; Huy 5,6; Nguyên 5,8; Cương 2,1 (chưa việc còn lại nào Done).
+  Thử trên bản sao: R13 của Cương → Done cho 75% và 4,4 điểm, đúng công thức.
