@@ -52,3 +52,12 @@ Xem `git log --oneline --grep=TEAM-001`. Jira chưa đồng bộ theo phân côn
 - Kết quả (task/độ khó/đóng góp): Hải 11/20/21,4%; Đạt 11/19/20,6%; Huy 10/20/20,9%; Nguyên 11/21/22,2%; Cương 9/13/14,9%.
   Danh sách task theo người ở [OWNERSHIP](../team/OWNERSHIP.md). Ghi chú lệch Jira và mô tả R09–R13 cập nhật theo phân công mới.
 - [x] Excel tính lại: 52 task đủ, mỗi task đúng một người; tổng đóng góp 100%; điểm năng suất Hải 6,8, Đạt 6,5, Huy 6,6, Nguyên 7,0, Cương 4,7.
+
+## Cập nhật 02/11/2026 — bốn người chênh ≤ 0,3 điểm
+
+- Yêu cầu: điểm đóng góp của Hải, Đạt, Huy, Nguyên cách nhau ≤ 0,3; Cương vẫn thấp nhất nhưng không quá thấp.
+- Chia để bốn người cùng 11 task/độ khó 20 → Mức đóng góp 21,4% và điểm năng suất 7,0 bằng nhau (chênh 0 theo cả hai cách hiểu "điểm").
+  Cương 8 task/độ khó 13 → 14,4%, điểm 4,7 (~67% mức bốn người). Đổi so với lần trước: D04 Huy→Đạt, B03 Đạt→Huy,
+  H00 Cương→Huy, D05 Nguyên→Cương, D06 Cương→Nguyên.
+- Điểm năng suất còn 30% theo việc còn lại hoàn thành, nên sẽ lệch khi nhóm cập nhật trạng thái — đó là phần phản ánh tiến độ thật.
+- [x] Excel tính lại: 52 task, mỗi task một người; đóng góp tổng 100%.
